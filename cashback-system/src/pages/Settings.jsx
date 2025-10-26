@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 
 export default function Settings() {
-  const { user } = useAuthStore();
+  const { merchant } = useAuthStore();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('general');
@@ -55,10 +55,14 @@ export default function Settings() {
 
   const loadSettings = async () => {
     try {
+      if (!merchant || !merchant.id) {
+        throw new Error('Merchant não encontrado. Faça login novamente.');
+      }
+
       const { data, error } = await supabase
         .from('merchants')
         .select('*')
-        .eq('id', user.merchant_id)
+        .eq('id', merchant.id)
         .single();
 
       if (error) throw error;
@@ -76,7 +80,7 @@ export default function Settings() {
       });
     } catch (error) {
       console.error('Erro ao carregar configurações:', error);
-      toast.error('Erro ao carregar configurações');
+      toast.error(error.message || 'Erro ao carregar configurações');
     } finally {
       setLoading(false);
     }
@@ -86,6 +90,10 @@ export default function Settings() {
     setSaving(true);
 
     try {
+      if (!merchant || !merchant.id) {
+        throw new Error('Merchant não encontrado. Faça login novamente.');
+      }
+
       const updateData = {};
 
       if (section === 'general') {
@@ -100,22 +108,27 @@ export default function Settings() {
         updateData.meta_pixel_id = settings.meta_pixel_id || null;
       }
 
-      const { error } = await supabase
+      console.log('Salvando dados:', { merchantId: merchant.id, updateData, section });
+
+      const { data, error } = await supabase
         .from('merchants')
         .update(updateData)
-        .eq('id', user.merchant_id);
+        .eq('id', merchant.id)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro do Supabase:', error);
+        throw error;
+      }
 
+      console.log('Dados salvos com sucesso:', data);
       toast.success('Configurações salvas com sucesso!');
       
-      // Recarregar para atualizar slug se necessário
-      if (section === 'domain') {
-        await loadSettings();
-      }
+      // Recarregar para atualizar dados
+      await loadSettings();
     } catch (error) {
       console.error('Erro ao salvar:', error);
-      toast.error('Erro ao salvar configurações');
+      toast.error(error.message || 'Erro ao salvar configurações');
     } finally {
       setSaving(false);
     }
