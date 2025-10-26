@@ -94,8 +94,7 @@ export default function CACLTVCalculator({ merchantId, dateRange }) {
         merchant_id: merchantId,
         amount: parseFloat(marketingSpend),
         date: new Date().toISOString().split('T')[0],
-        platform: 'manual',
-        description: 'Investimento em tráfego'
+        platform: 'manual'
       };
 
       console.log('Salvando gasto em marketing:', spendData);
