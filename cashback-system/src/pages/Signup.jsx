@@ -54,7 +54,6 @@ export default function Signup() {
           phone: formData.merchantPhone,
           address: formData.merchantAddress,
           cashback_percentage: 5, // Padrão 5%
-          active: true,
         })
         .select()
         .single();
@@ -70,7 +69,6 @@ export default function Signup() {
           email: formData.ownerEmail,
           password: formData.ownerPassword, // Em produção, hash a senha!
           role: 'owner',
-          active: true,
         })
         .select()
         .single();
