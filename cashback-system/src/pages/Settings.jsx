@@ -13,14 +13,18 @@ import {
   TrendingUp,
   Code,
   Eye,
-  EyeOff
+  EyeOff,
+  User,
+  Mail,
+  Phone,
+  Save
 } from 'lucide-react';
 
 export default function Settings() {
-  const { merchant } = useAuthStore();
+  const { merchant, employee } = useAuthStore();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState('general');
+  const [activeTab, setActiveTab] = useState('profile');
   const [copied, setCopied] = useState(false);
   const [showGTM, setShowGTM] = useState(false);
   const [showPixel, setShowPixel] = useState(false);
@@ -35,6 +39,14 @@ export default function Settings() {
     meta_pixel_id: '',
     signup_link_slug: '',
     logo_url: '',
+  });
+
+  // Estado para perfil do usuário (employee)
+  const [profileData, setProfileData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    role: '',
   });
 
   const [signupUrl, setSignupUrl] = useState('');
@@ -78,11 +90,80 @@ export default function Settings() {
         signup_link_slug: data.signup_link_slug || '',
         logo_url: data.logo_url || '',
       });
+
+      // Carregar dados do perfil do usuário
+      if (employee && employee.id) {
+        setProfileData({
+          name: employee.name || '',
+          email: employee.email || '',
+          phone: employee.phone || '',
+          role: employee.role || '',
+        });
+      }
     } catch (error) {
       console.error('Erro ao carregar configurações:', error);
       toast.error(error.message || 'Erro ao carregar configurações');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    setSaving(true);
+
+    try {
+      if (!employee || !employee.id) {
+        throw new Error('Usuário não encontrado. Faça login novamente.');
+      }
+
+      // Validações
+      if (!profileData.name.trim()) {
+        toast.error('Nome é obrigatório');
+        setSaving(false);
+        return;
+      }
+
+      if (!profileData.email.trim()) {
+        toast.error('Email é obrigatório');
+        setSaving(false);
+        return;
+      }
+
+      const updateData = {
+        name: profileData.name.trim(),
+        email: profileData.email.trim(),
+        phone: profileData.phone.trim() || null,
+      };
+
+      console.log('Salvando perfil:', { employeeId: employee.id, updateData });
+
+      const { data, error } = await supabase
+        .from('employees')
+        .update(updateData)
+        .eq('id', employee.id)
+        .select();
+
+      if (error) {
+        console.error('Erro do Supabase:', error);
+        throw error;
+      }
+
+      console.log('Perfil salvo com sucesso:', data);
+      toast.success('Perfil atualizado com sucesso!');
+      
+      // Atualizar store com novos dados
+      if (data && data[0]) {
+        const updatedEmployee = { ...employee, ...data[0] };
+        useAuthStore.getState().setEmployee(updatedEmployee);
+      }
+
+      // Recarregar para atualizar dados
+      await loadSettings();
+    } catch (error) {
+      console.error('Erro ao salvar perfil:', error);
+      toast.error(error.message || 'Erro ao salvar perfil');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -189,12 +270,25 @@ export default function Settings() {
 
       {/* Tabs */}
       <div className="border-b border-gray-200 mb-6">
-        <div className="flex gap-8">
+        <div className="flex gap-8 overflow-x-auto">
+          <button
+            onClick={() => setActiveTab('profile')}
+            className={`pb-4 px-1 border-b-2 font-medium transition-colors whitespace-nowrap ${
+              activeTab === 'profile'
+                ? 'border-primary-600 text-primary-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <User className="w-4 h-4" />
+              Meu Perfil
+            </div>
+          </button>
           <button
             onClick={() => setActiveTab('general')}
-            className={`pb-4 px-1 border-b-2 font-medium transition-colors ${
+            className={`pb-4 px-1 border-b-2 font-medium transition-colors whitespace-nowrap ${
               activeTab === 'general'
-                ? 'border-blue-600 text-blue-600'
+                ? 'border-primary-600 text-primary-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -202,9 +296,9 @@ export default function Settings() {
           </button>
           <button
             onClick={() => setActiveTab('cashback')}
-            className={`pb-4 px-1 border-b-2 font-medium transition-colors ${
+            className={`pb-4 px-1 border-b-2 font-medium transition-colors whitespace-nowrap ${
               activeTab === 'cashback'
-                ? 'border-blue-600 text-blue-600'
+                ? 'border-primary-600 text-primary-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -212,9 +306,9 @@ export default function Settings() {
           </button>
           <button
             onClick={() => setActiveTab('signup')}
-            className={`pb-4 px-1 border-b-2 font-medium transition-colors ${
+            className={`pb-4 px-1 border-b-2 font-medium transition-colors whitespace-nowrap ${
               activeTab === 'signup'
-                ? 'border-blue-600 text-blue-600'
+                ? 'border-primary-600 text-primary-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -222,9 +316,9 @@ export default function Settings() {
           </button>
           <button
             onClick={() => setActiveTab('marketing')}
-            className={`pb-4 px-1 border-b-2 font-medium transition-colors ${
+            className={`pb-4 px-1 border-b-2 font-medium transition-colors whitespace-nowrap ${
               activeTab === 'marketing'
-                ? 'border-blue-600 text-blue-600'
+                ? 'border-primary-600 text-primary-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -235,6 +329,140 @@ export default function Settings() {
 
       {/* Tab Content */}
       <div className="bg-white rounded-xl shadow-sm p-6">
+        {/* Profile Settings */}
+        {activeTab === 'profile' && (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-xl font-semibold mb-2 flex items-center gap-2">
+                <User className="w-5 h-5 text-primary-600" />
+                Meu Perfil
+              </h2>
+              <p className="text-gray-600 text-sm mb-6">
+                Gerencie suas informações pessoais e de contato
+              </p>
+              
+              <div className="space-y-4 max-w-2xl">
+                {/* Nome */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Nome Completo *
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="text"
+                      value={profileData.name}
+                      onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      placeholder="Seu nome completo"
+                      required
+                    />
+                  </div>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Este nome será exibido no sistema
+                  </p>
+                </div>
+
+                {/* Email */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Email *
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="email"
+                      value={profileData.email}
+                      onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      placeholder="seu@email.com"
+                      required
+                    />
+                  </div>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Usado para login e notificações
+                  </p>
+                </div>
+
+                {/* Telefone */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Telefone
+                  </label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="tel"
+                      value={profileData.phone}
+                      onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      placeholder="(00) 00000-0000"
+                    />
+                  </div>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Número de contato (opcional)
+                  </p>
+                </div>
+
+                {/* Função/Cargo */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Função no Sistema
+                  </label>
+                  <div className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-800 capitalize">
+                      {profileData.role === 'owner' && '👑 Proprietário'}
+                      {profileData.role === 'manager' && '👔 Gerente'}
+                      {profileData.role === 'employee' && '👤 Funcionário'}
+                      {!profileData.role && '👤 Usuário'}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Seu nível de acesso no sistema
+                  </p>
+                </div>
+
+                {/* Informações adicionais */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h3 className="text-sm font-semibold text-blue-900 mb-2">
+                    ℹ️ Informações
+                  </h3>
+                  <ul className="text-sm text-blue-800 space-y-1">
+                    <li>• O email é usado para fazer login no sistema</li>
+                    <li>• Apenas proprietários podem alterar configurações do estabelecimento</li>
+                    <li>• Para alterar sua função, contate o proprietário</li>
+                  </ul>
+                </div>
+
+                {/* Botão Salvar */}
+                <div className="flex items-center gap-3 pt-4">
+                  <button
+                    onClick={handleSaveProfile}
+                    disabled={saving}
+                    className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-lg font-semibold hover:from-primary-700 hover:to-primary-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-primary-500/50"
+                  >
+                    {saving ? (
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                        Salvando...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-5 h-5" />
+                        Salvar Perfil
+                      </>
+                    )}
+                  </button>
+                  
+                  <p className="text-sm text-gray-500">
+                    * Campos obrigatórios
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* General Settings */}
         {activeTab === 'general' && (
           <div className="space-y-6">
