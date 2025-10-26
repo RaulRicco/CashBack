@@ -77,6 +77,12 @@ export default function CACLTVCalculator({ merchantId, dateRange }) {
 
   const handleAddSpend = async (e) => {
     e.preventDefault();
+    
+    if (!merchantId) {
+      toast.error('Erro: Merchant não identificado. Faça login novamente.');
+      return;
+    }
+
     if (!marketingSpend || parseFloat(marketingSpend) <= 0) {
       toast.error('Insira um valor válido');
       return;
@@ -84,23 +90,33 @@ export default function CACLTVCalculator({ merchantId, dateRange }) {
 
     setSaving(true);
     try {
-      const { error } = await supabase
+      const spendData = {
+        merchant_id: merchantId,
+        amount: parseFloat(marketingSpend),
+        date: new Date().toISOString().split('T')[0],
+        platform: 'manual',
+        description: 'Investimento em tráfego'
+      };
+
+      console.log('Salvando gasto em marketing:', spendData);
+
+      const { data, error } = await supabase
         .from('marketing_spend')
-        .insert({
-          merchant_id: merchantId,
-          amount: parseFloat(marketingSpend),
-          date: new Date().toISOString().split('T')[0],
-          platform: 'manual'
-        });
+        .insert(spendData)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro do Supabase:', error);
+        throw error;
+      }
 
-      toast.success('Gasto em marketing adicionado!');
+      console.log('Gasto salvo com sucesso:', data);
+      toast.success('Investimento adicionado com sucesso!');
       setMarketingSpend('');
-      loadMetrics();
+      await loadMetrics();
     } catch (error) {
-      console.error('Erro ao salvar:', error);
-      toast.error('Erro ao adicionar gasto');
+      console.error('Erro ao salvar gasto em marketing:', error);
+      toast.error(error.message || 'Erro ao adicionar investimento');
     } finally {
       setSaving(false);
     }

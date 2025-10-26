@@ -470,6 +470,85 @@ export default function Settings() {
                   {saving ? 'Salvando...' : 'Salvar Configurações'}
                 </button>
               </div>
+
+              {/* Instruções de Configuração DNS */}
+              <div className="mt-8 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Como Configurar Seu Domínio Próprio
+                </h3>
+
+                <div className="space-y-4 text-sm">
+                  <div className="bg-white rounded-lg p-4">
+                    <p className="font-semibold text-gray-900 mb-2">📝 Passo 1: Acessar o Painel de DNS</p>
+                    <p className="text-gray-700">
+                      Entre no painel do provedor onde você registrou seu domínio (Registro.br, Hostgator, Locaweb, GoDaddy, etc.)
+                      e procure por "DNS", "Zona DNS" ou "Gerenciar DNS".
+                    </p>
+                  </div>
+
+                  <div className="bg-white rounded-lg p-4">
+                    <p className="font-semibold text-gray-900 mb-2">⚙️ Passo 2: Criar Registro CNAME</p>
+                    <div className="bg-gray-50 rounded p-3 font-mono text-xs mt-2">
+                      <p className="text-gray-600 mb-1">Tipo: <span className="text-blue-600 font-semibold">CNAME</span></p>
+                      <p className="text-gray-600 mb-1">Nome/Host: <span className="text-blue-600 font-semibold">cashback</span></p>
+                      <p className="text-gray-600">Destino/Aponta para: <span className="text-blue-600 font-semibold">5179-iissidqg3y4yqs2mu7iw2-2b54fc91.sandbox.novita.ai</span></p>
+                    </div>
+                    <p className="text-gray-600 mt-2 text-xs">
+                      ⚠️ Não adicione http://, https:// ou / no destino
+                    </p>
+                  </div>
+
+                  <div className="bg-white rounded-lg p-4">
+                    <p className="font-semibold text-gray-900 mb-2">⏱️ Passo 3: Aguardar Propagação</p>
+                    <p className="text-gray-700">
+                      Após salvar o registro DNS, aguarde de <strong>15 minutos a 2 horas</strong> para que a configuração
+                      se propague pela internet.
+                    </p>
+                  </div>
+
+                  <div className="bg-white rounded-lg p-4">
+                    <p className="font-semibold text-gray-900 mb-2">✅ Passo 4: Configurar Aqui</p>
+                    <p className="text-gray-700">
+                      Após a propagação, volte aqui e digite seu domínio completo no campo acima
+                      (ex: <code className="bg-gray-100 px-2 py-1 rounded">cashback.seudominio.com.br</code>)
+                      e clique em Salvar.
+                    </p>
+                  </div>
+
+                  <div className="bg-white rounded-lg p-4">
+                    <p className="font-semibold text-gray-900 mb-2">🧪 Passo 5: Testar</p>
+                    <p className="text-gray-700 mb-2">
+                      Teste se está funcionando acessando seu domínio no navegador:
+                    </p>
+                    <code className="block bg-gray-100 px-3 py-2 rounded text-blue-600">
+                      https://cashback.seudominio.com.br
+                    </code>
+                  </div>
+                </div>
+
+                <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <p className="text-sm font-semibold text-yellow-800 mb-1">💡 Dica Importante:</p>
+                  <p className="text-sm text-yellow-700">
+                    Use um <strong>subdomínio</strong> (como cashback.seudominio.com.br) ao invés do domínio principal.
+                    Assim seu site principal não é afetado.
+                  </p>
+                </div>
+
+                <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <p className="text-sm font-semibold text-blue-800 mb-2">🆘 Precisa de Ajuda?</p>
+                  <p className="text-sm text-blue-700 mb-2">
+                    Entre em contato com o suporte do seu provedor e peça:
+                  </p>
+                  <div className="bg-white rounded p-3 text-xs font-mono text-gray-700">
+                    "Olá, gostaria de adicionar um registro CNAME apontando<br />
+                    cashback.meudominio.com.br para<br />
+                    5179-iissidqg3y4yqs2mu7iw2-2b54fc91.sandbox.novita.ai"
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
