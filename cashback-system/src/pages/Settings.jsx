@@ -34,6 +34,10 @@ export default function Settings() {
     email: '',
     phone: '',
     cashback_percentage: 5.0,
+    cashback_program_name: '',
+    cashback_expires: false,
+    cashback_expiration_days: 180,
+    cashback_available_immediately: true,
     custom_domain: '',
     gtm_id: '',
     meta_pixel_id: '',
@@ -84,6 +88,10 @@ export default function Settings() {
         email: data.email || '',
         phone: data.phone || '',
         cashback_percentage: data.cashback_percentage || 5.0,
+        cashback_program_name: data.cashback_program_name || (data.name + ' - Cashback'),
+        cashback_expires: data.cashback_expires ?? false,
+        cashback_expiration_days: data.cashback_expiration_days || 180,
+        cashback_available_immediately: data.cashback_available_immediately ?? true,
         custom_domain: data.custom_domain || '',
         gtm_id: data.gtm_id || '',
         meta_pixel_id: data.meta_pixel_id || '',
@@ -181,6 +189,11 @@ export default function Settings() {
         updateData.name = settings.name;
         updateData.phone = settings.phone;
         updateData.cashback_percentage = parseFloat(settings.cashback_percentage);
+      } else if (section === 'cashback') {
+        updateData.cashback_program_name = settings.cashback_program_name;
+        updateData.cashback_expires = settings.cashback_expires;
+        updateData.cashback_expiration_days = parseInt(settings.cashback_expiration_days);
+        updateData.cashback_available_immediately = settings.cashback_available_immediately;
       } else if (section === 'domain') {
         updateData.custom_domain = settings.custom_domain || null;
         updateData.signup_link_slug = settings.signup_link_slug;
@@ -522,16 +535,35 @@ export default function Settings() {
         {/* Cashback Settings */}
         {activeTab === 'cashback' && (
           <div className="space-y-6">
+            {/* Nome do Programa */}
+            <div>
+              <h2 className="text-xl font-semibold mb-2 flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-primary-600" />
+                Nome do Programa de Cashback
+              </h2>
+              <p className="text-gray-600 mb-4">
+                Nome personalizado que aparecerá para seus clientes
+              </p>
+              <input
+                type="text"
+                value={settings.cashback_program_name}
+                onChange={(e) => setSettings({ ...settings, cashback_program_name: e.target.value })}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                placeholder="Ex: Programa Fidelidade João"
+              />
+            </div>
+
+            {/* Percentual de Cashback */}
             <div>
               <h2 className="text-xl font-semibold mb-2 flex items-center gap-2">
                 <Percent className="w-5 h-5 text-blue-600" />
                 Percentual de Cashback
               </h2>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600 mb-4">
                 Defina o percentual de cashback que seus clientes vão ganhar em cada compra
               </p>
 
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 mb-6">
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 mb-4">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <p className="text-sm text-gray-600 mb-1">Percentual Atual</p>
@@ -552,64 +584,115 @@ export default function Settings() {
                 </p>
               </div>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Novo Percentual (0.1% - 100%)
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0.1"
-                      max="100"
-                      value={settings.cashback_percentage}
-                      onChange={handleCashbackChange}
-                      onBlur={handleCashbackBlur}
-                      className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
-                      placeholder="5.00"
-                    />
-                    <Percent className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  </div>
-                  <p className="mt-2 text-sm text-gray-500">
-                    Recomendado: entre 2% e 10% para manter um bom equilíbrio
-                  </p>
-                </div>
-
-                {/* Preview de Exemplos */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-sm font-medium text-gray-700 mb-3">Exemplos de Cashback:</p>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Compra de R$ 50,00</span>
-                      <span className="font-semibold text-green-600">
-                        + R$ {(50 * parseFloat(settings.cashback_percentage) / 100).toFixed(2)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Compra de R$ 100,00</span>
-                      <span className="font-semibold text-green-600">
-                        + R$ {(100 * parseFloat(settings.cashback_percentage) / 100).toFixed(2)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Compra de R$ 200,00</span>
-                      <span className="font-semibold text-green-600">
-                        + R$ {(200 * parseFloat(settings.cashback_percentage) / 100).toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => handleSave('general')}
-                  disabled={saving || !validateCashbackPercentage(settings.cashback_percentage)}
-                  className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-                >
-                  {saving ? 'Salvando...' : 'Salvar Percentual de Cashback'}
-                </button>
+              <div className="relative mb-4">
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0.1"
+                  max="100"
+                  value={settings.cashback_percentage}
+                  onChange={(e) => setSettings({ ...settings, cashback_percentage: e.target.value })}
+                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
+                  placeholder="5.00"
+                />
+                <Percent className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               </div>
             </div>
+
+            {/* Disponibilidade Imediata */}
+            <div className="border-t pt-6">
+              <h2 className="text-xl font-semibold mb-2">
+                Disponibilidade do Cashback
+              </h2>
+              <p className="text-gray-600 mb-4">
+                Defina quando o cashback fica disponível para uso
+              </p>
+              
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={settings.cashback_available_immediately}
+                    onChange={(e) => setSettings({ ...settings, cashback_available_immediately: e.target.checked })}
+                    className="w-5 h-5 text-green-600 rounded focus:ring-green-500"
+                  />
+                  <div>
+                    <p className="font-medium text-gray-900">Disponível imediatamente</p>
+                    <p className="text-sm text-gray-600">
+                      O cashback fica disponível assim que a compra é registrada
+                    </p>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            {/* Expiração do Cashback */}
+            <div className="border-t pt-6">
+              <h2 className="text-xl font-semibold mb-2">
+                Expiração do Cashback
+              </h2>
+              <p className="text-gray-600 mb-4">
+                Defina se o cashback tem validade
+              </p>
+
+              <div className="space-y-4">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={settings.cashback_expires}
+                    onChange={(e) => setSettings({ ...settings, cashback_expires: e.target.checked })}
+                    className="w-5 h-5 text-primary-600 rounded focus:ring-primary-500"
+                  />
+                  <div>
+                    <p className="font-medium text-gray-900">Cashback expira após um período</p>
+                    <p className="text-sm text-gray-600">
+                      Defina um prazo de validade para o cashback acumulado
+                    </p>
+                  </div>
+                </label>
+
+                {settings.cashback_expires && (
+                  <div className="ml-8 space-y-4 bg-gray-50 rounded-lg p-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Prazo de Validade (em dias)
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="3650"
+                        value={settings.cashback_expiration_days}
+                        onChange={(e) => setSettings({ ...settings, cashback_expiration_days: e.target.value })}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        placeholder="180"
+                      />
+                      <p className="mt-2 text-sm text-gray-500">
+                        Sugerido: 180 dias (6 meses) | 365 dias (1 ano)
+                      </p>
+                    </div>
+
+                    {settings.cashback_expiration_days && (
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        <p className="text-sm text-blue-800">
+                          <strong>Resumo:</strong> O cashback expirará {settings.cashback_expiration_days} dias 
+                          após a compra ({Math.floor(settings.cashback_expiration_days / 30)} meses 
+                          {settings.cashback_expiration_days % 30 > 0 && ` e ${settings.cashback_expiration_days % 30} dias`})
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Botão Salvar */}
+            <button
+              onClick={() => handleSave('cashback')}
+              disabled={saving}
+              className="w-full px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+            >
+              {saving ? 'Salvando...' : 'Salvar Configurações de Cashback'}
+            </button>
           </div>
         )}
 

@@ -9,6 +9,7 @@ export default function CustomerDashboard() {
   const { phone } = useParams();
   const [loading, setLoading] = useState(true);
   const [customer, setCustomer] = useState(null);
+  const [merchant, setMerchant] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [redemptions, setRedemptions] = useState([]);
 
@@ -36,13 +37,24 @@ export default function CustomerDashboard() {
       // Buscar transações
       const { data: txData } = await supabase
         .from('transactions')
-        .select('*, merchant:merchants(name)')
+        .select('*, merchant:merchants(name, cashback_program_name)')
         .eq('customer_id', customerData.id)
         .eq('status', 'completed')
         .order('created_at', { ascending: false })
         .limit(10);
 
       setTransactions(txData || []);
+
+      // Pegar o merchant principal (do primeiro transaction ou mais recente)
+      if (txData && txData.length > 0 && txData[0].merchant_id) {
+        const { data: merchantData } = await supabase
+          .from('merchants')
+          .select('name, cashback_program_name')
+          .eq('id', txData[0].merchant_id)
+          .single();
+        
+        setMerchant(merchantData);
+      }
 
       // Buscar resgates
       const { data: redemptionData } = await supabase
@@ -95,8 +107,12 @@ export default function CustomerDashboard() {
               <Wallet className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">Meu Cashback</h1>
-              <p className="text-primary-100">{customer.phone}</p>
+              <h1 className="text-2xl font-bold">
+                {merchant?.cashback_program_name || 'Meu Cashback'}
+              </h1>
+              <p className="text-primary-100">
+                {merchant?.name || customer.phone}
+              </p>
             </div>
           </div>
 
