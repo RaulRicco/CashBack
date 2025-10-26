@@ -257,7 +257,7 @@ export const BRAND_CONFIG = {
   
   social: {
     website: 'https://localcashback.com.br',
-    support: 'https://suporte.localcashback.com.br',
+    support: 'https://localcashback.com.br/suporte',
     privacy: 'https://localcashback.com.br/privacidade',
     terms: 'https://localcashback.com.br/termos',
     
