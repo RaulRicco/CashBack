@@ -63,9 +63,9 @@ export default function DashboardLayout({ children }) {
           <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
             <div className="flex items-center gap-3">
               <img 
-                src={getLogo('main')}
+                src={getLogo('icon')}
                 alt={getBrandName()} 
-                className={`object-contain ${BRAND_CONFIG.logoSizes.sidebar}`}
+                className="object-contain w-10 h-10 rounded-full"
               />
               <span className="text-xl font-bold text-gray-900">{getBrandName(true)}</span>
             </div>
@@ -143,9 +143,9 @@ export default function DashboardLayout({ children }) {
               {/* Logo Mobile */}
               <div className="flex items-center gap-2 lg:hidden">
                 <img 
-                  src={getLogo('main')}
+                  src={getLogo('icon')}
                   alt={getBrandName()} 
-                  className={`object-contain ${BRAND_CONFIG.logoSizes.mobileHeader}`}
+                  className="object-contain w-8 h-8 rounded-full"
                 />
                 <span className="text-lg font-bold text-gray-900">{getBrandName(true)}</span>
               </div>

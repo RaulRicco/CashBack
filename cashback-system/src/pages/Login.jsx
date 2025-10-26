@@ -37,7 +37,7 @@ export default function Login() {
             <img 
               src={getLogo('icon')}
               alt={getBrandName()} 
-              className="object-contain w-24 h-24"
+              className="object-contain w-24 h-24 rounded-full"
             />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
