@@ -111,16 +111,6 @@ export default function Login() {
             )}
           </button>
         </form>
-
-        {/* Info de desenvolvimento */}
-        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm text-blue-800 font-medium mb-2">
-            🔧 Modo Desenvolvimento
-          </p>
-          <p className="text-xs text-blue-700">
-            Use qualquer email cadastrado na tabela <code className="bg-blue-100 px-1 rounded">employees</code> com qualquer senha.
-          </p>
-        </div>
       </div>
     </div>
   );

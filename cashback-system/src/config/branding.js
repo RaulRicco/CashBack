@@ -29,7 +29,7 @@ export const BRAND_CONFIG = {
   /**
    * Tagline / Slogan
    */
-  tagline: 'Cashback do comércio perto de você',
+  tagline: 'Gerencie seu programa de cashback',
   
   /**
    * Descrição completa (SEO)
