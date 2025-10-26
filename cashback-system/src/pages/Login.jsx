@@ -35,9 +35,9 @@ export default function Login() {
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center mb-4">
             <img 
-              src={getLogo('main')}
+              src={getLogo('icon')}
               alt={getBrandName()} 
-              className={`object-contain ${BRAND_CONFIG.logoSizes.login}`}
+              className="object-contain w-24 h-24"
             />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">

@@ -202,9 +202,9 @@ export default function CustomerSignup() {
         {BRAND_CONFIG.features.showPoweredBy && (
           <div className="text-center mb-6">
             <img 
-              src={getLogo('main')}
+              src={getLogo('icon')}
               alt={getBrandName()} 
-              className={`mx-auto mb-3 object-contain ${BRAND_CONFIG.logoSizes.customerSignup}`}
+              className="mx-auto mb-3 object-contain w-16 h-16"
             />
             <p className="text-sm text-gray-500">
               {BRAND_CONFIG.messages.customerSignup.poweredBy} {getBrandName()}
