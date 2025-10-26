@@ -60,7 +60,7 @@ export default function Cashback() {
       // Gerar token único para o QR Code
       const qrToken = `CASHBACK_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
 
-      // Criar transação
+      // Criar transação (AGORA JÁ COMO COMPLETED)
       const { data: transaction, error: transactionError } = await supabase
         .from('transactions')
         .insert({
@@ -72,12 +72,31 @@ export default function Cashback() {
           cashback_amount: cashbackAmount,
           cashback_percentage: cashbackPercentage,
           qr_code_token: qrToken,
-          status: 'pending'
+          status: 'completed',  // ✅ JÁ COMPLETO - CASHBACK IMEDIATO
+          qr_scanned: true,
+          qr_scanned_at: new Date().toISOString()
         })
         .select()
         .single();
 
       if (transactionError) throw transactionError;
+
+      // ✅ ATUALIZAR SALDO DO CLIENTE IMEDIATAMENTE
+      const { data: currentCustomer } = await supabase
+        .from('customers')
+        .select('total_cashback, available_cashback, total_spent')
+        .eq('id', customer.id)
+        .single();
+
+      await supabase
+        .from('customers')
+        .update({
+          total_cashback: (currentCustomer?.total_cashback || 0) + cashbackAmount,
+          available_cashback: (currentCustomer?.available_cashback || 0) + cashbackAmount,
+          total_spent: (currentCustomer?.total_spent || 0) + purchaseAmount,
+          last_purchase_at: new Date().toISOString()
+        })
+        .eq('id', customer.id);
 
       // Tracking: Cashback Gerado
       trackCashbackGenerated({
