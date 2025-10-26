@@ -12,6 +12,7 @@ import Redemption from './pages/Redemption';
 import Customers from './pages/Customers';
 import Employees from './pages/Employees';
 import Reports from './pages/Reports';
+import Integrations from './pages/Integrations';
 import CustomerCashback from './pages/CustomerCashback';
 import CustomerRedemption from './pages/CustomerRedemption';
 import CustomerDashboard from './pages/CustomerDashboard';
@@ -128,6 +129,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Reports />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/integrations" 
+          element={
+            <ProtectedRoute>
+              <Integrations />
             </ProtectedRoute>
           } 
         />

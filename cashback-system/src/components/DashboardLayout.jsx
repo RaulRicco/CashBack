@@ -12,7 +12,8 @@ import {
   X,
   Wallet,
   UserPlus,
-  QrCode
+  QrCode,
+  Mail
 } from 'lucide-react';
 
 export default function DashboardLayout({ children }) {
@@ -33,6 +34,7 @@ export default function DashboardLayout({ children }) {
     { name: 'Clientes', href: '/customers', icon: Users },
     { name: 'Funcionários', href: '/employees', icon: UserPlus },
     { name: 'Relatórios', href: '/reports', icon: TrendingUp },
+    { name: 'Integrações', href: '/integrations', icon: Mail },
   ];
 
   const isActive = (path) => location.pathname === path;

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { CheckCircle, Gift, ArrowRight, Loader } from 'lucide-react';
 import { trackCashbackScanned, trackCashbackCompleted } from '../lib/tracking';
+import { syncCustomerToIntegrations } from '../lib/integrations';
 
 export default function CustomerCashback() {
   const { token } = useParams();
@@ -76,6 +77,9 @@ export default function CustomerCashback() {
         customerPhone: updatedTx.customer.phone,
         merchantId: updatedTx.merchant_id
       });
+
+      // Sincronizar com integrações de email marketing
+      syncCustomerToIntegrations(updatedTx.customer, updatedTx.merchant_id, 'purchase');
 
       setLoading(false);
     } catch (error) {

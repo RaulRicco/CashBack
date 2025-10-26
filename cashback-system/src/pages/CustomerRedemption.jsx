@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { CheckCircle, Gift, ArrowRight, Loader } from 'lucide-react';
 import { trackRedemptionCompleted } from '../lib/tracking';
+import { syncCustomerToIntegrations } from '../lib/integrations';
 
 export default function CustomerRedemption() {
   const { token } = useParams();
@@ -72,6 +73,9 @@ export default function CustomerRedemption() {
         customerPhone: updatedRedemption.customer.phone,
         merchantId: updatedRedemption.merchant_id
       });
+
+      // Sincronizar com integrações de email marketing
+      syncCustomerToIntegrations(updatedRedemption.customer, updatedRedemption.merchant_id, 'redemption');
 
       setLoading(false);
     } catch (error) {
