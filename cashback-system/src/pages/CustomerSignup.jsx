@@ -14,6 +14,7 @@ export default function CustomerSignup() {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
+    email: '',
   });
 
   useEffect(() => {
@@ -56,7 +57,13 @@ export default function CustomerSignup() {
     e.preventDefault();
     
     if (!formData.name.trim() || !formData.phone.trim()) {
-      toast.error('Por favor, preencha todos os campos');
+      toast.error('Por favor, preencha nome e telefone');
+      return;
+    }
+
+    // Validar email se fornecido
+    if (formData.email && !formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      toast.error('Email inválido');
       return;
     }
 
@@ -99,7 +106,7 @@ export default function CustomerSignup() {
           {
             phone: phoneClean,
             name: formData.name,
-            email: null,
+            email: formData.email || null,
             referred_by_merchant_id: merchant.id,
             cashback_balance: 0,
           }
@@ -218,6 +225,27 @@ export default function CustomerSignup() {
                 required
               />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Email <span className="text-gray-500 text-xs">(opcional)</span>
+            </label>
+            <div className="relative">
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              <input
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="seu@email.com"
+              />
+            </div>
+            <p className="mt-1 text-sm text-gray-500">
+              Para receber ofertas exclusivas
+            </p>
           </div>
 
           <div>
