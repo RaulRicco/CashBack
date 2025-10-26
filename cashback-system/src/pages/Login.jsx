@@ -32,14 +32,18 @@ export default function Login() {
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
         {/* Logo e Título */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-100 rounded-full mb-4">
-            <Wallet className="w-8 h-8 text-primary-600" />
+          <div className="inline-flex items-center justify-center mb-4">
+            <img 
+              src="/logo-pertocash.png" 
+              alt="PertoCash" 
+              className="w-20 h-20 object-contain"
+            />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Sistema Cashback
+            PertoCash
           </h1>
           <p className="text-gray-600">
-            Faça login para continuar
+            Cashback do comércio perto de você
           </p>
         </div>
 

@@ -159,9 +159,14 @@ export default function CustomerSignup() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <img 
+            src="/logo-pertocash.png" 
+            alt="PertoCash" 
+            className="w-16 h-16 mx-auto mb-4 object-contain animate-pulse"
+          />
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Carregando...</p>
         </div>
       </div>
@@ -170,8 +175,13 @@ export default function CustomerSignup() {
 
   if (!merchant) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
+          <img 
+            src="/logo-pertocash.png" 
+            alt="PertoCash" 
+            className="w-16 h-16 mx-auto mb-4 object-contain"
+          />
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Store className="w-8 h-8 text-red-600" />
           </div>
@@ -185,10 +195,20 @@ export default function CustomerSignup() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
+        {/* Logo PertoCash */}
+        <div className="text-center mb-6">
+          <img 
+            src="/logo-pertocash.png" 
+            alt="PertoCash" 
+            className="w-16 h-16 mx-auto mb-3 object-contain"
+          />
+          <p className="text-sm text-gray-500">Powered by PertoCash</p>
+        </div>
+
         {/* Logo/Nome do Estabelecimento */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 pb-6 border-b border-gray-200">
           {merchant.logo_url ? (
             <img 
               src={merchant.logo_url} 
@@ -196,7 +216,7 @@ export default function CustomerSignup() {
               className="h-20 w-auto mx-auto mb-4"
             />
           ) : (
-            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-20 h-20 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center mx-auto mb-4">
               <Store className="w-10 h-10 text-white" />
             </div>
           )}
@@ -204,7 +224,7 @@ export default function CustomerSignup() {
             Cadastre-se
           </h1>
           <p className="text-gray-600">
-            Comece a ganhar <span className="font-semibold text-blue-600">{merchant.cashback_percentage}% de cashback</span> em {merchant.name}
+            Comece a ganhar <span className="font-semibold text-primary-600">{merchant.cashback_percentage}% de cashback</span> em {merchant.name}
           </p>
         </div>
 
@@ -220,7 +240,7 @@ export default function CustomerSignup() {
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 placeholder="Digite seu nome"
                 required
               />
@@ -239,7 +259,7 @@ export default function CustomerSignup() {
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 placeholder="seu@email.com"
               />
             </div>
@@ -258,7 +278,7 @@ export default function CustomerSignup() {
                 type="tel"
                 value={formData.phone}
                 onChange={handlePhoneChange}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 placeholder="(00) 00000-0000"
                 required
               />
@@ -271,7 +291,7 @@ export default function CustomerSignup() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+            className="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white py-3 rounded-lg font-semibold hover:from-primary-700 hover:to-primary-800 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2 shadow-lg shadow-primary-500/50"
           >
             {submitting ? (
               <>
