@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import Layout from '../components/Layout';
+import DashboardLayout from '../components/DashboardLayout';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
 import toast from 'react-hot-toast';
@@ -163,7 +163,7 @@ export default function Settings() {
   }
 
   return (
-    <Layout>
+    <DashboardLayout>
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
           <div className="p-2 bg-blue-100 rounded-lg">
@@ -579,6 +579,6 @@ export default function Settings() {
           </div>
         )}
       </div>
-    </Layout>
+    </DashboardLayout>
   );
 }
