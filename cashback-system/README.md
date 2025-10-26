@@ -30,12 +30,23 @@ Sistema completo de cashback moderno e integrado com ferramentas de marketing (G
 ### 📊 Marketing & Tracking
 - **Google Tag Manager** integrado
 - **Meta Pixel (Facebook Ads)** integrado
+- **Mailchimp** - Sincronização automática de clientes
+- **RD Station** - Eventos e conversões automáticas
 - Eventos customizados para cada ação:
   - `CashbackGenerated`
   - `CashbackScanned`
   - `Purchase` (conversão)
   - `RedemptionGenerated`
   - `RedemptionCompleted`
+
+### 📧 Integrações de Email Marketing
+- **Mailchimp**: Sincronização automática com listas/audiências
+- **RD Station**: Conversões e eventos personalizados
+- Tags inteligentes baseadas em comportamento
+- Campos personalizados (saldo, total gasto, etc.)
+- Sincronização em massa (bulk sync)
+- Logs de sincronização
+- Teste de conexão integrado
 
 ## 🛠️ Tecnologias
 
@@ -87,6 +98,15 @@ Este script criará todas as tabelas necessárias:
 - `redemptions` (resgates)
 - `marketing_spend` (gastos com marketing)
 
+**IMPORTANTE**: Execute também o schema de integrações:
+```
+supabase-integrations.sql
+```
+
+Isso criará as tabelas:
+- `integration_configs` (configurações Mailchimp/RD Station)
+- `integration_sync_log` (logs de sincronização)
+
 ### 4. Inserir Dados Iniciais
 
 No SQL Editor do Supabase, execute:
@@ -132,6 +152,7 @@ Exemplo:
 - `/dashboard` - Dashboard principal
 - `/cashback` - Gerar cashback
 - `/redemption` - Processar resgate
+- `/integrations` - Configurar Mailchimp e RD Station
 - `/customers` - Lista de clientes
 - `/employees` - Gestão de funcionários
 - `/reports` - Relatórios e analytics
