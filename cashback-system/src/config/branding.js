@@ -45,21 +45,21 @@ export const BRAND_CONFIG = {
    * Caminho relativo a /public/
    */
   logo: {
-    main: '/logo-localcashback.png',        // Logo completa
-    icon: '/logo-localcashback-icon.png',   // Apenas ícone (para favicons)
-    light: '/logo-localcashback-light.png', // Versão clara (fundos escuros)
-    dark: '/logo-localcashback.png',        // Versão escura (fundos claros)
+    main: '/logo-light.png',        // Logo completa com texto (fundo claro)
+    icon: '/logo-icon.png',         // Apenas ícone circular (para favicons)
+    light: '/logo-light.png',       // Versão clara (fundos claros)
+    dark: '/logo-dark.png',         // Versão escura (fundos escuros)
   },
   
   /**
    * Dimensões da logo em diferentes contextos
    */
   logoSizes: {
-    sidebar: 'w-10 h-10',           // Sidebar desktop
-    mobileHeader: 'w-8 h-8',        // Header mobile
-    login: 'w-20 h-20',             // Página de login
-    customerSignup: 'w-16 h-16',    // Cadastro de cliente
-    favicon: 'w-8 h-8',             // Favicon
+    sidebar: 'h-10',                // Sidebar desktop (logo horizontal)
+    mobileHeader: 'h-8',            // Header mobile (logo horizontal)
+    login: 'h-24',                  // Página de login (logo horizontal)
+    customerSignup: 'h-20',         // Cadastro de cliente (logo horizontal)
+    favicon: 'w-8 h-8',             // Favicon (icon apenas)
   },
   
   // ==========================================
