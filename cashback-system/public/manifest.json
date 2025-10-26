@@ -1,7 +1,7 @@
 {
-  "name": "PertoCash - Cashback Local",
-  "short_name": "PertoCash",
-  "description": "Sistema de cashback para fortalecer o comércio local",
+  "name": "Local CashBack - Cashback Local",
+  "short_name": "LocalCash",
+  "description": "Sistema de cashback white label para comércio local",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#FFFFFF",
@@ -9,13 +9,13 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/logo-pertocash.png",
+      "src": "/logo-localcashback.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/logo-pertocash.png",
+      "src": "/logo-localcashback.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

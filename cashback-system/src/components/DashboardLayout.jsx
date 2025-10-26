@@ -10,11 +10,11 @@ import {
   LogOut,
   Menu,
   X,
-  Wallet,
   UserPlus,
   QrCode,
   Mail
 } from 'lucide-react';
+import { BRAND_CONFIG, getLogo, getBrandName } from '../config/branding';
 
 export default function DashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -63,11 +63,11 @@ export default function DashboardLayout({ children }) {
           <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
             <div className="flex items-center gap-3">
               <img 
-                src="/logo-pertocash.png" 
-                alt="PertoCash" 
-                className="w-10 h-10 object-contain"
+                src={getLogo('main')}
+                alt={getBrandName()} 
+                className={`object-contain ${BRAND_CONFIG.logoSizes.sidebar}`}
               />
-              <span className="text-xl font-bold text-gray-900">PertoCash</span>
+              <span className="text-xl font-bold text-gray-900">{getBrandName(true)}</span>
             </div>
             <button
               onClick={() => setSidebarOpen(false)}
@@ -143,11 +143,11 @@ export default function DashboardLayout({ children }) {
               {/* Logo Mobile */}
               <div className="flex items-center gap-2 lg:hidden">
                 <img 
-                  src="/logo-pertocash.png" 
-                  alt="PertoCash" 
-                  className="w-8 h-8 object-contain"
+                  src={getLogo('main')}
+                  alt={getBrandName()} 
+                  className={`object-contain ${BRAND_CONFIG.logoSizes.mobileHeader}`}
                 />
-                <span className="text-lg font-bold text-gray-900">PertoCash</span>
+                <span className="text-lg font-bold text-gray-900">{getBrandName(true)}</span>
               </div>
             </div>
             

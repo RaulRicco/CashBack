@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import toast from 'react-hot-toast';
-import { Wallet, Mail, Lock, LogIn } from 'lucide-react';
+import { Mail, Lock, LogIn } from 'lucide-react';
+import { BRAND_CONFIG, getLogo, getBrandName } from '../config/branding';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -34,16 +35,16 @@ export default function Login() {
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center mb-4">
             <img 
-              src="/logo-pertocash.png" 
-              alt="PertoCash" 
-              className="w-20 h-20 object-contain"
+              src={getLogo('main')}
+              alt={getBrandName()} 
+              className={`object-contain ${BRAND_CONFIG.logoSizes.login}`}
             />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            PertoCash
+            {getBrandName()}
           </h1>
           <p className="text-gray-600">
-            Cashback do comércio perto de você
+            {BRAND_CONFIG.tagline}
           </p>
         </div>
 

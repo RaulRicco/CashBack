@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 import { UserPlus, Phone, User, Store } from 'lucide-react';
 import { trackEvent } from '../lib/tracking';
+import { BRAND_CONFIG, getLogo, getBrandName } from '../config/branding';
 
 export default function CustomerSignup() {
   const { slug } = useParams();
@@ -197,15 +198,19 @@ export default function CustomerSignup() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
-        {/* Logo PertoCash */}
-        <div className="text-center mb-6">
-          <img 
-            src="/logo-pertocash.png" 
-            alt="PertoCash" 
-            className="w-16 h-16 mx-auto mb-3 object-contain"
-          />
-          <p className="text-sm text-gray-500">Powered by PertoCash</p>
-        </div>
+        {/* Logo White Label */}
+        {BRAND_CONFIG.features.showPoweredBy && (
+          <div className="text-center mb-6">
+            <img 
+              src={getLogo('main')}
+              alt={getBrandName()} 
+              className={`mx-auto mb-3 object-contain ${BRAND_CONFIG.logoSizes.customerSignup}`}
+            />
+            <p className="text-sm text-gray-500">
+              {BRAND_CONFIG.messages.customerSignup.poweredBy} {getBrandName()}
+            </p>
+          </div>
+        )}
 
         {/* Logo/Nome do Estabelecimento */}
         <div className="text-center mb-8 pb-6 border-b border-gray-200">
@@ -221,10 +226,10 @@ export default function CustomerSignup() {
             </div>
           )}
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Cadastre-se
+            {BRAND_CONFIG.messages.customerSignup.title}
           </h1>
           <p className="text-gray-600">
-            Comece a ganhar <span className="font-semibold text-primary-600">{merchant.cashback_percentage}% de cashback</span> em {merchant.name}
+            {BRAND_CONFIG.messages.customerSignup.subtitle.replace('{percentage}', merchant.cashback_percentage)} em {merchant.name}
           </p>
         </div>
 
