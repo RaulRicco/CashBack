@@ -35,8 +35,8 @@ export default function CustomerRedemption() {
         throw new Error('QR Code inválido ou expirado');
       }
 
-      // Verificar se já foi escaneado
-      if (redemptionData.qr_scanned) {
+      // Verificar se já foi processado (status completed)
+      if (redemptionData.status === 'completed') {
         setRedemption(redemptionData);
         setCustomer(redemptionData.customer);
         setMerchant(redemptionData.merchant);
@@ -49,12 +49,10 @@ export default function CustomerRedemption() {
         throw new Error('Saldo insuficiente para este resgate');
       }
 
-      // Marcar como escaneado e completado
+      // Marcar como completado
       const { data: updatedRedemption, error: updateError } = await supabase
         .from('redemptions')
         .update({
-          qr_scanned: true,
-          qr_scanned_at: new Date().toISOString(),
           status: 'completed'
         })
         .eq('id', redemptionData.id)
