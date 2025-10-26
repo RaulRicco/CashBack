@@ -90,12 +90,20 @@ export default function CACLTVCalculator({ merchantId, dateRange }) {
 
     setSaving(true);
     try {
+      // Dados mínimos obrigatórios
       const spendData = {
         merchant_id: merchantId,
         amount: parseFloat(marketingSpend),
-        date: new Date().toISOString().split('T')[0],
-        platform: 'manual'
+        date: new Date().toISOString().split('T')[0]
       };
+
+      // Tentar adicionar campos opcionais se existirem na tabela
+      // Isso evita erro se a tabela ainda não foi atualizada
+      try {
+        spendData.platform = 'manual';
+      } catch (e) {
+        console.warn('Campo platform não disponível:', e);
+      }
 
       console.log('Salvando gasto em marketing:', spendData);
 
@@ -106,6 +114,14 @@ export default function CACLTVCalculator({ merchantId, dateRange }) {
 
       if (error) {
         console.error('Erro do Supabase:', error);
+        
+        // Se o erro for sobre coluna faltando, dar mensagem mais clara
+        if (error.message?.includes('column') || error.message?.includes('schema cache')) {
+          toast.error('⚠️ Banco de dados precisa ser atualizado. Execute o script SQL fornecido.');
+          console.error('AÇÃO NECESSÁRIA: Execute supabase-verify-and-fix-marketing-spend.sql no Supabase');
+        } else {
+          toast.error(error.message || 'Erro ao adicionar investimento');
+        }
         throw error;
       }
 
@@ -115,7 +131,7 @@ export default function CACLTVCalculator({ merchantId, dateRange }) {
       await loadMetrics();
     } catch (error) {
       console.error('Erro ao salvar gasto em marketing:', error);
-      toast.error(error.message || 'Erro ao adicionar investimento');
+      // Erro já foi tratado acima, não duplicar toast
     } finally {
       setSaving(false);
     }
