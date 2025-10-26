@@ -81,22 +81,9 @@ export default function Cashback() {
 
       if (transactionError) throw transactionError;
 
-      // ✅ ATUALIZAR SALDO DO CLIENTE IMEDIATAMENTE
-      const { data: currentCustomer } = await supabase
-        .from('customers')
-        .select('total_cashback, available_cashback, total_spent')
-        .eq('id', customer.id)
-        .single();
-
-      await supabase
-        .from('customers')
-        .update({
-          total_cashback: (currentCustomer?.total_cashback || 0) + cashbackAmount,
-          available_cashback: (currentCustomer?.available_cashback || 0) + cashbackAmount,
-          total_spent: (currentCustomer?.total_spent || 0) + purchaseAmount,
-          last_purchase_at: new Date().toISOString()
-        })
-        .eq('id', customer.id);
+      // ℹ️ O saldo do cliente é atualizado AUTOMATICAMENTE pelo trigger do banco de dados
+      // quando uma transação com status='completed' é inserida.
+      // Se o trigger não estiver ativo, execute: URGENTE-FIX-TRIGGER.sql no Supabase
 
       // Tracking: Cashback Gerado
       trackCashbackGenerated({
