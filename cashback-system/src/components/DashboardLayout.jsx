@@ -35,6 +35,7 @@ export default function DashboardLayout({ children }) {
     { name: 'Funcionários', href: '/employees', icon: UserPlus },
     { name: 'Relatórios', href: '/reports', icon: TrendingUp },
     { name: 'Integrações', href: '/integrations', icon: Mail },
+    { name: 'Configurações', href: '/settings', icon: Settings },
   ];
 
   const isActive = (path) => location.pathname === path;

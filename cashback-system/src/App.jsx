@@ -13,9 +13,11 @@ import Customers from './pages/Customers';
 import Employees from './pages/Employees';
 import Reports from './pages/Reports';
 import Integrations from './pages/Integrations';
+import Settings from './pages/Settings';
 import CustomerCashback from './pages/CustomerCashback';
 import CustomerRedemption from './pages/CustomerRedemption';
 import CustomerDashboard from './pages/CustomerDashboard';
+import CustomerSignup from './pages/CustomerSignup';
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
@@ -77,6 +79,7 @@ function App() {
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />
+        <Route path="/signup/:slug" element={<CustomerSignup />} />
         
         {/* Customer Public Routes (QR Code scans) */}
         <Route path="/customer/cashback/:token" element={<CustomerCashback />} />
@@ -137,6 +140,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Integrations />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/settings" 
+          element={
+            <ProtectedRoute>
+              <Settings />
             </ProtectedRoute>
           } 
         />
