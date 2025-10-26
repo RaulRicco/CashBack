@@ -18,6 +18,7 @@ import CustomerCashback from './pages/CustomerCashback';
 import CustomerRedemption from './pages/CustomerRedemption';
 import CustomerDashboard from './pages/CustomerDashboard';
 import CustomerSignup from './pages/CustomerSignup';
+import ForceUpdate from './pages/ForceUpdate';
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
@@ -80,6 +81,7 @@ function App() {
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup/:slug" element={<CustomerSignup />} />
+        <Route path="/force-update" element={<ForceUpdate />} />
         
         {/* Customer Public Routes (QR Code scans) */}
         <Route path="/customer/cashback/:token" element={<CustomerCashback />} />
