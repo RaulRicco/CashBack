@@ -6,6 +6,7 @@ import { initGTM, initMetaPixel } from './lib/tracking';
 
 // Pages
 import Login from './pages/Login';
+import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import Cashback from './pages/Cashback';
 import Redemption from './pages/Redemption';
@@ -80,6 +81,7 @@ function App() {
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
         <Route path="/signup/:slug" element={<CustomerSignup />} />
         <Route path="/force-update" element={<ForceUpdate />} />
         

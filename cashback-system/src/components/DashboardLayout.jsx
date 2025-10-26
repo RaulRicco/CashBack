@@ -65,7 +65,7 @@ export default function DashboardLayout({ children }) {
               <img 
                 src={getLogo('icon')}
                 alt={getBrandName()} 
-                className="object-contain w-10 h-10 rounded-full"
+                className="object-contain w-10 h-10"
               />
               <span className="text-xl font-bold text-gray-900">{getBrandName(true)}</span>
             </div>
@@ -145,7 +145,7 @@ export default function DashboardLayout({ children }) {
                 <img 
                   src={getLogo('icon')}
                   alt={getBrandName()} 
-                  className="object-contain w-8 h-8 rounded-full"
+                  className="object-contain w-8 h-8"
                 />
                 <span className="text-lg font-bold text-gray-900">{getBrandName(true)}</span>
               </div>

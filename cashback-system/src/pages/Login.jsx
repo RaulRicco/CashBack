@@ -37,7 +37,7 @@ export default function Login() {
             <img 
               src={getLogo('icon')}
               alt={getBrandName()} 
-              className="object-contain w-24 h-24 rounded-full"
+              className="object-contain w-24 h-24"
             />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -111,6 +111,19 @@ export default function Login() {
             )}
           </button>
         </form>
+
+        {/* Link para criar conta */}
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-600">
+            Não tem uma conta?{' '}
+            <button
+              onClick={() => navigate('/signup')}
+              className="text-primary-600 hover:text-primary-700 font-semibold hover:underline"
+            >
+              Criar conta grátis
+            </button>
+          </p>
+        </div>
       </div>
     </div>
   );
