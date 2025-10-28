@@ -6,6 +6,7 @@ import { trackCashbackScanned, trackCashbackCompleted } from '../lib/tracking';
 import { syncCustomerToIntegrations } from '../lib/integrations';
 import { useNotification } from '../hooks/useNotification';
 import NotificationContainer from '../components/NotificationContainer';
+import { notifyCashbackReceived } from '../lib/pushNotifications';
 
 export default function CustomerCashback() {
   const { token } = useParams();
@@ -92,6 +93,13 @@ export default function CustomerCashback() {
           message: `Você ganhou em ${updatedTx.merchant.name}`,
           amount: updatedTx.cashback_amount,
           duration: 6000
+        });
+
+        // Enviar Push Notification nativa
+        notifyCashbackReceived({
+          amount: updatedTx.cashback_amount,
+          merchantName: updatedTx.merchant.name,
+          customerPhone: updatedTx.customer.phone
         });
       }, 500);
 

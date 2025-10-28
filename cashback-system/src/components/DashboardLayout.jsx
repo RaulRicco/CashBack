@@ -12,7 +12,8 @@ import {
   X,
   UserPlus,
   QrCode,
-  Mail
+  Mail,
+  Bell
 } from 'lucide-react';
 import { BRAND_CONFIG, getLogo, getBrandName } from '../config/branding';
 
@@ -35,6 +36,7 @@ export default function DashboardLayout({ children }) {
     { name: 'Funcionários', href: '/employees', icon: UserPlus },
     { name: 'Relatórios', href: '/reports', icon: TrendingUp },
     { name: 'Integrações', href: '/integrations', icon: Mail },
+    { name: 'Notificações', href: '/notifications', icon: Bell },
     { name: 'Configurações', href: '/settings', icon: Settings },
   ];
 

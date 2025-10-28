@@ -22,6 +22,7 @@ import CustomerRedemption from './pages/CustomerRedemption';
 import CustomerDashboard from './pages/CustomerDashboard';
 import CustomerSignup from './pages/CustomerSignup';
 import ForceUpdate from './pages/ForceUpdate';
+import AdminNotifications from './pages/AdminNotifications';
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
@@ -156,6 +157,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Settings />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/notifications" 
+          element={
+            <ProtectedRoute>
+              <AdminNotifications />
             </ProtectedRoute>
           } 
         />

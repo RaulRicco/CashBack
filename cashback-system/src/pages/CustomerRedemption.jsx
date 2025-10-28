@@ -6,6 +6,7 @@ import { trackRedemptionCompleted } from '../lib/tracking';
 import { syncCustomerToIntegrations } from '../lib/integrations';
 import { useNotification } from '../hooks/useNotification';
 import NotificationContainer from '../components/NotificationContainer';
+import { notifyRedemptionCompleted } from '../lib/pushNotifications';
 
 export default function CustomerRedemption() {
   const { token } = useParams();
@@ -86,6 +87,13 @@ export default function CustomerRedemption() {
           message: `Você usou seu cashback em ${updatedRedemption.merchant.name}`,
           amount: updatedRedemption.amount,
           duration: 6000
+        });
+
+        // Enviar Push Notification nativa
+        notifyRedemptionCompleted({
+          amount: updatedRedemption.amount,
+          merchantName: updatedRedemption.merchant.name,
+          customerPhone: updatedRedemption.customer.phone
         });
       }, 500);
 

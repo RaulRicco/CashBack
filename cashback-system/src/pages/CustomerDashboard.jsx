@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { Wallet, Gift, History, TrendingUp, Loader, ArrowUpCircle, ArrowDownCircle, Filter } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import NotificationPermission from '../components/NotificationPermission';
 
 export default function CustomerDashboard() {
   const { phone } = useParams();
@@ -365,6 +366,9 @@ export default function CustomerDashboard() {
           </p>
         </div>
       </div>
+
+      {/* Solicitação de Permissão de Notificação */}
+      <NotificationPermission customerPhone={phone} />
     </div>
   );
 }
