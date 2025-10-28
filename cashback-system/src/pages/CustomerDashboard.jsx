@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Wallet, Gift, History, TrendingUp, Loader } from 'lucide-react';
+import { Wallet, Gift, History, TrendingUp, Loader, ArrowUpCircle, ArrowDownCircle, Filter } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -12,6 +12,7 @@ export default function CustomerDashboard() {
   const [merchant, setMerchant] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [redemptions, setRedemptions] = useState([]);
+  const [filter, setFilter] = useState('all'); // 'all', 'in', 'out'
 
   useEffect(() => {
     if (phone) {
@@ -97,6 +98,51 @@ export default function CustomerDashboard() {
     );
   }
 
+  // Criar histórico unificado (entradas + saídas)
+  const getUnifiedHistory = () => {
+    const history = [];
+
+    // Adicionar entradas (cashback)
+    transactions.forEach(tx => {
+      history.push({
+        id: `tx-${tx.id}`,
+        type: 'in',
+        amount: parseFloat(tx.cashback_amount),
+        purchaseAmount: parseFloat(tx.amount),
+        percentage: tx.cashback_percentage,
+        merchantName: tx.merchant?.name,
+        date: new Date(tx.created_at),
+        description: 'Cashback recebido'
+      });
+    });
+
+    // Adicionar saídas (resgates)
+    redemptions.forEach(redemption => {
+      history.push({
+        id: `redemption-${redemption.id}`,
+        type: 'out',
+        amount: parseFloat(redemption.amount),
+        merchantName: redemption.merchant?.name,
+        date: new Date(redemption.created_at),
+        description: 'Cashback resgatado'
+      });
+    });
+
+    // Ordenar por data (mais recente primeiro)
+    history.sort((a, b) => b.date - a.date);
+
+    // Filtrar por tipo
+    if (filter === 'in') {
+      return history.filter(item => item.type === 'in');
+    } else if (filter === 'out') {
+      return history.filter(item => item.type === 'out');
+    }
+
+    return history;
+  };
+
+  const unifiedHistory = getUnifiedHistory();
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -153,88 +199,154 @@ export default function CustomerDashboard() {
 
       {/* Content */}
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
-        {/* Histórico de Cashbacks */}
+        {/* Histórico Unificado */}
         <div className="card">
-          <div className="flex items-center gap-2 mb-6">
-            <Gift className="w-6 h-6 text-primary-600" />
-            <h2 className="text-xl font-bold text-gray-900">
-              Histórico de Cashback
-            </h2>
+          {/* Header com Filtros */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+            <div className="flex items-center gap-2">
+              <History className="w-6 h-6 text-primary-600" />
+              <h2 className="text-xl font-bold text-gray-900">
+                Histórico de Movimentações
+              </h2>
+            </div>
+
+            {/* Filtros */}
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-gray-500" />
+              <div className="flex bg-gray-100 rounded-lg p-1">
+                <button
+                  onClick={() => setFilter('all')}
+                  className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                    filter === 'all'
+                      ? 'bg-white text-primary-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Todas
+                </button>
+                <button
+                  onClick={() => setFilter('in')}
+                  className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                    filter === 'in'
+                      ? 'bg-white text-green-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Entradas
+                </button>
+                <button
+                  onClick={() => setFilter('out')}
+                  className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                    filter === 'out'
+                      ? 'bg-white text-orange-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Saídas
+                </button>
+              </div>
+            </div>
           </div>
 
-          {transactions.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              Nenhuma transação ainda
+          {/* Histórico */}
+          {unifiedHistory.length === 0 ? (
+            <div className="text-center py-12">
+              <History className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500 font-medium mb-1">
+                Nenhuma movimentação ainda
+              </p>
+              <p className="text-sm text-gray-400">
+                {filter === 'in' && 'Nenhum cashback recebido'}
+                {filter === 'out' && 'Nenhum resgate realizado'}
+                {filter === 'all' && 'Faça sua primeira compra para começar!'}
+              </p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {transactions.map((tx) => (
+            <div className="space-y-2">
+              {unifiedHistory.map((item) => (
                 <div
-                  key={tx.id}
-                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  key={item.id}
+                  className={`flex items-center justify-between p-4 rounded-lg transition-all hover:shadow-md ${
+                    item.type === 'in'
+                      ? 'bg-green-50 border border-green-100 hover:bg-green-100'
+                      : 'bg-orange-50 border border-orange-100 hover:bg-orange-100'
+                  }`}
                 >
-                  <div>
-                    <p className="font-medium text-gray-900">
-                      {tx.merchant?.name}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {format(new Date(tx.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                  {/* Lado esquerdo */}
+                  <div className="flex items-center gap-4">
+                    {/* Ícone */}
+                    <div
+                      className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                        item.type === 'in'
+                          ? 'bg-green-100 text-green-600'
+                          : 'bg-orange-100 text-orange-600'
+                      }`}
+                    >
+                      {item.type === 'in' ? (
+                        <ArrowDownCircle className="w-6 h-6" />
+                      ) : (
+                        <ArrowUpCircle className="w-6 h-6" />
+                      )}
+                    </div>
+
+                    {/* Informações */}
+                    <div>
+                      <p className="font-semibold text-gray-900">
+                        {item.description}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {item.merchantName}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {format(item.date, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                      </p>
+                      {item.type === 'in' && item.purchaseAmount && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          Compra de R$ {item.purchaseAmount.toFixed(2)} • {item.percentage}% cashback
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Lado direito - Valor */}
+                  <div className="text-right">
+                    <p
+                      className={`text-xl font-bold ${
+                        item.type === 'in' ? 'text-green-600' : 'text-orange-600'
+                      }`}
+                    >
+                      {item.type === 'in' ? '+' : '-'}R$ {item.amount.toFixed(2)}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
-                      Compra: R$ {parseFloat(tx.amount).toFixed(2)}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-lg font-bold text-green-600">
-                      +R$ {parseFloat(tx.cashback_amount).toFixed(2)}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {tx.cashback_percentage}% cashback
+                      {item.type === 'in' ? 'Recebido' : 'Resgatado'}
                     </p>
                   </div>
                 </div>
               ))}
             </div>
           )}
+
+          {/* Resumo do filtro */}
+          {unifiedHistory.length > 0 && (
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-600">
+                  {filter === 'all' && `Total de ${unifiedHistory.length} movimentações`}
+                  {filter === 'in' && `Total de ${unifiedHistory.length} entradas`}
+                  {filter === 'out' && `Total de ${unifiedHistory.length} saídas`}
+                </span>
+                {filter !== 'all' && (
+                  <button
+                    onClick={() => setFilter('all')}
+                    className="text-primary-600 hover:text-primary-800 font-medium"
+                  >
+                    Ver todas
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
         </div>
-
-        {/* Histórico de Resgates */}
-        {redemptions.length > 0 && (
-          <div className="card">
-            <div className="flex items-center gap-2 mb-6">
-              <History className="w-6 h-6 text-orange-600" />
-              <h2 className="text-xl font-bold text-gray-900">
-                Histórico de Resgates
-              </h2>
-            </div>
-
-            <div className="space-y-3">
-              {redemptions.map((redemption) => (
-                <div
-                  key={redemption.id}
-                  className="flex items-center justify-between p-4 bg-orange-50 rounded-lg"
-                >
-                  <div>
-                    <p className="font-medium text-gray-900">
-                      {redemption.merchant?.name}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {format(new Date(redemption.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-lg font-bold text-orange-600">
-                      -R$ {parseFloat(redemption.amount).toFixed(2)}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      Resgatado
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Dica */}
         <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
