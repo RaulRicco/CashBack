@@ -47,12 +47,12 @@ export default function Signup() {
       }
 
       // 1. Criar o estabelecimento (merchant)
+      // Usando apenas campos que SABEMOS que existem no schema
       const { data: merchantData, error: merchantError } = await supabase
         .from('merchants')
         .insert({
           name: formData.merchantName,
           phone: formData.merchantPhone,
-          address: formData.merchantAddress,
           cashback_percentage: 5, // Padrão 5%
         })
         .select()
