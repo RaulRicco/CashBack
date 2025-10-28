@@ -73,9 +73,18 @@ export default function Login() {
 
           {/* Senha */}
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-              Senha
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                Senha
+              </label>
+              <button
+                type="button"
+                onClick={() => navigate('/forgot-password')}
+                className="text-sm text-primary-600 hover:text-primary-800 font-medium hover:underline"
+              >
+                Esqueceu a senha?
+              </button>
+            </div>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Lock className="h-5 w-5 text-gray-400" />

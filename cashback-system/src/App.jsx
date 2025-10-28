@@ -7,6 +7,8 @@ import { initGTM, initMetaPixel } from './lib/tracking';
 // Pages
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import Cashback from './pages/Cashback';
 import Redemption from './pages/Redemption';
@@ -82,6 +84,8 @@ function App() {
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/signup/:slug" element={<CustomerSignup />} />
         <Route path="/force-update" element={<ForceUpdate />} />
         
