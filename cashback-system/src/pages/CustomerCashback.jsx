@@ -4,6 +4,8 @@ import { supabase } from '../lib/supabase';
 import { CheckCircle, Gift, ArrowRight, Loader } from 'lucide-react';
 import { trackCashbackScanned, trackCashbackCompleted } from '../lib/tracking';
 import { syncCustomerToIntegrations } from '../lib/integrations';
+import { useNotification } from '../hooks/useNotification';
+import NotificationContainer from '../components/NotificationContainer';
 
 export default function CustomerCashback() {
   const { token } = useParams();
@@ -13,6 +15,7 @@ export default function CustomerCashback() {
   const [customer, setCustomer] = useState(null);
   const [merchant, setMerchant] = useState(null);
   const [error, setError] = useState(null);
+  const { notifications, showNotification } = useNotification();
 
   useEffect(() => {
     if (token) {
@@ -81,6 +84,17 @@ export default function CustomerCashback() {
       // Sincronizar com integrações de email marketing
       syncCustomerToIntegrations(updatedTx.customer, updatedTx.merchant_id, 'purchase');
 
+      // Mostrar notificação de cashback recebido
+      setTimeout(() => {
+        showNotification({
+          type: 'cashback',
+          title: '🎉 Cashback Recebido!',
+          message: `Você ganhou em ${updatedTx.merchant.name}`,
+          amount: updatedTx.cashback_amount,
+          duration: 6000
+        });
+      }, 500);
+
       setLoading(false);
     } catch (error) {
       console.error('Erro ao processar QR Code:', error);
@@ -132,6 +146,9 @@ export default function CustomerCashback() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-600 via-green-700 to-green-900 flex items-center justify-center p-4">
+      {/* Container de Notificações */}
+      <NotificationContainer notifications={notifications} />
+      
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8">
         {/* Ícone de Sucesso */}
         <div className="text-center mb-6">
