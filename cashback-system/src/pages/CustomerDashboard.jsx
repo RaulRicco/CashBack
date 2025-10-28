@@ -36,7 +36,7 @@ export default function CustomerDashboard() {
       setCustomer(customerData);
 
       // Buscar transações
-      const { data: txData } = await supabase
+      const { data: txData, error: txError } = await supabase
         .from('transactions')
         .select('*, merchant:merchants(name, cashback_program_name)')
         .eq('customer_id', customerData.id)
@@ -44,6 +44,11 @@ export default function CustomerDashboard() {
         .order('created_at', { ascending: false })
         .limit(10);
 
+      if (txError) {
+        console.error('Erro ao buscar transações:', txError);
+      }
+      
+      console.log('📊 Transações encontradas:', txData?.length || 0, txData);
       setTransactions(txData || []);
 
       // Pegar o merchant principal (do primeiro transaction ou mais recente)
@@ -58,7 +63,7 @@ export default function CustomerDashboard() {
       }
 
       // Buscar resgates
-      const { data: redemptionData } = await supabase
+      const { data: redemptionData, error: redemptionError } = await supabase
         .from('redemptions')
         .select('*, merchant:merchants(name)')
         .eq('customer_id', customerData.id)
@@ -66,6 +71,11 @@ export default function CustomerDashboard() {
         .order('created_at', { ascending: false })
         .limit(10);
 
+      if (redemptionError) {
+        console.error('Erro ao buscar resgates:', redemptionError);
+      }
+      
+      console.log('💰 Resgates encontrados:', redemptionData?.length || 0, redemptionData);
       setRedemptions(redemptionData || []);
 
       setLoading(false);

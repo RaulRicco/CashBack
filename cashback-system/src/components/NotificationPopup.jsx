@@ -20,13 +20,14 @@ export default function NotificationPopup({
   autoClose = true 
 }) {
   const [isVisible, setIsVisible] = useState(true);
-  const [isAnimating, setIsAnimating] = useState(true);
+  const [isEntering, setIsEntering] = useState(true);
+  const [progress, setProgress] = useState(100);
 
   useEffect(() => {
     // Animação de entrada
     const timer = setTimeout(() => {
-      setIsAnimating(false);
-    }, 100);
+      setIsEntering(false);
+    }, 50);
 
     return () => clearTimeout(timer);
   }, []);
@@ -34,16 +35,27 @@ export default function NotificationPopup({
   useEffect(() => {
     if (!autoClose) return;
 
+    // Barra de progresso
+    const startTime = Date.now();
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(0, 100 - (elapsed / duration) * 100);
+      setProgress(remaining);
+    }, 50);
+
     // Auto fechar após duration
     const closeTimer = setTimeout(() => {
       handleClose();
     }, duration);
 
-    return () => clearTimeout(closeTimer);
+    return () => {
+      clearInterval(interval);
+      clearTimeout(closeTimer);
+    };
   }, [duration, autoClose]);
 
   const handleClose = () => {
-    setIsAnimating(true);
+    setIsEntering(true);
     setTimeout(() => {
       setIsVisible(false);
       if (onClose) onClose();
@@ -62,7 +74,8 @@ export default function NotificationPopup({
       iconColor: 'text-green-600',
       titleColor: 'text-green-900',
       messageColor: 'text-green-700',
-      amountColor: 'text-green-600'
+      amountColor: 'text-green-600',
+      progressBg: 'bg-green-400'
     },
     redemption: {
       icon: TrendingUp,
@@ -72,7 +85,8 @@ export default function NotificationPopup({
       iconColor: 'text-orange-600',
       titleColor: 'text-orange-900',
       messageColor: 'text-orange-700',
-      amountColor: 'text-orange-600'
+      amountColor: 'text-orange-600',
+      progressBg: 'bg-orange-400'
     },
     success: {
       icon: CheckCircle,
@@ -82,7 +96,8 @@ export default function NotificationPopup({
       iconColor: 'text-blue-600',
       titleColor: 'text-blue-900',
       messageColor: 'text-blue-700',
-      amountColor: 'text-blue-600'
+      amountColor: 'text-blue-600',
+      progressBg: 'bg-blue-400'
     },
     error: {
       icon: AlertCircle,
@@ -92,7 +107,8 @@ export default function NotificationPopup({
       iconColor: 'text-red-600',
       titleColor: 'text-red-900',
       messageColor: 'text-red-700',
-      amountColor: 'text-red-600'
+      amountColor: 'text-red-600',
+      progressBg: 'bg-red-400'
     }
   };
 
@@ -101,16 +117,15 @@ export default function NotificationPopup({
 
   return (
     <div 
-      className={`fixed top-4 right-4 z-50 max-w-sm w-full transition-all duration-300 ${
-        isAnimating ? 'translate-x-full opacity-0' : 'translate-x-0 opacity-100'
+      className={`fixed top-4 right-4 z-50 max-w-sm w-full px-4 sm:px-0 transition-all duration-300 ease-out ${
+        isEntering ? 'translate-x-full opacity-0' : 'translate-x-0 opacity-100'
       }`}
-      style={{ animation: !isAnimating ? 'slideIn 0.3s ease-out' : 'slideOut 0.3s ease-in' }}
     >
-      <div className={`${config.bgColor} ${config.borderColor} border-l-4 rounded-lg shadow-2xl p-4`}>
+      <div className={`${config.bgColor} ${config.borderColor} border-l-4 rounded-lg shadow-2xl p-4 animate-fade-in`}>
         {/* Header com ícone e botão fechar */}
         <div className="flex items-start gap-3">
           {/* Ícone */}
-          <div className={`${config.iconBg} rounded-full p-2 flex-shrink-0`}>
+          <div className={`${config.iconBg} rounded-full p-2 flex-shrink-0 animate-bounce-small`}>
             <Icon className={`w-6 h-6 ${config.iconColor}`} />
           </div>
 
@@ -134,7 +149,7 @@ export default function NotificationPopup({
           {/* Botão fechar */}
           <button
             onClick={handleClose}
-            className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+            className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors p-1 hover:bg-gray-200 rounded"
           >
             <X className="w-5 h-5" />
           </button>
@@ -144,48 +159,12 @@ export default function NotificationPopup({
         {autoClose && (
           <div className="mt-3 h-1 bg-gray-200 rounded-full overflow-hidden">
             <div 
-              className={`h-full ${config.iconBg} transition-all ease-linear`}
-              style={{ 
-                animation: `shrink ${duration}ms linear`,
-                width: '100%'
-              }}
+              className={`h-full ${config.progressBg} transition-all ease-linear`}
+              style={{ width: `${progress}%` }}
             />
           </div>
         )}
       </div>
-
-      <style jsx>{`
-        @keyframes slideIn {
-          from {
-            transform: translateX(100%);
-            opacity: 0;
-          }
-          to {
-            transform: translateX(0);
-            opacity: 1;
-          }
-        }
-
-        @keyframes slideOut {
-          from {
-            transform: translateX(0);
-            opacity: 1;
-          }
-          to {
-            transform: translateX(100%);
-            opacity: 0;
-          }
-        }
-
-        @keyframes shrink {
-          from {
-            width: 100%;
-          }
-          to {
-            width: 0%;
-          }
-        }
-      `}</style>
     </div>
   );
 }
