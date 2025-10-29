@@ -84,8 +84,12 @@ export default function AdminNotifications() {
 
       console.log('📤 Enviando notificação...', form);
 
-      // Enviar notificação local
-      const result = await sendLocalNotification({
+      // Enviar notificação local com timeout
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout: Notificação demorou mais de 5 segundos')), 5000)
+      );
+
+      const notificationPromise = sendLocalNotification({
         title: form.title,
         body: form.message,
         image: form.image || undefined,
@@ -95,25 +99,37 @@ export default function AdminNotifications() {
         vibrate: [200, 100, 200, 100, 200]
       });
 
+      const result = await Promise.race([notificationPromise, timeoutPromise]);
+
       console.log('📬 Resultado:', result);
 
       if (result.success) {
-        // Salvar registro no banco
-        const { error: dbError } = await supabase
-          .from('notifications')
-          .insert({
-            type: 'promotion',
-            title: form.title,
-            message: form.message,
-            image: form.image || null,
-            url: form.url || null,
-            target: form.target,
-            sent_at: new Date().toISOString(),
-            sent_by: 'admin'
-          });
+        console.log('✅ Notificação enviada com sucesso, salvando no banco...');
+        
+        // Salvar registro no banco (não bloquear se falhar)
+        try {
+          const { error: dbError } = await supabase
+            .from('notifications')
+            .insert({
+              type: 'promotion',
+              title: form.title,
+              message: form.message,
+              image: form.image || null,
+              url: form.url || null,
+              target: form.target,
+              sent_at: new Date().toISOString(),
+              sent_by: 'admin'
+            });
 
-        if (dbError) {
-          console.error('Erro ao salvar notificação:', dbError);
+          if (dbError) {
+            console.error('⚠️ Erro ao salvar notificação no banco:', dbError);
+            // Não falhar por causa disso
+          } else {
+            console.log('✅ Notificação salva no banco');
+          }
+        } catch (dbException) {
+          console.error('⚠️ Exceção ao salvar no banco:', dbException);
+          // Não falhar por causa disso
         }
 
         setSuccess(true);
@@ -127,13 +143,28 @@ export default function AdminNotifications() {
           target: 'all'
         });
 
-        toast.success('✅ Notificação enviada com sucesso!');
+        toast.success('✅ Notificação enviada com sucesso!', {
+          duration: 4000,
+          icon: '🎉'
+        });
         
         // Resetar success após 3 segundos
         setTimeout(() => setSuccess(false), 3000);
       } else {
         console.error('❌ Erro ao enviar:', result.error);
-        toast.error('❌ Erro ao enviar notificação: ' + result.error);
+        
+        let errorMsg = 'Erro desconhecido';
+        if (result.error === 'not_enabled') {
+          errorMsg = 'Notificações não estão habilitadas';
+        } else if (result.error.includes('Timeout')) {
+          errorMsg = 'Tempo esgotado. Verifique o console (F12)';
+        } else {
+          errorMsg = result.error;
+        }
+        
+        toast.error('❌ ' + errorMsg, {
+          duration: 5000
+        });
       }
 
     } catch (error) {

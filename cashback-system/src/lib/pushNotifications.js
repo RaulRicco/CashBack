@@ -68,14 +68,15 @@ export function areNotificationsEnabled() {
  */
 export async function sendLocalNotification(options) {
   try {
+    console.log('🔔 Iniciando envio de notificação...', options);
+
     // Verificar permissão
     if (!areNotificationsEnabled()) {
       console.warn('⚠️ Notificações não habilitadas');
       return { success: false, error: 'not_enabled' };
     }
 
-    // Obter Service Worker registration
-    const registration = await navigator.serviceWorker.ready;
+    console.log('✅ Permissão concedida, preparando notificação...');
 
     // Configuração padrão
     const notification = {
@@ -94,15 +95,57 @@ export async function sendLocalNotification(options) {
       silent: options.silent || false
     };
 
-    // Mostrar notificação
-    await registration.showNotification(notification.title, notification);
+    console.log('📋 Configuração da notificação:', notification);
 
-    console.log('✅ Notificação enviada:', notification.title);
+    // Tentar com Service Worker primeiro
+    if ('serviceWorker' in navigator) {
+      try {
+        console.log('🔧 Tentando enviar via Service Worker...');
+        const registration = await navigator.serviceWorker.ready;
+        console.log('✅ Service Worker pronto:', registration);
+        
+        await registration.showNotification(notification.title, notification);
+        console.log('✅ Notificação enviada via Service Worker!');
+        return { success: true, notification };
+      } catch (swError) {
+        console.warn('⚠️ Erro no Service Worker, usando fallback:', swError);
+        // Continuar para fallback
+      }
+    }
+
+    // Fallback: Notification API direta (funciona mesmo sem Service Worker)
+    console.log('🔄 Usando Notification API direta (fallback)...');
+    const notif = new Notification(notification.title, {
+      body: notification.body,
+      icon: notification.icon,
+      badge: notification.badge,
+      image: notification.image,
+      tag: notification.tag,
+      requireInteraction: notification.requireInteraction,
+      vibrate: notification.vibrate,
+      silent: notification.silent,
+      data: notification.data
+    });
+
+    console.log('✅ Notificação criada com sucesso!', notif);
+
+    // Adicionar evento de clique
+    notif.onclick = function(event) {
+      event.preventDefault();
+      const url = notification.data?.url || '/';
+      window.open(url, '_blank');
+      notif.close();
+    };
 
     return { success: true, notification };
 
   } catch (error) {
-    console.error('❌ Erro ao enviar notificação:', error);
+    console.error('❌ ERRO COMPLETO ao enviar notificação:', error);
+    console.error('❌ Detalhes:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    });
     return { success: false, error: error.message };
   }
 }
