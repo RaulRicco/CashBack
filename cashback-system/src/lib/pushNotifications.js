@@ -68,15 +68,15 @@ export function areNotificationsEnabled() {
  */
 export async function sendLocalNotification(options) {
   try {
-    console.log('🔔 Iniciando envio de notificação...', options);
+    console.log('🔔 [INÍCIO] Enviando notificação...', options);
 
     // Verificar permissão
     if (!areNotificationsEnabled()) {
-      console.warn('⚠️ Notificações não habilitadas');
+      console.error('❌ [ERRO] Notificações não habilitadas. Permission:', Notification.permission);
       return { success: false, error: 'not_enabled' };
     }
 
-    console.log('✅ Permissão concedida, preparando notificação...');
+    console.log('✅ [OK] Permissão concedida');
 
     // Configuração padrão
     const notification = {
@@ -95,26 +95,11 @@ export async function sendLocalNotification(options) {
       silent: options.silent || false
     };
 
-    console.log('📋 Configuração da notificação:', notification);
+    console.log('📋 [CONFIG]', notification);
 
-    // Tentar com Service Worker primeiro
-    if ('serviceWorker' in navigator) {
-      try {
-        console.log('🔧 Tentando enviar via Service Worker...');
-        const registration = await navigator.serviceWorker.ready;
-        console.log('✅ Service Worker pronto:', registration);
-        
-        await registration.showNotification(notification.title, notification);
-        console.log('✅ Notificação enviada via Service Worker!');
-        return { success: true, notification };
-      } catch (swError) {
-        console.warn('⚠️ Erro no Service Worker, usando fallback:', swError);
-        // Continuar para fallback
-      }
-    }
-
-    // Fallback: Notification API direta (funciona mesmo sem Service Worker)
-    console.log('🔄 Usando Notification API direta (fallback)...');
+    // SEMPRE usar Notification API direta (mais confiável)
+    console.log('🚀 [EXECUTANDO] new Notification()...');
+    
     const notif = new Notification(notification.title, {
       body: notification.body,
       icon: notification.icon,
@@ -123,28 +108,41 @@ export async function sendLocalNotification(options) {
       tag: notification.tag,
       requireInteraction: notification.requireInteraction,
       vibrate: notification.vibrate,
-      silent: notification.silent,
-      data: notification.data
+      silent: notification.silent
     });
 
-    console.log('✅ Notificação criada com sucesso!', notif);
+    console.log('✅ [SUCESSO] Notificação criada!', notif);
 
     // Adicionar evento de clique
     notif.onclick = function(event) {
+      console.log('🖱️ [CLIQUE] Notificação clicada');
       event.preventDefault();
       const url = notification.data?.url || '/';
-      window.open(url, '_blank');
+      window.focus();
       notif.close();
+    };
+
+    notif.onerror = function(error) {
+      console.error('❌ [ERRO NA NOTIFICAÇÃO]', error);
+    };
+
+    notif.onclose = function() {
+      console.log('❌ [FECHADA] Notificação fechada');
+    };
+
+    notif.onshow = function() {
+      console.log('👀 [MOSTRADA] Notificação apareceu na tela');
     };
 
     return { success: true, notification };
 
   } catch (error) {
-    console.error('❌ ERRO COMPLETO ao enviar notificação:', error);
-    console.error('❌ Detalhes:', {
+    console.error('❌ [EXCEÇÃO] Erro ao enviar notificação:', error);
+    console.error('❌ [DETALHES]', {
       name: error.name,
       message: error.message,
-      stack: error.stack
+      stack: error.stack,
+      permission: Notification.permission
     });
     return { success: false, error: error.message };
   }
