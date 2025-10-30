@@ -2,16 +2,18 @@ import { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { supabase } from '../lib/supabase';
 import DashboardLayout from '../components/DashboardLayout';
-import { Users, Search, Eye, TrendingUp } from 'lucide-react';
+import { Users, Search, Eye, TrendingUp, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import toast from 'react-hot-toast';
 
 export default function Customers() {
   const { merchant } = useAuthStore();
   const [customers, setCustomers] = useState([]);
+  const [customersWithStats, setCustomersWithStats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('last_purchase_at');
+  const [sortBy, setSortBy] = useState('name'); // Ordem alfabética por padrão
 
   useEffect(() => {
     if (merchant?.id) {
@@ -23,17 +25,20 @@ export default function Customers() {
     try {
       setLoading(true);
 
-      // Buscar clientes únicos que compraram neste merchant
-      const { data: transactions } = await supabase
+      // Buscar todas as transações do merchant
+      const { data: transactions, error: transError } = await supabase
         .from('transactions')
-        .select('customer_id')
+        .select('customer_id, amount, cashback_amount')
         .eq('merchant_id', merchant.id)
         .eq('status', 'completed');
+
+      if (transError) throw transError;
 
       const customerIds = [...new Set(transactions?.map(t => t.customer_id) || [])];
 
       if (customerIds.length === 0) {
         setCustomers([]);
+        setCustomersWithStats([]);
         setLoading(false);
         return;
       }
@@ -42,20 +47,43 @@ export default function Customers() {
       const { data: customersData, error } = await supabase
         .from('customers')
         .select('*')
-        .in('id', customerIds)
-        .order(sortBy, { ascending: false });
+        .in('id', customerIds);
 
       if (error) throw error;
 
+      // Calcular estatísticas para cada cliente
+      const customersWithCalculatedStats = customersData.map(customer => {
+        const customerTransactions = transactions.filter(t => t.customer_id === customer.id);
+        const frequency = customerTransactions.length;
+        const totalSpent = customerTransactions.reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
+        const totalCashback = customerTransactions.reduce((sum, t) => sum + parseFloat(t.cashback_amount || 0), 0);
+
+        return {
+          ...customer,
+          frequency,
+          calculated_total_spent: totalSpent,
+          calculated_cashback: totalCashback
+        };
+      });
+
+      // Ordenar alfabeticamente por padrão
+      const sortedCustomers = customersWithCalculatedStats.sort((a, b) => {
+        const nameA = (a.name || '').toLowerCase();
+        const nameB = (b.name || '').toLowerCase();
+        return nameA.localeCompare(nameB);
+      });
+
       setCustomers(customersData || []);
+      setCustomersWithStats(sortedCustomers);
     } catch (error) {
       console.error('Erro ao carregar clientes:', error);
+      toast.error('Erro ao carregar clientes');
     } finally {
       setLoading(false);
     }
   };
 
-  const filteredCustomers = customers.filter(customer => {
+  const filteredCustomers = customersWithStats.filter(customer => {
     const search = searchTerm.toLowerCase();
     return (
       customer.phone?.toLowerCase().includes(search) ||
@@ -63,6 +91,61 @@ export default function Customers() {
       customer.email?.toLowerCase().includes(search)
     );
   });
+
+  // Função para exportar CSV
+  const exportToCSV = () => {
+    try {
+      // Cabeçalho do CSV
+      const headers = [
+        'Nome',
+        'Telefone',
+        'Email',
+        'Valor Gasto (R$)',
+        'Frequência (compras)',
+        'Cashback Acumulado (R$)',
+        'Cashback Disponível (R$)',
+        'Data Cadastro',
+        'Última Compra'
+      ];
+
+      // Dados dos clientes
+      const rows = filteredCustomers.map(customer => [
+        customer.name || 'Nome não informado',
+        customer.phone || '',
+        customer.email || '',
+        customer.calculated_total_spent?.toFixed(2) || '0.00',
+        customer.frequency || 0,
+        customer.calculated_cashback?.toFixed(2) || '0.00',
+        parseFloat(customer.available_cashback || 0).toFixed(2),
+        customer.created_at ? format(new Date(customer.created_at), 'dd/MM/yyyy', { locale: ptBR }) : '',
+        customer.last_purchase_at ? format(new Date(customer.last_purchase_at), 'dd/MM/yyyy', { locale: ptBR }) : ''
+      ]);
+
+      // Criar conteúdo CSV
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+      ].join('\n');
+
+      // Criar Blob e baixar
+      const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      
+      link.setAttribute('href', url);
+      link.setAttribute('download', `clientes_${format(new Date(), 'dd-MM-yyyy')}.csv`);
+      link.style.visibility = 'hidden';
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast.success('CSV exportado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao exportar CSV:', error);
+      toast.error('Erro ao exportar CSV');
+    }
+  };
 
   return (
     <DashboardLayout>
@@ -79,7 +162,7 @@ export default function Customers() {
             </p>
           </div>
 
-          {/* Search */}
+          {/* Search and Actions */}
           <div className="flex gap-2">
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -94,19 +177,14 @@ export default function Customers() {
               />
             </div>
 
-            <select
-              value={sortBy}
-              onChange={(e) => {
-                setSortBy(e.target.value);
-                loadCustomers();
-              }}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+            <button
+              onClick={exportToCSV}
+              disabled={filteredCustomers.length === 0}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <option value="last_purchase_at">Última compra</option>
-              <option value="total_spent">Total gasto</option>
-              <option value="available_cashback">Saldo disponível</option>
-              <option value="created_at">Data cadastro</option>
-            </select>
+              <Download className="h-5 w-5" />
+              Exportar CSV
+            </button>
           </div>
         </div>
 
@@ -161,13 +239,16 @@ export default function Customers() {
                       Cliente
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Frequência
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Total Gasto
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Cashback Disponível
+                      Cashback Total
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Última Compra
+                      Disponível
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Ações
@@ -189,19 +270,24 @@ export default function Customers() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-semibold text-blue-600">
+                          {customer.frequency || 0} {customer.frequency === 1 ? 'compra' : 'compras'}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-semibold text-gray-900">
-                          R$ {parseFloat(customer.total_spent || 0).toFixed(2)}
+                          R$ {(customer.calculated_total_spent || 0).toFixed(2)}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-semibold text-orange-600">
+                          R$ {(customer.calculated_cashback || 0).toFixed(2)}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-semibold text-green-600">
                           R$ {parseFloat(customer.available_cashback || 0).toFixed(2)}
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {customer.last_purchase_at
-                          ? format(new Date(customer.last_purchase_at), 'dd/MM/yyyy', { locale: ptBR })
-                          : '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <button
