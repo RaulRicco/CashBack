@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { useAuthStore } from '../store/authStore';
 import DashboardLayout from '../components/DashboardLayout';
 import { Upload, Palette, Save, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function WhiteLabelSettings() {
+  const { merchant: authMerchant } = useAuthStore();
   const [merchant, setMerchant] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -28,18 +30,17 @@ export default function WhiteLabelSettings() {
 
   async function loadMerchant() {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      if (!authMerchant) {
         toast.error('Usuário não autenticado');
         return;
       }
 
-      console.log('User autenticado:', user.id, user.email);
+      console.log('Merchant do auth:', authMerchant);
 
       const { data: merchantData, error: merchantError } = await supabase
         .from('merchants')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('id', authMerchant.id)
         .single();
 
       if (merchantError) {
