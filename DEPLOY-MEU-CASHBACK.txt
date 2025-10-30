@@ -1,0 +1,45 @@
+═══════════════════════════════════════════════════════════════
+🚀 COMANDOS DE DEPLOY - MEU CASHBACK
+═══════════════════════════════════════════════════════════════
+
+✅ MUDANÇAS FEITAS:
+1. Menu lateral: "White Label" → "Meu CashBack"
+2. Título da página: "White Label" → "Meu CashBack"
+3. Upload de logo: design circular azul centralizado e alinhado
+
+═══════════════════════════════════════════════════════════════
+📋 COPIE E EXECUTE ESTES COMANDOS:
+═══════════════════════════════════════════════════════════════
+
+PASSO 1 - Conectar no servidor VPS:
+
+ssh root@31.97.167.88
+
+
+PASSO 2 - Deploy completo (COPIE TUDO DE UMA VEZ):
+
+cd /var/www/cashback/cashback-system && \
+git pull origin main && \
+npm install && \
+npm run build && \
+systemctl reload nginx && \
+echo "" && \
+echo "✅ DEPLOY COMPLETO!" && \
+echo "Acesse: https://localcashback.com.br"
+
+
+═══════════════════════════════════════════════════════════════
+✅ VERIFICAR APÓS DEPLOY:
+═══════════════════════════════════════════════════════════════
+
+1. Acesse: https://localcashback.com.br
+2. Faça login
+3. Veja o menu lateral → deve mostrar "Meu CashBack"
+4. Clique em "Meu CashBack"
+5. Veja o título → "Meu CashBack"
+6. Veja a área de upload → circular azul centralizado
+
+SE AINDA MOSTRAR "WHITE LABEL":
+→ Aperte Ctrl + F5 no navegador (force reload)
+
+═══════════════════════════════════════════════════════════════
