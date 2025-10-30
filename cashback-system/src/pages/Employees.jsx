@@ -13,7 +13,19 @@ export default function Employees() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    role: 'operator'
+    password: '',
+    role: 'operator',
+    permissions: {
+      dashboard: true,
+      cashback: true,
+      redemption: true,
+      customers: true,
+      employees: false,
+      reports: true,
+      integrations: false,
+      whitelabel: false,
+      settings: false
+    }
   });
 
   useEffect(() => {
@@ -42,6 +54,11 @@ export default function Employees() {
   const handleAddEmployee = async (e) => {
     e.preventDefault();
     
+    if (!formData.password || formData.password.length < 6) {
+      toast.error('Senha deve ter no mínimo 6 caracteres');
+      return;
+    }
+    
     try {
       const { error } = await supabase
         .from('employees')
@@ -50,7 +67,8 @@ export default function Employees() {
           name: formData.name,
           email: formData.email,
           role: formData.role,
-          password_hash: 'temp_password_hash', // TODO: Implementar hash real
+          password: formData.password, // Senha em texto plano (temporário)
+          permissions: formData.permissions,
           is_active: true
         });
 
@@ -58,12 +76,38 @@ export default function Employees() {
 
       toast.success('Funcionário adicionado com sucesso!');
       setShowAddForm(false);
-      setFormData({ name: '', email: '', role: 'operator' });
+      setFormData({ 
+        name: '', 
+        email: '', 
+        password: '',
+        role: 'operator',
+        permissions: {
+          dashboard: true,
+          cashback: true,
+          redemption: true,
+          customers: true,
+          employees: false,
+          reports: true,
+          integrations: false,
+          whitelabel: false,
+          settings: false
+        }
+      });
       loadEmployees();
     } catch (error) {
       console.error('Erro ao adicionar funcionário:', error);
       toast.error('Erro ao adicionar funcionário');
     }
+  };
+
+  const handlePermissionChange = (permission) => {
+    setFormData({
+      ...formData,
+      permissions: {
+        ...formData.permissions,
+        [permission]: !formData.permissions[permission]
+      }
+    });
   };
 
   const toggleEmployeeStatus = async (employeeId, currentStatus) => {
@@ -143,6 +187,21 @@ export default function Employees() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Senha
+                </label>
+                <input
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  required
+                  minLength={6}
+                  className="input"
+                  placeholder="Mínimo 6 caracteres"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Função
                 </label>
                 <select
@@ -154,6 +213,104 @@ export default function Employees() {
                   <option value="manager">Gerente</option>
                   <option value="admin">Administrador</option>
                 </select>
+              </div>
+
+              {/* Permissões */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Permissões de Acesso
+                </label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 p-4 bg-gray-50 rounded-lg">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.permissions.dashboard}
+                      onChange={() => handlePermissionChange('dashboard')}
+                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    />
+                    <span className="text-sm text-gray-700">Dashboard</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.permissions.cashback}
+                      onChange={() => handlePermissionChange('cashback')}
+                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    />
+                    <span className="text-sm text-gray-700">Cashback</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.permissions.redemption}
+                      onChange={() => handlePermissionChange('redemption')}
+                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    />
+                    <span className="text-sm text-gray-700">Resgate</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.permissions.customers}
+                      onChange={() => handlePermissionChange('customers')}
+                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    />
+                    <span className="text-sm text-gray-700">Clientes</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.permissions.employees}
+                      onChange={() => handlePermissionChange('employees')}
+                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    />
+                    <span className="text-sm text-gray-700">Funcionários</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.permissions.reports}
+                      onChange={() => handlePermissionChange('reports')}
+                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    />
+                    <span className="text-sm text-gray-700">Relatórios</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.permissions.integrations}
+                      onChange={() => handlePermissionChange('integrations')}
+                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    />
+                    <span className="text-sm text-gray-700">Integrações</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.permissions.whitelabel}
+                      onChange={() => handlePermissionChange('whitelabel')}
+                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    />
+                    <span className="text-sm text-gray-700">Meu CashBack</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.permissions.settings}
+                      onChange={() => handlePermissionChange('settings')}
+                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    />
+                    <span className="text-sm text-gray-700">Configurações</span>
+                  </label>
+                </div>
               </div>
 
               <div className="flex gap-2">
