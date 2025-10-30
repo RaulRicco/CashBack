@@ -17,6 +17,7 @@ import Employees from './pages/Employees';
 import Reports from './pages/Reports';
 import Integrations from './pages/Integrations';
 import Settings from './pages/Settings';
+import WhiteLabelSettings from './pages/WhiteLabelSettings';
 import CustomerCashback from './pages/CustomerCashback';
 import CustomerRedemption from './pages/CustomerRedemption';
 import CustomerDashboard from './pages/CustomerDashboard';
@@ -165,6 +166,14 @@ function App() {
           element={
             <ProtectedRoute>
               <AdminNotifications />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/whitelabel" 
+          element={
+            <ProtectedRoute>
+              <WhiteLabelSettings />
             </ProtectedRoute>
           } 
         />

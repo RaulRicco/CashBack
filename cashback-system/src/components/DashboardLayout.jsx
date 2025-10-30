@@ -13,7 +13,8 @@ import {
   UserPlus,
   QrCode,
   Mail,
-  Bell
+  Bell,
+  Palette
 } from 'lucide-react';
 import { BRAND_CONFIG, getLogo, getBrandName } from '../config/branding';
 
@@ -37,6 +38,7 @@ export default function DashboardLayout({ children }) {
     { name: 'Relatórios', href: '/reports', icon: TrendingUp },
     { name: 'Integrações', href: '/integrations', icon: Mail },
     { name: 'Notificações', href: '/notifications', icon: Bell },
+    { name: 'Meu CashBack', href: '/whitelabel', icon: Palette },
     { name: 'Configurações', href: '/settings', icon: Settings },
   ];
 
