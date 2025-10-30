@@ -298,33 +298,35 @@ export default function WhiteLabelSettings() {
                 </div>
               )}
               
-              {/* Upload Area - Alinhado */}
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 hover:border-primary-400 transition-colors bg-gray-50">
+              {/* Upload Area - Toda área clicável */}
+              <label 
+                htmlFor="logo-upload" 
+                className="border-2 border-dashed border-gray-300 rounded-lg p-8 hover:border-primary-400 transition-colors bg-gray-50 cursor-pointer block"
+              >
                 <div className="flex flex-col items-center justify-center gap-3">
                   <div className="w-16 h-16 rounded-full bg-primary-100 flex items-center justify-center">
                     <Upload className="h-8 w-8 text-primary-600" />
                   </div>
                   
                   <div className="text-center">
-                    <label htmlFor="logo-upload" className="cursor-pointer">
-                      <span className="text-base font-semibold text-primary-600 hover:text-primary-700 transition-colors">
-                        {settings.logo_url ? 'Alterar Logo' : 'Selecionar Logo'}
-                      </span>
-                      <input
-                        id="logo-upload"
-                        type="file"
-                        accept="image/png,image/jpeg,image/jpg"
-                        onChange={handleLogoUpload}
-                        disabled={uploading}
-                        className="hidden"
-                      />
-                    </label>
+                    <span className="text-base font-semibold text-primary-600 hover:text-primary-700 transition-colors block">
+                      {settings.logo_url ? 'Alterar Logo' : 'Selecionar Logo'}
+                    </span>
                     <p className="text-xs text-gray-500 mt-2">
                       Recomendado: PNG ou JPG, máximo 2MB, fundo transparente
                     </p>
                   </div>
                 </div>
-              </div>
+                
+                <input
+                  id="logo-upload"
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg"
+                  onChange={handleLogoUpload}
+                  disabled={uploading}
+                  className="hidden"
+                />
+              </label>
               
               {/* Status do Upload */}
               {uploading && (
