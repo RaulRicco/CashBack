@@ -251,7 +251,7 @@ export default function Customers() {
                       Disponível
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Ações
+                      Cadastro
                     </th>
                   </tr>
                 </thead>
@@ -289,14 +289,12 @@ export default function Customers() {
                           R$ {parseFloat(customer.available_cashback || 0).toFixed(2)}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <button
-                          onClick={() => window.open(`/customer/dashboard/${customer.phone}`, '_blank')}
-                          className="text-primary-600 hover:text-primary-900 flex items-center gap-1"
-                        >
-                          <Eye className="w-4 h-4" />
-                          Ver Detalhes
-                        </button>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <div className="text-xs">
+                          Cadastro: {customer.created_at 
+                            ? format(new Date(customer.created_at), 'dd/MM/yyyy', { locale: ptBR })
+                            : '-'}
+                        </div>
                       </td>
                     </tr>
                   ))}
