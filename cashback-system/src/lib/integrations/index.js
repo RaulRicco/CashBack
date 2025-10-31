@@ -175,38 +175,53 @@ export async function getIntegrationConfigs(merchantId) {
  */
 export async function saveIntegrationConfig(merchantId, provider, config) {
   try {
+    console.log('🔧 saveIntegrationConfig iniciado:', {
+      merchantId,
+      provider,
+      config
+    });
+
     // Verificar se já existe
-    const { data: existing } = await supabase
+    console.log('🔍 Verificando se configuração já existe...');
+    const existingQuery = await supabase
       .from('integration_configs')
       .select('id')
       .eq('merchant_id', merchantId)
       .eq('provider', provider)
       .single();
 
+    console.log('📊 Resultado da busca:', {
+      data: existingQuery.data,
+      error: existingQuery.error,
+      hasError: !!existingQuery.error
+    });
+
     const configData = {
       merchant_id: merchantId,
       provider: provider,
-      api_key: config.api_key,
-      api_token: config.api_token,
-      audience_id: config.audience_id,
-      sync_on_signup: config.sync_on_signup,
-      sync_on_purchase: config.sync_on_purchase,
-      sync_on_redemption: config.sync_on_redemption,
+      api_key: config.api_key || null,
+      api_token: config.api_token || null,
+      audience_id: config.audience_id || null,
+      sync_on_signup: config.sync_on_signup !== undefined ? config.sync_on_signup : true,
+      sync_on_purchase: config.sync_on_purchase !== undefined ? config.sync_on_purchase : true,
+      sync_on_redemption: config.sync_on_redemption !== undefined ? config.sync_on_redemption : false,
       default_tags: config.default_tags || []
     };
 
+    console.log('📦 Dados a serem salvos:', configData);
+
     let result;
     
-    if (existing) {
-      // Atualizar
+    if (existingQuery.data && !existingQuery.error) {
+      console.log('♻️ Atualizando configuração existente ID:', existingQuery.data.id);
       result = await supabase
         .from('integration_configs')
         .update(configData)
-        .eq('id', existing.id)
+        .eq('id', existingQuery.data.id)
         .select()
         .single();
     } else {
-      // Inserir
+      console.log('➕ Inserindo nova configuração...');
       result = await supabase
         .from('integration_configs')
         .insert(configData)
@@ -214,15 +229,37 @@ export async function saveIntegrationConfig(merchantId, provider, config) {
         .single();
     }
 
+    console.log('📤 Resultado final do Supabase:', {
+      data: result.data,
+      error: result.error,
+      errorDetails: result.error ? {
+        message: result.error.message,
+        details: result.error.details,
+        hint: result.error.hint,
+        code: result.error.code
+      } : null
+    });
+
     if (result.error) {
-      console.error('Erro ao salvar configuração:', result.error);
-      return { success: false, error: result.error.message };
+      console.error('❌ Erro ao salvar configuração:', result.error);
+      return { 
+        success: false, 
+        error: result.error.message,
+        details: result.error.details,
+        hint: result.error.hint,
+        code: result.error.code
+      };
     }
 
+    console.log('✅ Configuração salva com sucesso!');
     return { success: true, data: result.data };
   } catch (error) {
-    console.error('Erro geral ao salvar:', error);
-    return { success: false, error: error.message };
+    console.error('💥 Erro geral ao salvar:', error);
+    return { 
+      success: false, 
+      error: error.message,
+      stack: error.stack
+    };
   }
 }
 
