@@ -169,12 +169,18 @@ export class RDStationService {
    */
   async testConnection() {
     try {
+      console.log('Testando RD Station:', {
+        url: `${this.baseUrl}/contacts`,
+        hasToken: !!this.accessToken
+      });
+
       // Testar com uma chamada simples à API
       const response = await axios.get(
         `${this.baseUrl}/contacts`,
         { 
           headers: this.getHeaders(),
-          params: { page_size: 1 }
+          params: { page_size: 1 },
+          timeout: 10000
         }
       );
 
@@ -184,9 +190,19 @@ export class RDStationService {
         totalContacts: response.data.total
       };
     } catch (error) {
+      console.error('Erro RD Station:', error);
+      
+      // Erro de rede/CORS
+      if (!error.response) {
+        return {
+          success: false,
+          error: 'Erro de conexão. Verifique se o Access Token está correto e tente novamente.'
+        };
+      }
+
       return {
         success: false,
-        error: error.response?.data?.errors?.[0]?.error_message || error.message
+        error: error.response?.data?.errors?.[0]?.error_message || error.response?.data?.error || error.message
       };
     }
   }

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import md5 from 'md5';
 
 /**
  * Serviço de integração com Mailchimp
@@ -141,9 +142,17 @@ export class MailchimpService {
    */
   async testConnection() {
     try {
+      console.log('Testando Mailchimp:', {
+        url: `${this.baseUrl}/lists/${this.audienceId}`,
+        hasKey: !!this.apiKey
+      });
+
       const response = await axios.get(
         `${this.baseUrl}/lists/${this.audienceId}`,
-        { headers: this.getHeaders() }
+        { 
+          headers: this.getHeaders(),
+          timeout: 10000
+        }
       );
 
       return {
@@ -152,9 +161,19 @@ export class MailchimpService {
         memberCount: response.data.stats.member_count
       };
     } catch (error) {
+      console.error('Erro Mailchimp:', error);
+      
+      // Erro de rede/CORS
+      if (!error.response) {
+        return {
+          success: false,
+          error: 'Erro de conexão. Verifique se a API Key está correta e tente novamente.'
+        };
+      }
+
       return {
         success: false,
-        error: error.response?.data?.detail || error.message
+        error: error.response?.data?.detail || error.response?.data?.title || error.message
       };
     }
   }
@@ -163,8 +182,8 @@ export class MailchimpService {
    * Gerar hash MD5 do email (necessário para API do Mailchimp)
    */
   getSubscriberHash(email) {
-    // Implementação simplificada - usar crypto no servidor real
-    return email.toLowerCase();
+    const normalizedEmail = email.toLowerCase().trim();
+    return md5(normalizedEmail);
   }
 }
 
