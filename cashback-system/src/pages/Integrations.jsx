@@ -96,24 +96,68 @@ export default function Integrations() {
   };
 
   const handleSaveMailchimp = async () => {
+    console.log('🚀 Salvando Mailchimp:', {
+      merchant_id: merchant.id,
+      provider: 'mailchimp',
+      config: mailchimpForm
+    });
+
     const result = await saveIntegrationConfig(merchant.id, 'mailchimp', mailchimpForm);
     
+    console.log('📥 Resultado do save:', result);
+    
     if (result.success) {
-      toast.success('Configuração do Mailchimp salva!');
+      toast.success('✅ Configuração do Mailchimp salva com sucesso!');
       loadConfigs();
     } else {
-      toast.error('Erro ao salvar configuração');
+      const errorMsg = result.details 
+        ? `${result.error} - ${result.details}` 
+        : result.error;
+      
+      toast.error(`❌ Erro ao salvar: ${errorMsg}`, {
+        duration: 6000
+      });
+      
+      console.error('💥 Erro detalhado completo:', {
+        error: result.error,
+        details: result.details,
+        hint: result.hint,
+        code: result.code,
+        stack: result.stack
+      });
     }
   };
 
   const handleSaveRDStation = async () => {
+    console.log('🚀 Salvando RD Station:', {
+      merchant_id: merchant.id,
+      provider: 'rdstation',
+      config: rdstationForm
+    });
+
     const result = await saveIntegrationConfig(merchant.id, 'rdstation', rdstationForm);
     
+    console.log('📥 Resultado do save:', result);
+    
     if (result.success) {
-      toast.success('Configuração do RD Station salva!');
+      toast.success('✅ Configuração do RD Station salva com sucesso!');
       loadConfigs();
     } else {
-      toast.error('Erro ao salvar configuração');
+      const errorMsg = result.details 
+        ? `${result.error} - ${result.details}` 
+        : result.error;
+      
+      toast.error(`❌ Erro ao salvar: ${errorMsg}`, {
+        duration: 6000
+      });
+      
+      console.error('💥 Erro detalhado completo:', {
+        error: result.error,
+        details: result.details,
+        hint: result.hint,
+        code: result.code,
+        stack: result.stack
+      });
     }
   };
 
