@@ -96,21 +96,49 @@ async function logSync(integrationConfigId, customerId, action, result) {
 
 /**
  * Testar conexão com uma integração
+ * NOTA: Devido a restrições CORS, não é possível testar diretamente do browser.
+ * A validação real acontece quando você salva e tenta sincronizar.
  */
 export async function testIntegration(provider, credentials) {
   try {
+    // Validação básica dos campos
     if (provider === 'mailchimp') {
-      const { MailchimpService } = await import('./mailchimp');
-      const service = new MailchimpService(
-        credentials.api_key,
-        credentials.audience_id,
-        credentials.api_token
-      );
-      return await service.testConnection();
+      if (!credentials.api_key || credentials.api_key.length < 20) {
+        return {
+          success: false,
+          error: 'API Key inválida. Deve ter pelo menos 20 caracteres.'
+        };
+      }
+      if (!credentials.audience_id || credentials.audience_id.length < 5) {
+        return {
+          success: false,
+          error: 'Audience ID inválido.'
+        };
+      }
+      if (!credentials.api_token || credentials.api_token.length < 2) {
+        return {
+          success: false,
+          error: 'Server Prefix inválido (exemplo: us1, us2, etc).'
+        };
+      }
+      
+      return {
+        success: true,
+        message: '✅ Credenciais validadas! Salve a configuração e teste sincronizando um cliente.'
+      };
+      
     } else if (provider === 'rdstation') {
-      const { RDStationService } = await import('./rdstation');
-      const service = new RDStationService(credentials.api_token);
-      return await service.testConnection();
+      if (!credentials.api_token || credentials.api_token.length < 30) {
+        return {
+          success: false,
+          error: 'Access Token inválido. Deve ter pelo menos 30 caracteres.'
+        };
+      }
+      
+      return {
+        success: true,
+        message: '✅ Token validado! Salve a configuração e teste sincronizando um cliente.'
+      };
     }
 
     return {
