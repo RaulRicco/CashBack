@@ -583,11 +583,23 @@ export default function Integrations() {
           </h3>
           <ul className="text-sm text-blue-800 space-y-1">
             <li>• Configure suas credenciais de API do Mailchimp ou RD Station</li>
+            <li>• O botão "Testar Conexão" valida apenas o formato das credenciais</li>
+            <li>• <strong>Para testar de verdade:</strong> Salve a configuração e use "Sincronizar Todos os Clientes"</li>
             <li>• Ative a sincronização automática para os eventos desejados</li>
             <li>• Os clientes serão automaticamente adicionados à sua lista/base</li>
             <li>• Tags personalizadas são adicionadas baseadas no comportamento</li>
-            <li>• Use "Sincronizar Todos" para importar clientes existentes</li>
           </ul>
+        </div>
+
+        <div className="card bg-yellow-50 border border-yellow-200">
+          <h3 className="font-semibold text-yellow-900 mb-2">
+            ⚠️ Importante sobre Teste de Conexão
+          </h3>
+          <p className="text-sm text-yellow-800">
+            Devido a restrições de segurança do navegador (CORS), não é possível testar a conexão diretamente com as APIs do Mailchimp e RD Station.
+            <br /><br />
+            <strong>Recomendação:</strong> Salve as configurações e clique em "Sincronizar Todos os Clientes". Se houver erro, ele aparecerá na aba "Logs".
+          </p>
         </div>
       </div>
     </DashboardLayout>
