@@ -26,43 +26,27 @@ export class RDStationService {
    */
   async upsertContact(customer, tags = []) {
     try {
-      const data = {
-        event_type: 'CONVERSION',
-        event_family: 'CDP',
-        payload: {
-          conversion_identifier: 'cashback_system',
-          email: customer.email || `${customer.phone}@cashback.local`,
-          name: customer.name || 'Cliente',
-          mobile_phone: customer.phone || '',
-          cf_saldo_cashback: parseFloat(customer.available_cashback || 0).toFixed(2),
-          cf_total_gasto: parseFloat(customer.total_spent || 0).toFixed(2),
-          cf_total_cashback: parseFloat(customer.total_cashback || 0).toFixed(2),
-          tags: tags,
-          legal_bases: [
-            {
-              category: 'communications',
-              type: 'consent',
-              status: 'granted'
-            }
-          ]
-        }
-      };
+      // Usar proxy server para evitar CORS
+      const proxyUrl = window.location.hostname === 'localhost' 
+        ? 'http://localhost:3001'
+        : 'https://' + window.location.hostname + ':3001';
 
       const response = await axios.post(
-        `${this.baseUrl}/conversions`,
-        data,
-        { headers: this.getHeaders() }
+        `${proxyUrl}/api/rdstation/sync`,
+        {
+          accessToken: this.accessToken,
+          customer,
+          tags
+        },
+        { timeout: 15000 }
       );
 
-      return {
-        success: true,
-        data: response.data
-      };
+      return response.data;
     } catch (error) {
       console.error('RD Station Error:', error.response?.data || error.message);
       return {
         success: false,
-        error: error.response?.data?.errors?.[0]?.error_message || error.message
+        error: error.response?.data?.error || error.message
       };
     }
   }
@@ -169,40 +153,38 @@ export class RDStationService {
    */
   async testConnection() {
     try {
-      console.log('Testando RD Station:', {
-        url: `${this.baseUrl}/contacts`,
+      console.log('Testando RD Station via proxy:', {
         hasToken: !!this.accessToken
       });
 
-      // Testar com uma chamada simples à API
-      const response = await axios.get(
-        `${this.baseUrl}/contacts`,
-        { 
-          headers: this.getHeaders(),
-          params: { page_size: 1 },
-          timeout: 10000
-        }
+      // Usar proxy server para evitar CORS
+      const proxyUrl = window.location.hostname === 'localhost' 
+        ? 'http://localhost:3001'
+        : 'https://' + window.location.hostname + ':3001';
+
+      const response = await axios.post(
+        `${proxyUrl}/api/rdstation/test`,
+        {
+          accessToken: this.accessToken
+        },
+        { timeout: 15000 }
       );
 
-      return {
-        success: true,
-        message: 'Conexão estabelecida com sucesso',
-        totalContacts: response.data.total
-      };
+      return response.data;
     } catch (error) {
       console.error('Erro RD Station:', error);
       
-      // Erro de rede/CORS
+      // Erro de rede
       if (!error.response) {
         return {
           success: false,
-          error: 'Erro de conexão. Verifique se o Access Token está correto e tente novamente.'
+          error: 'Não foi possível conectar ao servidor proxy. Verifique se está rodando na porta 3001.'
         };
       }
 
       return {
         success: false,
-        error: error.response?.data?.errors?.[0]?.error_message || error.response?.data?.error || error.message
+        error: error.response?.data?.error || error.message
       };
     }
   }
