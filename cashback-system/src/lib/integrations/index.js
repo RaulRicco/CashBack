@@ -174,24 +174,56 @@ export async function getIntegrationConfigs(merchantId) {
  * Salvar configuração de integração
  */
 export async function saveIntegrationConfig(merchantId, provider, config) {
-  const { data, error } = await supabase
-    .from('integration_configs')
-    .upsert({
+  try {
+    // Verificar se já existe
+    const { data: existing } = await supabase
+      .from('integration_configs')
+      .select('id')
+      .eq('merchant_id', merchantId)
+      .eq('provider', provider)
+      .single();
+
+    const configData = {
       merchant_id: merchantId,
       provider: provider,
-      ...config
-    }, {
-      onConflict: 'merchant_id,provider'
-    })
-    .select()
-    .single();
+      api_key: config.api_key,
+      api_token: config.api_token,
+      audience_id: config.audience_id,
+      sync_on_signup: config.sync_on_signup,
+      sync_on_purchase: config.sync_on_purchase,
+      sync_on_redemption: config.sync_on_redemption,
+      default_tags: config.default_tags || []
+    };
 
-  if (error) {
-    console.error('Erro ao salvar configuração:', error);
+    let result;
+    
+    if (existing) {
+      // Atualizar
+      result = await supabase
+        .from('integration_configs')
+        .update(configData)
+        .eq('id', existing.id)
+        .select()
+        .single();
+    } else {
+      // Inserir
+      result = await supabase
+        .from('integration_configs')
+        .insert(configData)
+        .select()
+        .single();
+    }
+
+    if (result.error) {
+      console.error('Erro ao salvar configuração:', result.error);
+      return { success: false, error: result.error.message };
+    }
+
+    return { success: true, data: result.data };
+  } catch (error) {
+    console.error('Erro geral ao salvar:', error);
     return { success: false, error: error.message };
   }
-
-  return { success: true, data };
 }
 
 /**
