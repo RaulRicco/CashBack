@@ -29,35 +29,29 @@ export class MailchimpService {
    */
   async addOrUpdateContact(customer, tags = []) {
     try {
-      const subscriberHash = this.getSubscriberHash(customer.email || customer.phone);
-      
-      const data = {
-        email_address: customer.email || `${customer.phone}@cashback.local`,
-        status: 'subscribed',
-        merge_fields: {
-          FNAME: customer.name || '',
-          PHONE: customer.phone || '',
-          CASHBACK: parseFloat(customer.available_cashback || 0).toFixed(2),
-          TOTALSPENT: parseFloat(customer.total_spent || 0).toFixed(2)
-        },
-        tags: tags
-      };
+      // Usar proxy server para evitar CORS
+      const proxyUrl = window.location.hostname === 'localhost' 
+        ? 'http://localhost:3001'
+        : 'https://' + window.location.hostname + ':3001';
 
-      const response = await axios.put(
-        `${this.baseUrl}/lists/${this.audienceId}/members/${subscriberHash}`,
-        data,
-        { headers: this.getHeaders() }
+      const response = await axios.post(
+        `${proxyUrl}/api/mailchimp/sync`,
+        {
+          apiKey: this.apiKey,
+          audienceId: this.audienceId,
+          serverPrefix: this.serverPrefix,
+          customer,
+          tags
+        },
+        { timeout: 15000 }
       );
 
-      return {
-        success: true,
-        data: response.data
-      };
+      return response.data;
     } catch (error) {
       console.error('Mailchimp Error:', error.response?.data || error.message);
       return {
         success: false,
-        error: error.response?.data?.detail || error.message
+        error: error.response?.data?.error || error.message
       };
     }
   }
@@ -142,38 +136,42 @@ export class MailchimpService {
    */
   async testConnection() {
     try {
-      console.log('Testando Mailchimp:', {
-        url: `${this.baseUrl}/lists/${this.audienceId}`,
-        hasKey: !!this.apiKey
+      console.log('Testando Mailchimp via proxy:', {
+        hasKey: !!this.apiKey,
+        audienceId: this.audienceId,
+        serverPrefix: this.serverPrefix
       });
 
-      const response = await axios.get(
-        `${this.baseUrl}/lists/${this.audienceId}`,
-        { 
-          headers: this.getHeaders(),
-          timeout: 10000
-        }
+      // Usar proxy server para evitar CORS
+      const proxyUrl = window.location.hostname === 'localhost' 
+        ? 'http://localhost:3001'
+        : 'https://' + window.location.hostname + ':3001';
+
+      const response = await axios.post(
+        `${proxyUrl}/api/mailchimp/test`,
+        {
+          apiKey: this.apiKey,
+          audienceId: this.audienceId,
+          serverPrefix: this.serverPrefix
+        },
+        { timeout: 15000 }
       );
 
-      return {
-        success: true,
-        listName: response.data.name,
-        memberCount: response.data.stats.member_count
-      };
+      return response.data;
     } catch (error) {
       console.error('Erro Mailchimp:', error);
       
-      // Erro de rede/CORS
+      // Erro de rede
       if (!error.response) {
         return {
           success: false,
-          error: 'Erro de conexão. Verifique se a API Key está correta e tente novamente.'
+          error: 'Não foi possível conectar ao servidor proxy. Verifique se está rodando na porta 3001.'
         };
       }
 
       return {
         success: false,
-        error: error.response?.data?.detail || error.response?.data?.title || error.message
+        error: error.response?.data?.error || error.message
       };
     }
   }
