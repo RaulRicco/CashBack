@@ -93,8 +93,8 @@ export default function Cashback() {
         merchantId: merchant.id
       });
 
-      // Gerar URL para o QR Code (o cliente vai escanear)
-      const qrUrl = `${window.location.origin}/customer/cashback/${qrToken}`;
+      // Gerar URL para o QR Code (o cliente vai escanear) - URL de conversão
+      const qrUrl = `${window.location.origin}/customer/cashback/${qrToken}/parabens`;
 
       setQrData({
         url: qrUrl,
