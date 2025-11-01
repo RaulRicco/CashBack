@@ -79,6 +79,28 @@ export default function CustomerDashboard() {
     }
   };
 
+  const applyMerchantColors = (merchantData) => {
+    if (merchantData.primary_color) {
+      document.documentElement.style.setProperty('--color-primary', merchantData.primary_color);
+      document.documentElement.style.setProperty('--color-primary-50', merchantData.primary_color + '10');
+      document.documentElement.style.setProperty('--color-primary-100', merchantData.primary_color + '30');
+      document.documentElement.style.setProperty('--color-primary-500', merchantData.primary_color);
+      document.documentElement.style.setProperty('--color-primary-600', merchantData.primary_color);
+      document.documentElement.style.setProperty('--color-primary-700', shadeColor(merchantData.primary_color, -20));
+      document.documentElement.style.setProperty('--color-primary-800', shadeColor(merchantData.primary_color, -30));
+      document.documentElement.style.setProperty('--color-primary-900', shadeColor(merchantData.primary_color, -40));
+    }
+  };
+
+  const shadeColor = (color, percent) => {
+    const num = parseInt(color.replace("#",""), 16);
+    const amt = Math.round(2.55 * percent);
+    const R = (num >> 16) + amt;
+    const G = (num >> 8 & 0x00FF) + amt;
+    const B = (num & 0x0000FF) + amt;
+    return "#" + (0x1000000 + (R<255?R<1?0:R:255)*0x10000 + (G<255?G<1?0:G:255)*0x100 + (B<255?B<1?0:B:255)).toString(16).slice(1);
+  };
+
   const loadCustomerData = async () => {
     try {
       setLoading(true);
@@ -107,18 +129,29 @@ export default function CustomerDashboard() {
         console.error('Erro ao buscar transações:', txError);
       }
       
-      console.log('📊 Transações encontradas:', txData?.length || 0, txData);
+      console.log('📊 Transações (entradas) encontradas:', txData?.length || 0, txData);
       setTransactions(txData || []);
 
-      // Pegar o merchant principal (do primeiro transaction ou mais recente)
-      if (txData && txData.length > 0 && txData[0].merchant_id) {
+      // Pegar o merchant principal (do primeiro transaction ou referred_by_merchant_id)
+      let merchantId = customerData.referred_by_merchant_id;
+      
+      // Se não tiver referred_by, pegar do primeiro transaction
+      if (!merchantId && txData && txData.length > 0) {
+        merchantId = txData[0].merchant_id;
+      }
+
+      if (merchantId) {
         const { data: merchantData } = await supabase
           .from('merchants')
-          .select('name, cashback_program_name')
-          .eq('id', txData[0].merchant_id)
+          .select('id, name, cashback_program_name, primary_color, secondary_color, accent_color, logo_url')
+          .eq('id', merchantId)
           .single();
         
-        setMerchant(merchantData);
+        if (merchantData) {
+          setMerchant(merchantData);
+          // Aplicar cores do merchant
+          applyMerchantColors(merchantData);
+        }
       }
 
       // Buscar resgates
@@ -134,7 +167,7 @@ export default function CustomerDashboard() {
         console.error('Erro ao buscar resgates:', redemptionError);
       }
       
-      console.log('💰 Resgates encontrados:', redemptionData?.length || 0, redemptionData);
+      console.log('💰 Resgates (saídas) encontrados:', redemptionData?.length || 0, redemptionData);
       setRedemptions(redemptionData || []);
 
       setLoading(false);
@@ -238,46 +271,60 @@ export default function CustomerDashboard() {
   const getUnifiedHistory = () => {
     const history = [];
 
-    // Adicionar entradas (cashback)
+    // Adicionar entradas (cashback recebido)
+    console.log('🔄 Processando transações (entradas):', transactions.length);
     transactions.forEach(tx => {
-      history.push({
+      const entry = {
         id: `tx-${tx.id}`,
         type: 'in',
-        amount: parseFloat(tx.cashback_amount),
-        purchaseAmount: parseFloat(tx.amount),
-        percentage: tx.cashback_percentage,
-        merchantName: tx.merchant?.name,
+        amount: parseFloat(tx.cashback_amount || 0),
+        purchaseAmount: parseFloat(tx.amount || 0),
+        percentage: tx.cashback_percentage || 0,
+        merchantName: tx.merchant?.name || merchant?.name || 'Estabelecimento',
         date: new Date(tx.created_at),
         description: 'Cashback recebido'
-      });
+      };
+      console.log('  ➕ Entrada:', entry);
+      history.push(entry);
     });
 
     // Adicionar saídas (resgates)
+    console.log('🔄 Processando resgates (saídas):', redemptions.length);
     redemptions.forEach(redemption => {
-      history.push({
+      const entry = {
         id: `redemption-${redemption.id}`,
         type: 'out',
-        amount: parseFloat(redemption.amount),
-        merchantName: redemption.merchant?.name,
+        amount: parseFloat(redemption.amount || 0),
+        merchantName: redemption.merchant?.name || merchant?.name || 'Estabelecimento',
         date: new Date(redemption.created_at),
         description: 'Cashback resgatado'
-      });
+      };
+      console.log('  ➖ Saída:', entry);
+      history.push(entry);
     });
+
+    console.log('📋 Total de itens no histórico:', history.length);
 
     // Ordenar por data (mais recente primeiro)
     history.sort((a, b) => b.date - a.date);
 
     // Filtrar por tipo
     if (filter === 'in') {
-      return history.filter(item => item.type === 'in');
+      const filtered = history.filter(item => item.type === 'in');
+      console.log('🔍 Filtrado (entradas):', filtered.length);
+      return filtered;
     } else if (filter === 'out') {
-      return history.filter(item => item.type === 'out');
+      const filtered = history.filter(item => item.type === 'out');
+      console.log('🔍 Filtrado (saídas):', filtered.length);
+      return filtered;
     }
 
+    console.log('🔍 Mostrando todos:', history.length);
     return history;
   };
 
   const unifiedHistory = getUnifiedHistory();
+  console.log('📊 Histórico final renderizado:', unifiedHistory.length, 'itens');
 
   return (
     <div className="min-h-screen bg-gray-50">
