@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Wallet, Gift, History, TrendingUp, Loader, ArrowUpCircle, ArrowDownCircle, Filter, Lock } from 'lucide-react';
+import { Wallet, Gift, History, TrendingUp, Loader, ArrowUpCircle, ArrowDownCircle, Filter, Lock, Store } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -81,14 +81,21 @@ export default function CustomerDashboard() {
 
   const applyMerchantColors = (merchantData) => {
     if (merchantData.primary_color) {
-      document.documentElement.style.setProperty('--color-primary', merchantData.primary_color);
-      document.documentElement.style.setProperty('--color-primary-50', merchantData.primary_color + '10');
-      document.documentElement.style.setProperty('--color-primary-100', merchantData.primary_color + '30');
-      document.documentElement.style.setProperty('--color-primary-500', merchantData.primary_color);
-      document.documentElement.style.setProperty('--color-primary-600', merchantData.primary_color);
-      document.documentElement.style.setProperty('--color-primary-700', shadeColor(merchantData.primary_color, -20));
-      document.documentElement.style.setProperty('--color-primary-800', shadeColor(merchantData.primary_color, -30));
-      document.documentElement.style.setProperty('--color-primary-900', shadeColor(merchantData.primary_color, -40));
+      console.log('🎨 Aplicando cores do merchant:', merchantData.primary_color);
+      const primaryColor = merchantData.primary_color;
+      
+      document.documentElement.style.setProperty('--color-primary', primaryColor);
+      document.documentElement.style.setProperty('--color-primary-50', primaryColor + '10');
+      document.documentElement.style.setProperty('--color-primary-100', primaryColor + '30');
+      document.documentElement.style.setProperty('--color-primary-500', primaryColor);
+      document.documentElement.style.setProperty('--color-primary-600', primaryColor);
+      document.documentElement.style.setProperty('--color-primary-700', shadeColor(primaryColor, -20));
+      document.documentElement.style.setProperty('--color-primary-800', shadeColor(primaryColor, -30));
+      document.documentElement.style.setProperty('--color-primary-900', shadeColor(primaryColor, -40));
+      
+      console.log('✅ Cores aplicadas com sucesso!');
+    } else {
+      console.log('⚠️ Merchant sem cor personalizada, usando padrão');
     }
   };
 
@@ -345,17 +352,33 @@ export default function CustomerDashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-gradient-to-br from-primary-600 via-primary-700 to-primary-900 text-white">
+      <div 
+        className="text-white"
+        style={{
+          background: merchant?.primary_color 
+            ? `linear-gradient(to bottom right, ${merchant.primary_color}, ${shadeColor(merchant.primary_color, -20)}, ${shadeColor(merchant.primary_color, -40)})`
+            : 'linear-gradient(to bottom right, #059669, #047857, #065f46)'
+        }}
+      >
         <div className="max-w-4xl mx-auto px-4 py-8">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-              <Wallet className="w-6 h-6" />
-            </div>
+          <div className="flex items-center gap-4 mb-6">
+            {/* Logo do Estabelecimento */}
+            {merchant?.logo_url ? (
+              <img 
+                src={merchant.logo_url} 
+                alt={merchant.name}
+                className="w-16 h-16 object-contain bg-white rounded-xl p-2"
+              />
+            ) : (
+              <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                <Wallet className="w-8 h-8" />
+              </div>
+            )}
             <div>
               <h1 className="text-2xl font-bold">
                 {merchant?.cashback_program_name || 'Meu Cashback'}
               </h1>
-              <p className="text-primary-100">
+              <p className="text-white text-opacity-80">
                 {merchant?.name || customer.phone}
               </p>
             </div>
