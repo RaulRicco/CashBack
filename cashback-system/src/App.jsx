@@ -92,7 +92,7 @@ function App() {
         <Route path="/force-update" element={<ForceUpdate />} />
         
         {/* Customer Public Routes (QR Code scans) */}
-        <Route path="/customer/cashback/:token" element={<CustomerCashback />} />
+        <Route path="/customer/cashback/:token/parabens" element={<CustomerCashback />} />
         <Route path="/customer/redemption/:token" element={<CustomerRedemption />} />
         <Route path="/customer/dashboard/:phone" element={<CustomerDashboard />} />
         
