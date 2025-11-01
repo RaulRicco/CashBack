@@ -1,0 +1,75 @@
+═══════════════════════════════════════════════════════════════════════════
+  🔔 DEPLOY ONESIGNAL - COMANDO ÚNICO
+═══════════════════════════════════════════════════════════════════════════
+
+📋 INSTRUÇÕES:
+
+1. Copie o comando abaixo (TUDO, incluindo as aspas)
+2. Cole no seu terminal local (onde você tem acesso SSH ao servidor)
+3. Pressione ENTER
+4. Digite a senha do servidor quando pedir
+5. Aguarde 2-3 minutos
+6. Pronto!
+
+═══════════════════════════════════════════════════════════════════════════
+
+🚀 COMANDO PARA COPIAR:
+
+ssh root@31.97.167.88 "cd /var/www/cashback/cashback-system && echo '📥 Baixando código atualizado...' && git pull origin main && echo '' && echo '🔧 Configurando OneSignal...' && grep -q 'VITE_ONESIGNAL_APP_ID' .env || (echo '' >> .env && echo '# OneSignal Push Notifications' >> .env && echo 'VITE_ONESIGNAL_APP_ID=e2b2fb1d-4a56-470f-a33a-aeb35e99631d' >> .env && echo 'VITE_ONESIGNAL_REST_API_KEY=os_v2_app_4kzpwhkkkzdq7iz2v2zv5gldduw37ngfhotuqqfeoc3elv3ey4tlhthlfyixtb6rar2wcamg567nof2rzjg4ymb7oj3e65iwfwgb2si' >> .env) && echo '✅ Variáveis configuradas' && echo '' && echo '🔨 Fazendo build (30 segundos)...' && npm run build && echo '' && echo '🔄 Recarregando nginx...' && systemctl reload nginx && echo '' && echo '✅ Verificando OneSignal...' && (grep -q 'onesignal' dist/assets/index-*.js && echo '✅ OneSignal instalado com sucesso!' || echo '⚠️  OneSignal não encontrado') && echo '' && echo '═══════════════════════════════════════════════════════════════' && echo '  🎉 DEPLOY CONCLUÍDO!' && echo '═══════════════════════════════════════════════════════════════' && echo '' && echo '🧪 TESTE AGORA:' && echo '1. https://localcashback.com.br' && echo '2. Limpar cache: Ctrl+Shift+Delete' && echo '3. Permitir notificações no popup' && echo '4. Login admin → Notificações Push' && echo '5. Enviar teste' && echo ''"
+
+═══════════════════════════════════════════════════════════════════════════
+
+⏱️  TEMPO ESTIMADO: 2-3 minutos
+
+═══════════════════════════════════════════════════════════════════════════
+
+📝 O QUE ESSE COMANDO FAZ:
+
+✅ Conecta no servidor (root@31.97.167.88)
+✅ Vai para o diretório do projeto
+✅ Baixa código atualizado do GitHub (git pull)
+✅ Verifica se variáveis OneSignal existem no .env
+✅ Se não existirem, adiciona automaticamente
+✅ Faz build de produção (npm run build)
+✅ Recarrega nginx (systemctl reload nginx)
+✅ Verifica se OneSignal está no bundle
+✅ Mostra resultado final
+
+═══════════════════════════════════════════════════════════════════════════
+
+❌ SE DER ERRO "Permission denied"
+
+Você pode precisar adicionar sua chave SSH ao servidor.
+Se der esse erro, me avise que eu crio outra solução.
+
+═══════════════════════════════════════════════════════════════════════════
+
+🧪 APÓS EXECUTAR - TESTE:
+
+1. Abra: https://localcashback.com.br
+
+2. Limpe o cache:
+   - Ctrl + Shift + Delete
+   - Marcar "Imagens e arquivos em cache"
+   - "Todo o período"
+   - "Limpar dados"
+   - FECHAR navegador
+   - Abrir novamente
+
+3. No site:
+   - Permitir notificações (popup OneSignal)
+   - Login admin
+   - "Notificações Push"
+   - Preencher formulário
+   - "Enviar Notificação Push"
+   - Deve aparecer: "✅ Notificação enviada para X clientes!"
+
+═══════════════════════════════════════════════════════════════════════════
+
+📞 SE PRECISAR DE AJUDA:
+
+- Copie a mensagem de erro completa
+- Me envie aqui no chat
+- Eu resolvo na hora
+
+═══════════════════════════════════════════════════════════════════════════
