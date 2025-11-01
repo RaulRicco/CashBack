@@ -1,0 +1,96 @@
+════════════════════════════════════════════════════════════════════════════
+  🔔 DEPLOY ONESIGNAL - COMANDO FINAL (COM PROXY)
+════════════════════════════════════════════════════════════════════════════
+
+🎯 PROBLEMA RESOLVIDO:
+   O erro de CORS foi resolvido usando um proxy backend!
+   Agora as chamadas à API OneSignal passam pelo servidor Node.js
+
+════════════════════════════════════════════════════════════════════════════
+
+🚀 COPIE E EXECUTE ESTE COMANDO NO SERVIDOR:
+
+cd /var/www/cashback/cashback-system && git pull origin main && chmod +x CONFIGURAR-NGINX-ONESIGNAL.sh && ./CONFIGURAR-NGINX-ONESIGNAL.sh && pm2 restart integration-proxy && npm run build && systemctl reload nginx && echo "" && echo "✅ DEPLOY CONCLUÍDO!" && echo "" && echo "🧪 TESTE AGORA:" && echo "1. https://localcashback.com.br" && echo "2. Limpar cache (Ctrl+Shift+Delete)" && echo "3. Enviar notificação teste"
+
+════════════════════════════════════════════════════════════════════════════
+
+📝 O QUE ESSE COMANDO FAZ:
+
+✅ Baixa código atualizado do GitHub
+✅ Configura Nginx para fazer proxy /api/onesignal/* → localhost:3001
+✅ Reinicia o proxy de integração (integration-proxy)
+✅ Faz build de produção
+✅ Recarrega Nginx
+✅ Verifica se tudo está funcionando
+
+⏱️  Tempo estimado: 1-2 minutos
+
+════════════════════════════════════════════════════════════════════════════
+
+🔍 COMO FUNCIONA AGORA:
+
+ANTES (❌ ERRO DE CORS):
+   Frontend → OneSignal API (bloqueado por CORS)
+
+DEPOIS (✅ FUNCIONANDO):
+   Frontend → Nginx (/api/onesignal/*) → Node.js Proxy → OneSignal API
+
+O proxy backend (integration-proxy.js) já está rodando na porta 3001
+e agora tem endpoints para OneSignal:
+   - POST /api/onesignal/send-to-all
+   - POST /api/onesignal/send-to-user
+
+════════════════════════════════════════════════════════════════════════════
+
+🧪 DEPOIS DE EXECUTAR - TESTE:
+
+1. Limpe o cache do navegador:
+   Ctrl + Shift + Delete
+   → "Imagens e arquivos em cache"
+   → "Todo o período"
+   → "Limpar dados"
+   → FECHAR navegador
+   → Abrir novamente
+
+2. Acesse: https://localcashback.com.br
+
+3. Permitir notificações (popup OneSignal)
+
+4. Login admin → "Notificações Push"
+
+5. Enviar teste:
+   Título: 🎉 Teste Final OneSignal
+   Mensagem: Agora funciona sem erro de CORS!
+
+6. Deve aparecer:
+   ✅ "Notificação enviada para X clientes!"
+   ✅ Notificação no navegador
+
+════════════════════════════════════════════════════════════════════════════
+
+🔍 VERIFICAR SE PROXY ESTÁ RODANDO:
+
+curl http://localhost:3001/health
+
+Deve retornar: {"status":"ok","timestamp":"..."}
+
+Se não retornar, inicie o proxy:
+   cd /var/www/cashback/cashback-system
+   pm2 start integration-proxy.js --name integration-proxy
+
+════════════════════════════════════════════════════════════════════════════
+
+❌ SE DER ERRO:
+
+1. Verifique se proxy está rodando:
+   pm2 status
+
+2. Veja os logs do proxy:
+   pm2 logs integration-proxy --lines 50
+
+3. Veja os logs do Nginx:
+   sudo tail -f /var/log/nginx/error.log
+
+4. Me envie os erros que eu te ajudo!
+
+════════════════════════════════════════════════════════════════════════════
