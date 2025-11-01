@@ -1,0 +1,53 @@
+═══════════════════════════════════════════════════════════════════════════
+  🚨 RESOLVER ERRO 500 RD STATION - COMANDOS PARA COPIAR E COLAR
+═══════════════════════════════════════════════════════════════════════════
+
+📋 PASSO 1: BAIXAR OS NOVOS SCRIPTS NO SERVIDOR
+───────────────────────────────────────────────────────────────────────────
+Conecte no servidor via SSH e execute:
+
+cd /var/www/cashback/cashback-system
+git pull origin main
+chmod +x TESTE-SIMPLES-RD.sh DIAGNOSTICO-RD-STATION-500.sh ATIVAR-LOG-DEBUG-NGINX.sh
+
+
+🔍 PASSO 2: EXECUTAR TESTE RÁPIDO (OBRIGATÓRIO)
+───────────────────────────────────────────────────────────────────────────
+cd /var/www/cashback/cashback-system
+./TESTE-SIMPLES-RD.sh
+
+
+📸 PASSO 3: COPIAR TODA A SAÍDA E ENVIAR PARA MIM
+───────────────────────────────────────────────────────────────────────────
+Selecione tudo que aparecer na tela e copie (Ctrl+Shift+C ou botão direito)
+Cole para mim aqui no chat
+
+
+═══════════════════════════════════════════════════════════════════════════
+
+🎯 O QUE ESSE TESTE VAI MOSTRAR:
+
+✅ Se o proxy funciona diretamente (localhost:3001)
+✅ Se o proxy funciona através do nginx (domínio)
+✅ Se as requisições estão chegando ao proxy
+✅ Onde exatamente o problema está acontecendo
+
+
+═══════════════════════════════════════════════════════════════════════════
+
+⚠️  SE O TESTE RÁPIDO NÃO MOSTRAR O PROBLEMA, EXECUTE O DIAGNÓSTICO COMPLETO:
+
+cd /var/www/cashback/cashback-system
+./DIAGNOSTICO-RD-STATION-500.sh
+
+Copie toda a saída e envie para mim
+
+
+═══════════════════════════════════════════════════════════════════════════
+
+💡 DICA: Se quiser ler o guia completo antes, veja:
+
+cat RESOLVER-RD-STATION-AGORA.md
+
+
+═══════════════════════════════════════════════════════════════════════════
