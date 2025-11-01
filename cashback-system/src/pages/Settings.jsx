@@ -805,7 +805,7 @@ export default function Settings() {
                     <div className="bg-gray-50 rounded p-3 font-mono text-xs mt-2">
                       <p className="text-gray-600 mb-1">Tipo: <span className="text-blue-600 font-semibold">CNAME</span></p>
                       <p className="text-gray-600 mb-1">Nome/Host: <span className="text-blue-600 font-semibold">cashback</span></p>
-                      <p className="text-gray-600">Destino/Aponta para: <span className="text-blue-600 font-semibold">5179-iissidqg3y4yqs2mu7iw2-2b54fc91.sandbox.novita.ai</span></p>
+                      <p className="text-gray-600">Destino/Aponta para: <span className="text-blue-600 font-semibold">localcashback.com.br</span></p>
                     </div>
                     <p className="text-gray-600 mt-2 text-xs">
                       ⚠️ Não adicione http://, https:// ou / no destino
@@ -856,7 +856,7 @@ export default function Settings() {
                   <div className="bg-white rounded p-3 text-xs font-mono text-gray-700">
                     "Olá, gostaria de adicionar um registro CNAME apontando<br />
                     cashback.meudominio.com.br para<br />
-                    5179-iissidqg3y4yqs2mu7iw2-2b54fc91.sandbox.novita.ai"
+                    localcashback.com.br"
                   </div>
                 </div>
               </div>
