@@ -116,20 +116,22 @@ export default function CustomerDashboard() {
 
       setCustomer(customerData);
 
-      // Buscar transações
+      // Buscar transações (entradas de cashback)
       const { data: txData, error: txError } = await supabase
         .from('transactions')
         .select('*, merchant:merchants(name, cashback_program_name)')
         .eq('customer_id', customerData.id)
+        .eq('transaction_type', 'cashback')
         .eq('status', 'completed')
         .order('created_at', { ascending: false })
-        .limit(10);
+        .limit(50);
 
       if (txError) {
-        console.error('Erro ao buscar transações:', txError);
+        console.error('❌ Erro ao buscar transações:', txError);
       }
       
-      console.log('📊 Transações (entradas) encontradas:', txData?.length || 0, txData);
+      console.log('📊 Transações (entradas) encontradas:', txData?.length || 0);
+      console.log('📊 Detalhes das transações:', txData);
       setTransactions(txData || []);
 
       // Pegar o merchant principal (do primeiro transaction ou referred_by_merchant_id)
@@ -273,35 +275,49 @@ export default function CustomerDashboard() {
 
     // Adicionar entradas (cashback recebido)
     console.log('🔄 Processando transações (entradas):', transactions.length);
-    transactions.forEach(tx => {
-      const entry = {
-        id: `tx-${tx.id}`,
-        type: 'in',
-        amount: parseFloat(tx.cashback_amount || 0),
-        purchaseAmount: parseFloat(tx.amount || 0),
-        percentage: tx.cashback_percentage || 0,
-        merchantName: tx.merchant?.name || merchant?.name || 'Estabelecimento',
-        date: new Date(tx.created_at),
-        description: 'Cashback recebido'
-      };
-      console.log('  ➕ Entrada:', entry);
-      history.push(entry);
-    });
+    if (transactions.length > 0) {
+      transactions.forEach(tx => {
+        // Validar se tem os dados necessários
+        if (!tx.cashback_amount || parseFloat(tx.cashback_amount) <= 0) {
+          console.warn('⚠️ Transação sem cashback_amount:', tx);
+          return; // Pula essa transação
+        }
+
+        const entry = {
+          id: `tx-${tx.id}`,
+          type: 'in',
+          amount: parseFloat(tx.cashback_amount),
+          purchaseAmount: parseFloat(tx.amount || 0),
+          percentage: parseFloat(tx.cashback_percentage || 0),
+          merchantName: tx.merchant?.name || merchant?.name || 'Estabelecimento',
+          date: new Date(tx.created_at),
+          description: 'Cashback recebido'
+        };
+        console.log('  ➕ Entrada adicionada:', entry);
+        history.push(entry);
+      });
+    } else {
+      console.warn('⚠️ Nenhuma transação encontrada para processar');
+    }
 
     // Adicionar saídas (resgates)
     console.log('🔄 Processando resgates (saídas):', redemptions.length);
-    redemptions.forEach(redemption => {
-      const entry = {
-        id: `redemption-${redemption.id}`,
-        type: 'out',
-        amount: parseFloat(redemption.amount || 0),
-        merchantName: redemption.merchant?.name || merchant?.name || 'Estabelecimento',
-        date: new Date(redemption.created_at),
-        description: 'Cashback resgatado'
-      };
-      console.log('  ➖ Saída:', entry);
-      history.push(entry);
-    });
+    if (redemptions.length > 0) {
+      redemptions.forEach(redemption => {
+        const entry = {
+          id: `redemption-${redemption.id}`,
+          type: 'out',
+          amount: parseFloat(redemption.amount || 0),
+          merchantName: redemption.merchant?.name || merchant?.name || 'Estabelecimento',
+          date: new Date(redemption.created_at),
+          description: 'Cashback resgatado'
+        };
+        console.log('  ➖ Saída adicionada:', entry);
+        history.push(entry);
+      });
+    } else {
+      console.log('ℹ️ Nenhum resgate encontrado');
+    }
 
     console.log('📋 Total de itens no histórico:', history.length);
 
