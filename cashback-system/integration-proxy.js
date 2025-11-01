@@ -207,6 +207,97 @@ app.post('/api/rdstation/sync', async (req, res) => {
 });
 
 // ========================================
+// ONESIGNAL ROUTES
+// ========================================
+
+/**
+ * Enviar notificação para todos via OneSignal
+ */
+app.post('/api/onesignal/send-to-all', async (req, res) => {
+  try {
+    const { appId, restApiKey, notification } = req.body;
+
+    console.log('[OneSignal] Enviando notificação para todos:', notification.title);
+
+    const response = await axios.post(
+      'https://onesignal.com/api/v1/notifications',
+      {
+        app_id: appId,
+        included_segments: ['All'],
+        headings: { en: notification.title },
+        contents: { en: notification.message },
+        url: notification.url || 'https://localcashback.com.br',
+        big_picture: notification.image,
+        chrome_web_icon: notification.icon || '/icon-192.png',
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Basic ${restApiKey}`
+        }
+      }
+    );
+
+    console.log('[OneSignal] Sucesso! Recipients:', response.data.recipients);
+
+    res.json({
+      success: true,
+      recipients: response.data.recipients,
+      id: response.data.id
+    });
+  } catch (error) {
+    console.error('[OneSignal Error]', error.response?.data || error.message);
+    res.json({
+      success: false,
+      error: error.response?.data?.errors || error.message
+    });
+  }
+});
+
+/**
+ * Enviar notificação para usuário específico via OneSignal
+ */
+app.post('/api/onesignal/send-to-user', async (req, res) => {
+  try {
+    const { appId, restApiKey, userId, notification } = req.body;
+
+    console.log('[OneSignal] Enviando para usuário:', userId);
+
+    const response = await axios.post(
+      'https://onesignal.com/api/v1/notifications',
+      {
+        app_id: appId,
+        include_external_user_ids: [userId],
+        headings: { en: notification.title },
+        contents: { en: notification.message },
+        url: notification.url || 'https://localcashback.com.br',
+        big_picture: notification.image,
+        chrome_web_icon: notification.icon || '/icon-192.png',
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Basic ${restApiKey}`
+        }
+      }
+    );
+
+    console.log('[OneSignal] Sucesso!', response.data);
+
+    res.json({
+      success: true,
+      data: response.data
+    });
+  } catch (error) {
+    console.error('[OneSignal Error]', error.response?.data || error.message);
+    res.json({
+      success: false,
+      error: error.response?.data?.errors || error.message
+    });
+  }
+});
+
+// ========================================
 // HEALTH CHECK
 // ========================================
 
@@ -226,6 +317,8 @@ app.listen(PORT, () => {
   console.log(`   POST /api/mailchimp/sync`);
   console.log(`   POST /api/rdstation/test`);
   console.log(`   POST /api/rdstation/sync`);
+  console.log(`   POST /api/onesignal/send-to-all`);
+  console.log(`   POST /api/onesignal/send-to-user`);
 });
 
 export default app;

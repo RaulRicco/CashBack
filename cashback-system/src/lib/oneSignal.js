@@ -85,37 +85,42 @@ export async function isSubscribed() {
 }
 
 /**
- * Enviar notificação para todos
+ * Enviar notificação para todos (via proxy)
  */
 export async function sendNotificationToAll(notification) {
   try {
-    console.log('📤 Enviando notificação para todos:', notification);
+    console.log('📤 Enviando notificação para todos via proxy:', notification);
 
     if (!ONESIGNAL_REST_API_KEY) {
       throw new Error('REST API Key não configurada');
     }
 
-    const response = await fetch('https://onesignal.com/api/v1/notifications', {
+    // Usar o proxy local para evitar CORS
+    const proxyUrl = window.location.hostname === 'localhost' 
+      ? 'http://localhost:3001'
+      : 'https://localcashback.com.br';
+
+    const response = await fetch(`${proxyUrl}/api/onesignal/send-to-all`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Basic ${ONESIGNAL_REST_API_KEY}`
       },
       body: JSON.stringify({
-        app_id: ONESIGNAL_APP_ID,
-        included_segments: ['All'], // Enviar para todos
-        headings: { en: notification.title },
-        contents: { en: notification.message },
-        url: notification.url || 'https://localcashback.com.br',
-        big_picture: notification.image,
-        chrome_web_icon: notification.icon || '/icon-192.png',
-        chrome_web_badge: '/badge-72.png',
+        appId: ONESIGNAL_APP_ID,
+        restApiKey: ONESIGNAL_REST_API_KEY,
+        notification: {
+          title: notification.title,
+          message: notification.message,
+          url: notification.url || 'https://localcashback.com.br',
+          image: notification.image,
+          icon: notification.icon || '/icon-192.png',
+        }
       })
     });
 
     const data = await response.json();
     
-    if (response.ok) {
+    if (data.success) {
       console.log('✅ Notificação enviada com sucesso!', data);
       return {
         success: true,
@@ -126,7 +131,7 @@ export async function sendNotificationToAll(notification) {
       console.error('❌ Erro ao enviar:', data);
       return {
         success: false,
-        error: data.errors || 'Erro desconhecido'
+        error: data.error || 'Erro desconhecido'
       };
     }
   } catch (error) {
@@ -139,37 +144,44 @@ export async function sendNotificationToAll(notification) {
 }
 
 /**
- * Enviar notificação para usuário específico
+ * Enviar notificação para usuário específico (via proxy)
  */
 export async function sendNotificationToUser(userId, notification) {
   try {
-    console.log(`📤 Enviando notificação para usuário ${userId}:`, notification);
+    console.log(`📤 Enviando notificação para usuário ${userId} via proxy:`, notification);
 
-    const response = await fetch('https://onesignal.com/api/v1/notifications', {
+    // Usar o proxy local para evitar CORS
+    const proxyUrl = window.location.hostname === 'localhost' 
+      ? 'http://localhost:3001'
+      : 'https://localcashback.com.br';
+
+    const response = await fetch(`${proxyUrl}/api/onesignal/send-to-user`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Basic ${ONESIGNAL_REST_API_KEY}`
       },
       body: JSON.stringify({
-        app_id: ONESIGNAL_APP_ID,
-        include_external_user_ids: [userId],
-        headings: { en: notification.title },
-        contents: { en: notification.message },
-        url: notification.url || 'https://localcashback.com.br',
-        big_picture: notification.image,
-        chrome_web_icon: notification.icon || '/icon-192.png',
+        appId: ONESIGNAL_APP_ID,
+        restApiKey: ONESIGNAL_REST_API_KEY,
+        userId: userId,
+        notification: {
+          title: notification.title,
+          message: notification.message,
+          url: notification.url || 'https://localcashback.com.br',
+          image: notification.image,
+          icon: notification.icon || '/icon-192.png',
+        }
       })
     });
 
     const data = await response.json();
     
-    if (response.ok) {
+    if (data.success) {
       console.log('✅ Notificação enviada!', data);
       return { success: true, data };
     } else {
       console.error('❌ Erro:', data);
-      return { success: false, error: data.errors };
+      return { success: false, error: data.error };
     }
   } catch (error) {
     console.error('❌ Erro:', error);
