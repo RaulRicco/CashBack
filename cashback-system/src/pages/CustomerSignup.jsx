@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
-import { UserPlus, Phone, User, Store } from 'lucide-react';
+import { UserPlus, Phone, User, Store, Calendar, Lock } from 'lucide-react';
 import { trackEvent } from '../lib/tracking';
 import { BRAND_CONFIG, getLogo, getBrandName } from '../config/branding';
 
@@ -16,6 +16,8 @@ export default function CustomerSignup() {
     name: '',
     phone: '',
     email: '',
+    birthdate: '',
+    password: '',
   });
 
   useEffect(() => {
@@ -62,6 +64,18 @@ export default function CustomerSignup() {
       return;
     }
 
+    // Validar senha
+    if (!formData.password || formData.password.length < 6) {
+      toast.error('A senha deve ter no mínimo 6 caracteres');
+      return;
+    }
+
+    // Validar data de nascimento
+    if (!formData.birthdate) {
+      toast.error('Por favor, informe sua data de nascimento');
+      return;
+    }
+
     // Validar email se fornecido
     if (formData.email && !formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
       toast.error('Email inválido');
@@ -81,24 +95,19 @@ export default function CustomerSignup() {
       // Verificar se o cliente já existe
       const { data: existingCustomer } = await supabase
         .from('customers')
-        .select('id, phone, name')
+        .select('id, phone, name, password_hash')
         .eq('phone', phoneClean)
         .single();
 
       if (existingCustomer) {
-        // Cliente já existe, apenas redirecionar para dashboard
-        toast.success(`Bem-vindo de volta, ${existingCustomer.name}!`);
-        
-        // Tracking de login
-        trackEvent('CustomerLogin', {
-          customer_phone: phoneClean,
-          merchant_id: merchant.id,
-          merchant_name: merchant.name,
-        });
-        
-        navigate(`/customer/dashboard/${phoneClean}`);
+        // Cliente já existe, solicitar senha para login
+        toast.error('Este telefone já está cadastrado. Por favor, faça login com sua senha.');
+        setSubmitting(false);
         return;
       }
+
+      // Hash da senha (usando btoa para encode simples - em produção use bcrypt)
+      const passwordHash = btoa(formData.password);
 
       // Criar novo cliente
       const { data: newCustomer, error } = await supabase
@@ -108,6 +117,8 @@ export default function CustomerSignup() {
             phone: phoneClean,
             name: formData.name,
             email: formData.email || null,
+            birthdate: formData.birthdate,
+            password_hash: passwordHash,
             referred_by_merchant_id: merchant.id,
             cashback_balance: 0,
           }
@@ -198,31 +209,17 @@ export default function CustomerSignup() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
-        {/* Logo White Label */}
-        {BRAND_CONFIG.features.showPoweredBy && (
-          <div className="text-center mb-6">
-            <img 
-              src={getLogo('icon')}
-              alt={getBrandName()} 
-              className="mx-auto mb-3 object-contain w-16 h-16"
-            />
-            <p className="text-sm text-gray-500">
-              {BRAND_CONFIG.messages.customerSignup.poweredBy} {getBrandName()}
-            </p>
-          </div>
-        )}
-
-        {/* Logo/Nome do Estabelecimento */}
+        {/* Logo do Estabelecimento no topo */}
         <div className="text-center mb-8 pb-6 border-b border-gray-200">
           {merchant.logo_url ? (
             <img 
               src={merchant.logo_url} 
               alt={merchant.name}
-              className="h-20 w-auto mx-auto mb-4"
+              className="h-24 w-auto mx-auto mb-4"
             />
           ) : (
-            <div className="w-20 h-20 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Store className="w-10 h-10 text-white" />
+            <div className="w-24 h-24 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Store className="w-12 h-12 text-white" />
             </div>
           )}
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -293,6 +290,44 @@ export default function CustomerSignup() {
             </p>
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Data de Nascimento
+            </label>
+            <div className="relative">
+              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="date"
+                value={formData.birthdate}
+                onChange={(e) => setFormData({ ...formData, birthdate: e.target.value })}
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                required
+                max={new Date().toISOString().split('T')[0]}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Crie uma Senha
+            </label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="password"
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                placeholder="Mínimo 6 caracteres"
+                required
+                minLength={6}
+              />
+            </div>
+            <p className="mt-1 text-sm text-gray-500">
+              Use esta senha para acessar seu perfil
+            </p>
+          </div>
+
           <button
             type="submit"
             disabled={submitting}
@@ -341,6 +376,14 @@ export default function CustomerSignup() {
               </span>
             </li>
           </ul>
+        </div>
+
+        {/* Powered by LocalCashback */}
+        <div className="mt-6 pt-6 border-t border-gray-200 text-center">
+          <p className="text-xs text-gray-400 flex items-center justify-center gap-1">
+            Powered by
+            <span className="font-semibold text-gray-500">LocalCashback</span>
+          </p>
         </div>
       </div>
     </div>
