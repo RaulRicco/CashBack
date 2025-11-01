@@ -17,6 +17,9 @@ export default function CustomerCashback() {
   const [merchant, setMerchant] = useState(null);
   const [error, setError] = useState(null);
   const { notifications, showNotification } = useNotification();
+  
+  // Detectar se é página de conversão (primeira visita)
+  const isConversionPage = window.location.pathname.includes('/parabens');
 
   useEffect(() => {
     if (token) {
@@ -61,6 +64,12 @@ export default function CustomerCashback() {
         throw new Error('QR Code inválido ou expirado');
       }
 
+      // Se não foi escaneado E não está na URL /parabens, redirecionar
+      if (!txData.qr_scanned && !window.location.pathname.includes('/parabens')) {
+        window.location.href = `/customer/cashback/${token}/parabens`;
+        return;
+      }
+
       // Verificar se já foi escaneado
       if (txData.qr_scanned) {
         setTransaction(txData);
@@ -103,6 +112,38 @@ export default function CustomerCashback() {
         customerPhone: updatedTx.customer.phone,
         merchantId: updatedTx.merchant_id
       });
+
+      // 🎯 PÁGINA DE CONVERSÃO - Disparar eventos especiais
+      if (window.location.pathname.includes('/parabens')) {
+        console.log('🎯 PÁGINA DE CONVERSÃO DETECTADA!');
+        
+        // Meta Pixel - Evento de Conversão
+        if (window.fbq) {
+          window.fbq('track', 'Purchase', {
+            value: updatedTx.amount,
+            currency: 'BRL',
+            content_name: 'Cashback Recebido',
+            content_category: 'Conversão',
+            content_ids: [updatedTx.id],
+            cashback_amount: updatedTx.cashback_amount
+          });
+          console.log('📘 Meta Pixel: Evento Purchase disparado');
+        }
+
+        // Google Tag Manager - Conversão
+        if (window.dataLayer) {
+          window.dataLayer.push({
+            event: 'conversion',
+            event_category: 'Cashback',
+            event_label: 'Conversão Completa',
+            value: updatedTx.amount,
+            cashback_value: updatedTx.cashback_amount,
+            currency: 'BRL',
+            transaction_id: updatedTx.id
+          });
+          console.log('📊 GTM: Evento conversion disparado');
+        }
+      }
 
       // Sincronizar com integrações de email marketing
       syncCustomerToIntegrations(updatedTx.customer, updatedTx.merchant_id, 'purchase');
