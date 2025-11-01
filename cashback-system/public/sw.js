@@ -1,45 +1,52 @@
 // Service Worker para Push Notifications
-console.log('🔔 Service Worker carregado');
+const CACHE_NAME = 'localcashback-v1';
 
 // Instalar Service Worker
 self.addEventListener('install', (event) => {
-  console.log('✅ Service Worker instalado');
+  console.log('🔧 Service Worker: Instalando...');
   self.skipWaiting();
 });
 
 // Ativar Service Worker
 self.addEventListener('activate', (event) => {
-  console.log('✅ Service Worker ativado');
-  event.waitUntil(self.clients.claim());
+  console.log('✅ Service Worker: Ativado');
+  event.waitUntil(clients.claim());
 });
 
-// Receber Push Notifications
+// Interceptar notificações push
 self.addEventListener('push', (event) => {
-  console.log('📬 Push recebido:', event.data?.text());
-
-  const data = event.data ? event.data.json() : {};
+  console.log('📬 Push recebido:', event);
   
-  const title = data.title || 'Localcashback';
+  let data = {};
+  
+  if (event.data) {
+    try {
+      data = event.data.json();
+    } catch (e) {
+      data = {
+        title: 'Localcashback',
+        body: event.data.text()
+      };
+    }
+  }
+
   const options = {
-    body: data.body || data.message || 'Nova notificação',
+    body: data.body || 'Nova notificação',
     icon: data.icon || '/icon-192.png',
     badge: '/badge-72.png',
-    image: data.image,
+    vibrate: data.vibrate || [200, 100, 200],
     data: data.data || {},
-    tag: data.tag || 'notification',
-    requireInteraction: data.requireInteraction || false,
-    vibrate: [200, 100, 200],
     actions: data.actions || []
   };
 
   event.waitUntil(
-    self.registration.showNotification(title, options)
+    self.registration.showNotification(data.title || 'Localcashback', options)
   );
 });
 
-// Clique na notificação
+// Lidar com clique na notificação
 self.addEventListener('notificationclick', (event) => {
-  console.log('🖱️ Notificação clicada:', event.notification.tag);
+  console.log('🖱️ Notificação clicada:', event);
   
   event.notification.close();
 
@@ -48,13 +55,13 @@ self.addEventListener('notificationclick', (event) => {
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true })
       .then((clientList) => {
-        // Tentar focar em janela existente
-        for (const client of clientList) {
-          if (client.url.includes(urlToOpen) && 'focus' in client) {
+        // Se já tem uma janela aberta, focar nela
+        for (let client of clientList) {
+          if (client.url === urlToOpen && 'focus' in client) {
             return client.focus();
           }
         }
-        // Abrir nova janela
+        // Senão, abrir nova janela
         if (clients.openWindow) {
           return clients.openWindow(urlToOpen);
         }
@@ -62,7 +69,7 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-// Fechar notificação
+// Lidar com fechamento da notificação
 self.addEventListener('notificationclose', (event) => {
-  console.log('❌ Notificação fechada:', event.notification.tag);
+  console.log('❌ Notificação fechada:', event);
 });
