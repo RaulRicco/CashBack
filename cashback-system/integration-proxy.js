@@ -217,7 +217,18 @@ app.post('/api/onesignal/send-to-all', async (req, res) => {
   try {
     const { appId, restApiKey, notification } = req.body;
 
-    console.log('[OneSignal] Enviando notificação para todos:', notification.title);
+    console.log('[OneSignal] Recebeu requisição');
+    console.log('[OneSignal] appId:', appId);
+    console.log('[OneSignal] restApiKey:', restApiKey ? `${restApiKey.substring(0, 20)}...` : 'VAZIO');
+    console.log('[OneSignal] notification:', notification);
+
+    if (!restApiKey || restApiKey.trim() === '') {
+      console.error('[OneSignal] ERRO: restApiKey está vazio!');
+      return res.json({
+        success: false,
+        error: 'REST API Key não foi enviada'
+      });
+    }
 
     const response = await axios.post(
       'https://onesignal.com/api/v1/notifications',
