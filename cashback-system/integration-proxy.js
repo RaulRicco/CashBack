@@ -10,10 +10,10 @@
  * 3. O servidor vai rodar na porta 3001
  */
 
-const express = require('express');
-const cors = require('cors');
-const axios = require('axios');
-const md5 = require('md5');
+import express from 'express';
+import cors from 'cors';
+import axios from 'axios';
+import crypto from 'crypto';
 
 const app = express();
 const PORT = 3001;
@@ -65,7 +65,7 @@ app.post('/api/mailchimp/sync', async (req, res) => {
   try {
     const { apiKey, audienceId, serverPrefix, customer, tags } = req.body;
 
-    const subscriberHash = md5((customer.email || customer.phone).toLowerCase().trim());
+    const subscriberHash = crypto.createHash('md5').update((customer.email || customer.phone).toLowerCase().trim()).digest('hex');
 
     const data = {
       email_address: customer.email || `${customer.phone}@cashback.local`,
@@ -109,86 +109,99 @@ app.post('/api/mailchimp/sync', async (req, res) => {
 
 /**
  * Testar conexão com RD Station
+ * Usa API 1.3 antiga com token_rdstation no body
  */
 app.post('/api/rdstation/test', async (req, res) => {
   try {
     const { accessToken } = req.body;
 
-    const response = await axios.get(
-      'https://api.rd.services/platform/contacts',
+    console.log('[RD Station Test] Recebeu requisição!');
+    console.log('[RD Station Test] Token recebido:', accessToken ? accessToken.substring(0, 10) + '...' : 'VAZIO');
+    console.log('[RD Station Test] Body completo:', JSON.stringify(req.body));
+    console.log('[RD Station Test] Headers:', JSON.stringify(req.headers));
+    console.log('[RD Station Test] Testando conexão com API 1.3...');
+
+    // Faz uma conversão de teste para validar o token
+    const testData = {
+      token_rdstation: accessToken,
+      identificador: 'teste_conexao_cashback',
+      email: 'teste@cashback.local',
+      nome: 'Teste de Conexão'
+    };
+
+    const response = await axios.post(
+      'https://www.rdstation.com.br/api/1.3/conversions',
+      testData,
       {
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json'
         },
-        params: { page_size: 1 },
         timeout: 10000
       }
     );
 
+    console.log('[RD Station Test] Sucesso!', response.data);
+
     res.json({
       success: true,
-      message: 'Conexão estabelecida com sucesso',
-      totalContacts: response.data.total
+      message: 'Conexão estabelecida com sucesso com RD Station',
+      data: response.data
     });
   } catch (error) {
-    console.error('RD Station test error:', error.response?.data || error.message);
+    console.error('[RD Station Test Error] Status:', error.response?.status);
+    console.error('[RD Station Test Error] Data:', error.response?.data);
+    console.error('[RD Station Test Error] Message:', error.message);
+    
     res.json({
       success: false,
-      error: error.response?.data?.errors?.[0]?.error_message || error.response?.data?.error || error.message
+      error: error.response?.data?.msg || error.response?.data || error.message
     });
   }
 });
 
 /**
  * Sincronizar contato com RD Station
+ * Usa API 1.3 antiga com token_rdstation no body
  */
 app.post('/api/rdstation/sync', async (req, res) => {
   try {
     const { accessToken, customer, tags } = req.body;
 
+    console.log('[RD Station Sync] Sincronizando cliente:', customer.email || customer.phone);
+
     const data = {
-      event_type: 'CONVERSION',
-      event_family: 'CDP',
-      payload: {
-        conversion_identifier: 'cashback_system',
-        email: customer.email || `${customer.phone}@cashback.local`,
-        name: customer.name || 'Cliente',
-        mobile_phone: customer.phone || '',
-        cf_saldo_cashback: parseFloat(customer.available_cashback || 0).toFixed(2),
-        cf_total_gasto: parseFloat(customer.total_spent || 0).toFixed(2),
-        cf_total_cashback: parseFloat(customer.total_cashback || 0).toFixed(2),
-        tags: tags || [],
-        legal_bases: [
-          {
-            category: 'communications',
-            type: 'consent',
-            status: 'granted'
-          }
-        ]
-      }
+      token_rdstation: accessToken,
+      identificador: 'cashback_system',
+      email: customer.email || `${customer.phone}@cashback.local`,
+      nome: customer.name || 'Cliente',
+      telefone: customer.phone || '',
+      saldo_cashback: parseFloat(customer.available_cashback || 0).toFixed(2),
+      total_gasto: parseFloat(customer.total_spent || 0).toFixed(2),
+      total_cashback: parseFloat(customer.total_cashback || 0).toFixed(2),
+      tags: (tags || []).join(',')
     };
 
     const response = await axios.post(
-      'https://api.rd.services/platform/conversions',
+      'https://www.rdstation.com.br/api/1.3/conversions',
       data,
       {
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json'
         }
       }
     );
+
+    console.log('[RD Station Sync] Sucesso!', response.data);
 
     res.json({
       success: true,
       data: response.data
     });
   } catch (error) {
-    console.error('RD Station sync error:', error.response?.data || error.message);
+    console.error('[RD Station Sync Error]', error.response?.data || error.message);
     res.json({
       success: false,
-      error: error.response?.data?.errors?.[0]?.error_message || error.message
+      error: error.response?.data?.msg || error.response?.data || error.message
     });
   }
 });
@@ -215,4 +228,4 @@ app.listen(PORT, () => {
   console.log(`   POST /api/rdstation/sync`);
 });
 
-module.exports = app;
+export default app;
