@@ -21,6 +21,18 @@ export default function CustomerCashback() {
   // Detectar se é página de conversão (primeira visita)
   const isConversionPage = window.location.pathname.includes('/parabens');
 
+  // 🎯 GARANTIR que URL tenha /parabens ANTES de processar
+  useEffect(() => {
+    const currentPath = window.location.pathname;
+    const hasParabens = currentPath.includes('/parabens');
+    
+    // Se não tem /parabens na URL, redirecionar IMEDIATAMENTE
+    if (!hasParabens && token) {
+      console.log('🔄 URL sem /parabens detectada! Redirecionando...');
+      window.location.replace(`/customer/cashback/${token}/parabens`);
+    }
+  }, []);
+
   useEffect(() => {
     if (token) {
       processQRCode();
@@ -64,14 +76,17 @@ export default function CustomerCashback() {
         throw new Error('QR Code inválido ou expirado');
       }
 
-      // Se não foi escaneado E não está na URL /parabens, redirecionar
+      // 🎯 IMPORTANTE: Se não foi escaneado E não está na URL /parabens, REDIRECIONAR
       if (!txData.qr_scanned && !window.location.pathname.includes('/parabens')) {
-        window.location.href = `/customer/cashback/${token}/parabens`;
+        console.log('🔄 Redirecionando para página de conversão /parabens...');
+        // Usar replace para não adicionar ao histórico
+        window.location.replace(`/customer/cashback/${token}/parabens`);
         return;
       }
 
       // Verificar se já foi escaneado
       if (txData.qr_scanned) {
+        console.log('⚠️ QR Code já foi escaneado anteriormente');
         setTransaction(txData);
         setCustomer(txData.customer);
         setMerchant(txData.merchant);
