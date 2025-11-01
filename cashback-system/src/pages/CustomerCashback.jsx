@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { CheckCircle, Gift, ArrowRight, Loader } from 'lucide-react';
-import { trackCashbackScanned, trackCashbackCompleted } from '../lib/tracking';
+import { trackCashbackScanned, trackCashbackCompleted, initGTM, initMetaPixel, trackPageView } from '../lib/tracking';
 import { syncCustomerToIntegrations } from '../lib/integrations';
 import { useNotification } from '../hooks/useNotification';
 import NotificationContainer from '../components/NotificationContainer';
@@ -23,6 +23,28 @@ export default function CustomerCashback() {
       processQRCode();
     }
   }, [token]);
+
+  // Inicializar tracking do estabelecimento quando merchant carregar
+  useEffect(() => {
+    if (merchant) {
+      console.log('🎯 Inicializando tracking do estabelecimento:', merchant.name);
+      
+      // Inicializar Google Tag Manager
+      if (merchant.gtm_id) {
+        console.log('📊 Carregando GTM:', merchant.gtm_id);
+        initGTM(merchant.gtm_id);
+      }
+      
+      // Inicializar Meta Pixel
+      if (merchant.meta_pixel_id) {
+        console.log('📘 Carregando Meta Pixel:', merchant.meta_pixel_id);
+        initMetaPixel(merchant.meta_pixel_id);
+      }
+
+      // Track PageView
+      trackPageView('CustomerCashbackReceived');
+    }
+  }, [merchant]);
 
   const processQRCode = async () => {
     try {
