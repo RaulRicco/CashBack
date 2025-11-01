@@ -29,7 +29,7 @@ export class RDStationService {
       // Usar proxy server para evitar CORS
       const proxyUrl = window.location.hostname === 'localhost' 
         ? 'http://localhost:3001'
-        : 'https://' + window.location.hostname + ':3001';
+        : window.location.protocol + '//' + window.location.hostname;
 
       const response = await axios.post(
         `${proxyUrl}/api/rdstation/sync`,
@@ -160,7 +160,7 @@ export class RDStationService {
       // Usar proxy server para evitar CORS
       const proxyUrl = window.location.hostname === 'localhost' 
         ? 'http://localhost:3001'
-        : 'https://' + window.location.hostname + ':3001';
+        : window.location.protocol + '//' + window.location.hostname;
 
       const response = await axios.post(
         `${proxyUrl}/api/rdstation/test`,

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Bell, Send, Megaphone, Users, Check, Sparkles, TrendingUp, Gift, Zap, AlertCircle, X, Eye } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { sendLocalNotification, areNotificationsEnabled } from '../lib/pushNotifications';
+import { sendNotificationToAll, isSubscribed, requestPermission as requestOneSignalPermission } from '../lib/oneSignal';
 import DashboardLayout from '../components/DashboardLayout';
 import toast from 'react-hot-toast';
 
@@ -82,24 +83,16 @@ export default function AdminNotifications() {
         return;
       }
 
-      console.log('📤 Enviando notificação...', form);
+      console.log('📤 Enviando notificação via OneSignal para TODOS os clientes...', form);
 
-      // Enviar notificação local com timeout
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Timeout: Notificação demorou mais de 5 segundos')), 5000)
-      );
-
-      const notificationPromise = sendLocalNotification({
+      // Enviar via OneSignal para TODOS os clientes
+      const result = await sendNotificationToAll({
         title: form.title,
-        body: form.message,
+        message: form.message,
         image: form.image || undefined,
-        url: form.url || '/',
-        tag: 'admin-promotion',
-        requireInteraction: true,
-        vibrate: [200, 100, 200, 100, 200]
+        url: form.url || 'https://localcashback.com.br',
+        icon: '/icon-192.png'
       });
-
-      const result = await Promise.race([notificationPromise, timeoutPromise]);
 
       console.log('📬 Resultado:', result);
 
@@ -143,8 +136,9 @@ export default function AdminNotifications() {
           target: 'all'
         });
 
-        toast.success('✅ Notificação enviada com sucesso!', {
-          duration: 4000,
+        const recipientsCount = result.recipients || 0;
+        toast.success(`✅ Notificação enviada para ${recipientsCount} clientes!`, {
+          duration: 5000,
           icon: '🎉'
         });
         
