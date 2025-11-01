@@ -95,14 +95,13 @@ export default function WhiteLabelSettings() {
         fileType: file.type
       });
 
-      // Verificar autenticação
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        console.error('Sessão não encontrada!');
+      // Verificar merchant autenticado
+      if (!merchant || !merchant.id) {
+        console.error('Merchant não encontrado!');
         toast.error('Você precisa estar logado para fazer upload');
         return;
       }
-      console.log('Sessão autenticada:', session.user.id);
+      console.log('Merchant autenticado:', merchant.id);
 
       // Nome único para o arquivo
       const fileExt = file.name.split('.').pop();
