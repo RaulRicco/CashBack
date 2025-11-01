@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Wallet, Gift, History, TrendingUp, Loader, ArrowUpCircle, ArrowDownCircle, Filter } from 'lucide-react';
+import { Wallet, Gift, History, TrendingUp, Loader, ArrowUpCircle, ArrowDownCircle, Filter, Lock } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import NotificationPermission from '../components/NotificationPermission';
@@ -9,6 +10,8 @@ import NotificationPermission from '../components/NotificationPermission';
 export default function CustomerDashboard() {
   const { phone } = useParams();
   const [loading, setLoading] = useState(true);
+  const [authenticated, setAuthenticated] = useState(false);
+  const [password, setPassword] = useState('');
   const [customer, setCustomer] = useState(null);
   const [merchant, setMerchant] = useState(null);
   const [transactions, setTransactions] = useState([]);
@@ -17,9 +20,64 @@ export default function CustomerDashboard() {
 
   useEffect(() => {
     if (phone) {
-      loadCustomerData();
+      // Verificar se já está autenticado no sessionStorage
+      const authKey = `customer_auth_${phone}`;
+      const isAuth = sessionStorage.getItem(authKey);
+      
+      if (isAuth === 'true') {
+        setAuthenticated(true);
+        loadCustomerData();
+      } else {
+        setLoading(false);
+      }
     }
   }, [phone]);
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    
+    if (!password) {
+      toast.error('Por favor, digite sua senha');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Buscar cliente e verificar senha
+      const { data: customerData, error: customerError } = await supabase
+        .from('customers')
+        .select('id, password_hash')
+        .eq('phone', phone)
+        .single();
+
+      if (customerError) {
+        toast.error('Cliente não encontrado');
+        setLoading(false);
+        return;
+      }
+
+      // Verificar senha (usando btoa para decode simples)
+      const passwordHash = btoa(password);
+      
+      if (customerData.password_hash !== passwordHash) {
+        toast.error('Senha incorreta');
+        setLoading(false);
+        return;
+      }
+
+      // Autenticado com sucesso
+      const authKey = `customer_auth_${phone}`;
+      sessionStorage.setItem(authKey, 'true');
+      setAuthenticated(true);
+      toast.success('Login realizado com sucesso!');
+      loadCustomerData();
+    } catch (error) {
+      console.error('Erro ao fazer login:', error);
+      toast.error('Erro ao fazer login. Tente novamente.');
+      setLoading(false);
+    }
+  };
 
   const loadCustomerData = async () => {
     try {
@@ -85,6 +143,73 @@ export default function CustomerDashboard() {
       setLoading(false);
     }
   };
+
+  // Tela de login se não autenticado
+  if (!authenticated && !loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Lock className="w-8 h-8 text-white" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              Acesso ao Perfil
+            </h1>
+            <p className="text-gray-600">
+              Digite sua senha para acessar
+            </p>
+          </div>
+
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Telefone
+              </label>
+              <input
+                type="text"
+                value={phone}
+                disabled
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Senha
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="Digite sua senha"
+                  required
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white py-3 rounded-lg font-semibold hover:from-primary-700 hover:to-primary-800 transition-all transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg shadow-primary-500/50"
+            >
+              <Lock className="w-5 h-5" />
+              Entrar
+            </button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <p className="text-xs text-gray-400">
+              Esqueceu sua senha? Entre em contato com o estabelecimento.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
