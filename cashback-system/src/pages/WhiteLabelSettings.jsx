@@ -115,6 +115,7 @@ export default function WhiteLabelSettings() {
         .from('merchant-assets')
         .upload(filePath, file, {
           cacheControl: '3600',
+          contentType: file.type, // IMPORTANTE: Define o content-type correto
           upsert: false
         });
 
