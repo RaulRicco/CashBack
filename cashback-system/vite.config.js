@@ -11,6 +11,14 @@ export default defineConfig({
       'localhost'
     ]
   },
+  preview: {
+    host: true,
+    headers: {
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    }
+  },
   build: {
     rollupOptions: {
       output: {
