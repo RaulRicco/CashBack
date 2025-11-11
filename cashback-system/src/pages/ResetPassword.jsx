@@ -1,121 +1,112 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
-import { Lock, Key, ArrowLeft, Check } from 'lucide-react';
-import { getLogo, getBrandName } from '../config/branding';
+import { Lock, Eye, EyeOff, CheckCircle, AlertCircle, KeyRound } from 'lucide-react';
+import { BRAND_CONFIG, getLogo, getBrandName } from '../config/branding';
+import { resetPassword } from '../lib/passwordReset';
 
 export default function ResetPassword() {
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  
+  // Pegar email e tipo da URL (se vier do link do ForgotPassword)
+  const emailFromUrl = searchParams.get('email') || '';
+  const userTypeFromUrl = searchParams.get('type') || 'merchant';
+
+  const [email, setEmail] = useState(emailFromUrl);
+  const [userType, setUserType] = useState(userTypeFromUrl);
+  const [verificationCode, setVerificationCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    token: searchParams.get('token') || '',
-    newPassword: '',
-    confirmPassword: ''
-  });
-
-  useEffect(() => {
-    // Se o token vier pela URL, preencher automaticamente
-    const urlToken = searchParams.get('token');
-    if (urlToken) {
-      setFormData(prev => ({ ...prev, token: urlToken }));
-    }
-  }, [searchParams]);
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
+  const [passwordChanged, setPasswordChanged] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validações
+    if (!email) {
+      toast.error('Por favor, digite seu email');
+      return;
+    }
+
+    if (!verificationCode || verificationCode.length !== 6) {
+      toast.error('Digite o código de 6 dígitos');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast.error('A senha deve ter pelo menos 6 caracteres');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast.error('As senhas não coincidem');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      // Validações
-      if (formData.newPassword !== formData.confirmPassword) {
-        toast.error('As senhas não coincidem');
-        setLoading(false);
-        return;
-      }
-
-      if (formData.newPassword.length < 6) {
-        toast.error('A senha deve ter no mínimo 6 caracteres');
-        setLoading(false);
-        return;
-      }
-
-      if (!formData.token || formData.token.length !== 6) {
-        toast.error('Token inválido. Deve ter 6 dígitos');
-        setLoading(false);
-        return;
-      }
-
-      // Buscar token no banco
-      const { data: tokenData, error: tokenError } = await supabase
-        .from('password_recovery_tokens')
-        .select('id, employee_id, expires_at, used')
-        .eq('token', formData.token)
-        .single();
-
-      if (tokenError || !tokenData) {
-        toast.error('Token não encontrado ou inválido');
-        setLoading(false);
-        return;
-      }
-
-      // Verificar se já foi usado
-      if (tokenData.used) {
-        toast.error('Este token já foi utilizado');
-        setLoading(false);
-        return;
-      }
-
-      // Verificar se expirou
-      const now = new Date();
-      const expiresAt = new Date(tokenData.expires_at);
-      if (now > expiresAt) {
-        toast.error('Token expirado. Solicite um novo código');
-        setLoading(false);
-        return;
-      }
-
-      // Atualizar senha do employee
-      const { error: updateError } = await supabase
-        .from('employees')
-        .update({ password: formData.newPassword })
-        .eq('id', tokenData.employee_id);
-
-      if (updateError) throw updateError;
-
-      // Marcar token como usado
-      await supabase
-        .from('password_recovery_tokens')
-        .update({ used: true })
-        .eq('id', tokenData.id);
-
-      toast.success('Senha alterada com sucesso!');
+      const result = await resetPassword(email, verificationCode, userType, newPassword);
       
-      // Redirecionar para login após 2 segundos
-      setTimeout(() => {
-        navigate('/login');
-      }, 2000);
-
+      if (result.success) {
+        setPasswordChanged(true);
+        toast.success(result.message);
+        
+        // Redirecionar para login após 3 segundos
+        setTimeout(() => {
+          navigate('/login');
+        }, 3000);
+      } else {
+        toast.error(result.error || 'Erro ao redefinir senha');
+      }
     } catch (error) {
       console.error('Erro ao redefinir senha:', error);
-      toast.error('Erro ao redefinir senha. Tente novamente.');
+      toast.error('Erro ao processar solicitação');
     } finally {
       setLoading(false);
     }
   };
 
+  // Senha alterada com sucesso
+  if (passwordChanged) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary-600 via-primary-700 to-primary-900 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+          <div className="text-center">
+            <div className="inline-flex items-center justify-center mb-4">
+              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">
+                <CheckCircle className="w-10 h-10 text-green-600" />
+              </div>
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              Senha Alterada!
+            </h1>
+            <p className="text-gray-600 mb-6">
+              Sua senha foi alterada com sucesso. Você será redirecionado para a página de login em alguns segundos...
+            </p>
+            <button
+              onClick={() => navigate('/login')}
+              className="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+            >
+              Ir para Login
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Formulário de redefinição de senha
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-600 via-primary-700 to-primary-900 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
-        {/* Header */}
+        
+        {/* Logo e Título */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center mb-4">
             <img 
@@ -127,42 +118,98 @@ export default function ResetPassword() {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Redefinir Senha
           </h1>
-          <p className="text-gray-600">
-            Digite o código recebido e sua nova senha
+          <p className="text-gray-600 text-sm">
+            Digite o código que você recebeu no email
           </p>
         </div>
 
+        {/* Formulário */}
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Token */}
+          
+          {/* Email (se não veio da URL) */}
+          {!emailFromUrl && (
+            <>
+              {/* Tipo de Usuário */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Tipo de Conta
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setUserType('merchant')}
+                    className={`py-3 px-4 rounded-lg border-2 font-medium transition-all ${
+                      userType === 'merchant'
+                        ? 'border-primary-600 bg-primary-50 text-primary-700'
+                        : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                    }`}
+                  >
+                    🏪 Estabelecimento
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setUserType('customer')}
+                    className={`py-3 px-4 rounded-lg border-2 font-medium transition-all ${
+                      userType === 'customer'
+                        ? 'border-primary-600 bg-primary-50 text-primary-700'
+                        : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                    }`}
+                  >
+                    👤 Cliente
+                  </button>
+                </div>
+              </div>
+
+              {/* Email */}
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                  Email
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="seu@email.com"
+                />
+              </div>
+            </>
+          )}
+
+          {/* Código de Verificação */}
           <div>
-            <label htmlFor="token" className="block text-sm font-medium text-gray-700 mb-2">
-              Código de Recuperação *
+            <label htmlFor="code" className="block text-sm font-medium text-gray-700 mb-2">
+              Código de Verificação
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Key className="h-5 w-5 text-gray-400" />
+                <KeyRound className="h-5 w-5 text-gray-400" />
               </div>
               <input
-                id="token"
-                name="token"
+                id="code"
                 type="text"
-                value={formData.token}
-                onChange={handleChange}
+                value={verificationCode}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                  setVerificationCode(value);
+                }}
                 required
                 maxLength={6}
-                className="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-center text-xl tracking-widest font-mono"
+                className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-center text-2xl font-bold tracking-widest"
                 placeholder="000000"
               />
             </div>
-            <p className="mt-1 text-xs text-gray-500">
-              Código de 6 dígitos enviado para seu email
+            <p className="mt-2 text-xs text-gray-500">
+              Digite o código de 6 dígitos que você recebeu no email
             </p>
           </div>
 
           {/* Nova Senha */}
           <div>
             <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-2">
-              Nova Senha *
+              Nova Senha
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -170,22 +217,32 @@ export default function ResetPassword() {
               </div>
               <input
                 id="newPassword"
-                name="newPassword"
-                type="password"
-                value={formData.newPassword}
-                onChange={handleChange}
+                type={showPassword ? 'text' : 'password'}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
                 required
                 minLength={6}
-                className="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 placeholder="Mínimo 6 caracteres"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                ) : (
+                  <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                )}
+              </button>
             </div>
           </div>
 
           {/* Confirmar Senha */}
           <div>
             <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-              Confirmar Nova Senha *
+              Confirmar Nova Senha
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -193,75 +250,93 @@ export default function ResetPassword() {
               </div>
               <input
                 id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                value={formData.confirmPassword}
-                onChange={handleChange}
+                type={showConfirmPassword ? 'text' : 'password'}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 minLength={6}
-                className="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                placeholder="Repita a nova senha"
+                className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                placeholder="Digite a senha novamente"
               />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+              >
+                {showConfirmPassword ? (
+                  <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                ) : (
+                  <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                )}
+              </button>
             </div>
           </div>
 
-          {/* Info de Segurança */}
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <div className="flex items-start gap-3">
-              <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-              <div className="text-sm text-green-800">
-                <p className="font-medium mb-1">Dicas de segurança:</p>
-                <ul className="list-disc list-inside space-y-1 text-xs">
-                  <li>Use pelo menos 6 caracteres</li>
-                  <li>Combine letras e números</li>
-                  <li>Evite senhas óbvias (123456, senha123)</li>
-                  <li>Não compartilhe sua senha</li>
-                </ul>
+          {/* Indicador de Força da Senha */}
+          {newPassword.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <div className={`h-2 flex-1 rounded ${newPassword.length >= 6 ? 'bg-green-500' : 'bg-gray-200'}`}></div>
+                <div className={`h-2 flex-1 rounded ${newPassword.length >= 8 ? 'bg-green-500' : 'bg-gray-200'}`}></div>
+                <div className={`h-2 flex-1 rounded ${newPassword.length >= 10 && /[A-Z]/.test(newPassword) ? 'bg-green-500' : 'bg-gray-200'}`}></div>
               </div>
+              <p className="text-xs text-gray-600">
+                {newPassword.length < 6 && 'Senha muito curta (mínimo 6 caracteres)'}
+                {newPassword.length >= 6 && newPassword.length < 8 && 'Senha boa'}
+                {newPassword.length >= 8 && 'Senha forte'}
+              </p>
             </div>
-          </div>
+          )}
 
-          {/* Botões */}
-          <div className="flex flex-col gap-3">
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
-            >
-              {loading ? (
+          {/* Verificação de Senhas Iguais */}
+          {confirmPassword.length > 0 && (
+            <div className={`flex items-center gap-2 text-sm ${newPassword === confirmPassword ? 'text-green-600' : 'text-red-600'}`}>
+              {newPassword === confirmPassword ? (
                 <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  Alterando senha...
+                  <CheckCircle className="w-4 h-4" />
+                  <span>As senhas coincidem</span>
                 </>
               ) : (
                 <>
-                  <Check className="w-5 h-5" />
-                  Alterar Senha
+                  <AlertCircle className="w-4 h-4" />
+                  <span>As senhas não coincidem</span>
                 </>
               )}
-            </button>
+            </div>
+          )}
 
-            <button
-              type="button"
-              onClick={() => navigate('/login')}
-              className="w-full flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-lg transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-              Voltar para Login
-            </button>
-          </div>
+          {/* Botão Submit */}
+          <button
+            type="submit"
+            disabled={loading || newPassword !== confirmPassword || newPassword.length < 6 || verificationCode.length !== 6}
+            className="w-full flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+          >
+            {loading ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                Alterando senha...
+              </>
+            ) : (
+              <>
+                <Lock className="w-5 h-5" />
+                Alterar Senha
+              </>
+            )}
+          </button>
 
-          {/* Link para solicitar novo código */}
+          {/* Link voltar */}
           <div className="text-center">
             <button
               type="button"
               onClick={() => navigate('/forgot-password')}
-              className="text-sm text-primary-600 hover:text-primary-800 font-medium"
+              className="text-sm text-primary-600 hover:text-primary-700 font-medium hover:underline"
             >
-              Não recebeu o código? Solicitar novamente
+              Não recebeu o código? Solicitar novo
             </button>
           </div>
+
         </form>
+
       </div>
     </div>
   );

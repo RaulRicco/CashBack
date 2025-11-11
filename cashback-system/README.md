@@ -1,282 +1,183 @@
-# 🎁 Sistema de Cashback para Pequenos Comércios
+# Supabase CLI
 
-Sistema completo de cashback moderno e integrado com ferramentas de marketing (Google Tag Manager e Meta Pixel).
+[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=main)](https://coveralls.io/github/supabase/cli?branch=main) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)
+](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
 
-## 🚀 Funcionalidades
+[Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
 
-### ✅ Para Estabelecimentos
-- **Dashboard Completo** com métricas em tempo real
-- **Geração de Cashback** via QR Code
-- **Resgate de Cashback** com validação de saldo
-- **Gestão de Funcionários** (múltiplos usuários por estabelecimento)
-- **Relatórios e Analytics** com gráficos interativos
-- **Calculadora de CAC e LTV** com filtros de data
-- **Gestão de Clientes** com histórico completo
+This repository contains all the functionality for Supabase CLI.
 
-### 💰 Fluxo de Cashback
-1. **Estabelecimento** insere telefone do cliente e valor da compra
-2. **Sistema** gera QR Code único
-3. **Cliente** escaneia o QR Code com seu celular
-4. **Sistema** redireciona para página "Obrigado" com tracking (Meta Pixel)
-5. **Cliente** pode acessar seu painel e ver saldo
+- [x] Running Supabase locally
+- [x] Managing database migrations
+- [x] Creating and deploying Supabase Functions
+- [x] Generating types directly from your database schema
+- [x] Making authenticated HTTP requests to [Management API](https://supabase.com/docs/reference/api/introduction)
 
-### 🔄 Fluxo de Resgate
-1. **Estabelecimento** busca cliente por telefone
-2. **Sistema** valida saldo disponível
-3. **Estabelecimento** gera QR Code de resgate
-4. **Cliente** escaneia QR Code
-5. **Sistema** confirma resgate e atualiza saldo
+## Getting started
 
-### 📊 Marketing & Tracking
-- **Google Tag Manager** integrado
-- **Meta Pixel (Facebook Ads)** integrado
-- **Mailchimp** - Sincronização automática de clientes
-- **RD Station** - Eventos e conversões automáticas
-- Eventos customizados para cada ação:
-  - `CashbackGenerated`
-  - `CashbackScanned`
-  - `Purchase` (conversão)
-  - `RedemptionGenerated`
-  - `RedemptionCompleted`
+### Install the CLI
 
-### 📧 Integrações de Email Marketing
-- **Mailchimp**: Sincronização automática com listas/audiências
-- **RD Station**: Conversões e eventos personalizados
-- Tags inteligentes baseadas em comportamento
-- Campos personalizados (saldo, total gasto, etc.)
-- Sincronização em massa (bulk sync)
-- Logs de sincronização
-- Teste de conexão integrado
-
-## 🛠️ Tecnologias
-
-- **Frontend**: React 18 + Vite
-- **Styling**: TailwindCSS
-- **Routing**: React Router v6
-- **State Management**: Zustand
-- **Database**: Supabase (PostgreSQL)
-- **QR Codes**: qrcode.react
-- **Charts**: Recharts
-- **Notifications**: React Hot Toast
-- **Icons**: Lucide React
-- **Date Utils**: date-fns
-
-## 📦 Instalação
-
-### 1. Instalar dependências
-```bash
-cd cashback-system
-npm install
-```
-
-### 2. Configurar Variáveis de Ambiente
-Edite o arquivo `.env` e adicione seus IDs de tracking:
-
-```env
-VITE_SUPABASE_URL=https://mtylboaluqswdkgljgsd.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-
-# Google Tag Manager ID
-VITE_GTM_ID=GTM-XXXXXXX
-
-# Meta Pixel ID
-VITE_META_PIXEL_ID=123456789012345
-```
-
-### 3. Criar Tabelas no Supabase
-
-Acesse o **SQL Editor** no Supabase e execute o arquivo:
-```
-supabase-schema.sql
-```
-
-Este script criará todas as tabelas necessárias:
-- `merchants` (estabelecimentos)
-- `employees` (funcionários)
-- `customers` (clientes)
-- `transactions` (transações)
-- `redemptions` (resgates)
-- `marketing_spend` (gastos com marketing)
-
-**IMPORTANTE**: Execute também o schema de integrações:
-```
-supabase-integrations.sql
-```
-
-Isso criará as tabelas:
-- `integration_configs` (configurações Mailchimp/RD Station)
-- `integration_sync_log` (logs de sincronização)
-
-### 4. Inserir Dados Iniciais
-
-No SQL Editor do Supabase, execute:
-
-```sql
--- Inserir um estabelecimento de teste
-INSERT INTO merchants (name, email, phone, cashback_percentage)
-VALUES ('Minha Loja', 'contato@minhaloja.com', '11999999999', 5.00);
-
--- Inserir um funcionário de teste
-INSERT INTO employees (merchant_id, name, email, role, password_hash, is_active)
-SELECT 
-  id,
-  'Admin',
-  'admin@minhaloja.com',
-  'admin',
-  'temp_hash',
-  true
-FROM merchants
-WHERE email = 'contato@minhaloja.com';
-```
-
-### 5. Executar o Projeto
+Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
 
 ```bash
-npm run dev
+npm i supabase --save-dev
 ```
 
-Acesse: http://localhost:5173
+To install the beta release channel:
 
-## 🔐 Login
-
-**Modo Desenvolvimento**: Use qualquer email cadastrado na tabela `employees` com qualquer senha.
-
-Exemplo:
-- Email: `admin@minhaloja.com`
-- Senha: `qualquer_coisa`
-
-## 📱 Estrutura de Páginas
-
-### Dashboard do Estabelecimento (Protegido)
-- `/login` - Tela de login
-- `/dashboard` - Dashboard principal
-- `/cashback` - Gerar cashback
-- `/redemption` - Processar resgate
-- `/integrations` - Configurar Mailchimp e RD Station
-- `/customers` - Lista de clientes
-- `/employees` - Gestão de funcionários
-- `/reports` - Relatórios e analytics
-
-### Páginas Públicas do Cliente
-- `/customer/cashback/:token` - Página "Obrigado" após escanear QR de cashback
-- `/customer/redemption/:token` - Confirmação de resgate
-- `/customer/dashboard/:phone` - Painel do cliente com saldo
-
-## 🎯 Como Usar
-
-### Para Adicionar Cashback:
-1. Acesse `/cashback`
-2. Digite o telefone do cliente (apenas números)
-3. Digite o valor da compra
-4. Clique em "Gerar QR Code"
-5. Cliente escaneia o QR Code
-6. Cliente é redirecionado para página "Obrigado" ✅
-
-### Para Resgatar Cashback:
-1. Acesse `/redemption`
-2. Busque o cliente por telefone
-3. Sistema mostra saldo disponível
-4. Digite o valor do resgate
-5. Gere o QR Code
-6. Cliente escaneia para confirmar ✅
-
-### Para Calcular CAC/LTV:
-1. Acesse `/dashboard`
-2. Adicione seus gastos com tráfego pago
-3. Sistema calcula automaticamente:
-   - CAC (Custo de Aquisição de Cliente)
-   - LTV (Lifetime Value)
-   - ROI (Retorno sobre Investimento)
-   - Ratio LTV/CAC
-
-## 📊 Tracking e Analytics
-
-### Google Tag Manager
-O sistema envia eventos automáticos para o GTM:
-- `CashbackGenerated` - Quando QR é gerado
-- `CashbackScanned` - Quando cliente escaneia
-- `Purchase` - Conversão confirmada
-- `RedemptionGenerated` - Resgate iniciado
-- `RedemptionCompleted` - Resgate confirmado
-
-### Meta Pixel
-Eventos equivalentes são enviados para o Meta Pixel, permitindo:
-- Criar audiências personalizadas
-- Otimizar campanhas
-- Rastrear conversões
-- Calcular ROAS
-
-## 🔧 Personalização
-
-### Alterar Percentual de Cashback
-No SQL Editor do Supabase:
-```sql
-UPDATE merchants 
-SET cashback_percentage = 10.0 
-WHERE id = 'seu-merchant-id';
-```
-
-### Adicionar Funcionário
-Via interface em `/employees` ou SQL:
-```sql
-INSERT INTO employees (merchant_id, name, email, role, password_hash, is_active)
-VALUES ('merchant-id', 'Nome', 'email@empresa.com', 'operator', 'hash', true);
-```
-
-## 🚀 Deploy
-
-### Vercel / Netlify
 ```bash
-npm run build
+npm i supabase@beta --save-dev
 ```
 
-Configure as variáveis de ambiente no painel do serviço.
+When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
 
-### Variáveis Obrigatórias
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY`
+```
+NODE_OPTIONS=--no-experimental-fetch yarn add supabase
+```
 
-### Variáveis Opcionais
-- `VITE_GTM_ID`
-- `VITE_META_PIXEL_ID`
+> **Note**
+For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
 
-## 📝 TODO / Melhorias Futuras
+<details>
+  <summary><b>macOS</b></summary>
 
-- [ ] Implementar autenticação real com bcrypt
-- [ ] Adicionar upload de logo do estabelecimento
-- [ ] Sistema de notificações (email/SMS)
-- [ ] App mobile nativo
-- [ ] Sistema de cupons e promoções
-- [ ] Integração com WhatsApp Business
-- [ ] Gamificação (níveis, badges)
-- [ ] Programa de indicação
-- [ ] API pública para integrações
+  Available via [Homebrew](https://brew.sh). To install:
 
-## 🐛 Troubleshooting
+  ```sh
+  brew install supabase/tap/supabase
+  ```
 
-### Erro ao conectar com Supabase
-- Verifique se as credenciais no `.env` estão corretas
-- Confirme que as tabelas foram criadas
-- Verifique as políticas de RLS no Supabase
+  To install the beta release channel:
+  
+  ```sh
+  brew install supabase/tap/supabase-beta
+  brew link --overwrite supabase-beta
+  ```
+  
+  To upgrade:
 
-### QR Code não funciona
-- Confirme que o token está sendo gerado corretamente
-- Verifique se a URL do QR Code está acessível
-- Teste a rota diretamente no navegador
+  ```sh
+  brew upgrade supabase
+  ```
+</details>
 
-### Tracking não está funcionando
-- Verifique se os IDs do GTM e Meta Pixel estão corretos
-- Abra o console do navegador para ver erros
-- Use as ferramentas de debug (GTM Preview, Meta Pixel Helper)
+<details>
+  <summary><b>Windows</b></summary>
 
-## 📄 Licença
+  Available via [Scoop](https://scoop.sh). To install:
 
-MIT License - Sinta-se livre para usar e modificar!
+  ```powershell
+  scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
+  scoop install supabase
+  ```
 
-## 🤝 Suporte
+  To upgrade:
 
-Para dúvidas ou problemas, abra uma issue no repositório.
+  ```powershell
+  scoop update supabase
+  ```
+</details>
 
----
+<details>
+  <summary><b>Linux</b></summary>
 
-**Desenvolvido com ❤️ para pequenos comércios locais**
+  Available via [Homebrew](https://brew.sh) and Linux packages.
+
+  #### via Homebrew
+
+  To install:
+
+  ```sh
+  brew install supabase/tap/supabase
+  ```
+
+  To upgrade:
+
+  ```sh
+  brew upgrade supabase
+  ```
+
+  #### via Linux packages
+
+  Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
+
+  ```sh
+  sudo apk add --allow-untrusted <...>.apk
+  ```
+
+  ```sh
+  sudo dpkg -i <...>.deb
+  ```
+
+  ```sh
+  sudo rpm -i <...>.rpm
+  ```
+
+  ```sh
+  sudo pacman -U <...>.pkg.tar.zst
+  ```
+</details>
+
+<details>
+  <summary><b>Other Platforms</b></summary>
+
+  You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
+
+  ```sh
+  go install github.com/supabase/cli@latest
+  ```
+
+  Add a symlink to the binary in `$PATH` for easier access:
+
+  ```sh
+  ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
+  ```
+
+  This works on other non-standard Linux distros.
+</details>
+
+<details>
+  <summary><b>Community Maintained Packages</b></summary>
+
+  Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
+  To install in your working directory:
+
+  ```bash
+  pkgx install supabase
+  ```
+
+  Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
+</details>
+
+### Run the CLI
+
+```bash
+supabase bootstrap
+```
+
+Or using npx:
+
+```bash
+npx supabase bootstrap
+```
+
+The bootstrap command will guide you through the process of setting up a Supabase project using one of the [starter](https://github.com/supabase-community/supabase-samples/blob/main/samples.json) templates.
+
+## Docs
+
+Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
+
+## Breaking changes
+
+We follow semantic versioning for changes that directly impact CLI commands, flags, and configurations.
+
+However, due to dependencies on other service images, we cannot guarantee that schema migrations, seed.sql, and generated types will always work for the same CLI major version. If you need such guarantees, we encourage you to pin a specific version of CLI in package.json.
+
+## Developing
+
+To run from source:
+
+```sh
+# Go >= 1.22
+go run . help
+```

@@ -32,7 +32,7 @@ export class MailchimpService {
       // Usar proxy server para evitar CORS
       const proxyUrl = window.location.hostname === 'localhost' 
         ? 'http://localhost:3001'
-        : 'https://' + window.location.hostname + ':3001';
+        : '';
 
       const response = await axios.post(
         `${proxyUrl}/api/mailchimp/sync`,
@@ -145,7 +145,7 @@ export class MailchimpService {
       // Usar proxy server para evitar CORS
       const proxyUrl = window.location.hostname === 'localhost' 
         ? 'http://localhost:3001'
-        : 'https://' + window.location.hostname + ':3001';
+        : '';
 
       const response = await axios.post(
         `${proxyUrl}/api/mailchimp/test`,

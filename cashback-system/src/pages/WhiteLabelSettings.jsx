@@ -150,24 +150,43 @@ export default function WhiteLabelSettings() {
     setSaving(true);
 
     try {
-      console.log('Salvando configurações:', settings);
+      console.log('🔄 Salvando configurações:', settings);
+      console.log('📸 Logo URL atual:', settings.logo_url);
+
+      // Preparar dados para atualização
+      const updateData = {
+        logo_url: settings.logo_url || null,
+        primary_color: settings.primary_color,
+        secondary_color: settings.secondary_color,
+        accent_color: settings.accent_color,
+        cashback_percentage: parseFloat(settings.cashback_percentage),
+        business_name: settings.business_name,
+        name: settings.name,
+      };
+
+      // Só incluir email e phone se foram alterados E não estiverem vazios (evitar conflitos de unicidade)
+      if (settings.email && settings.email.trim() !== '' && settings.email !== merchant.email) {
+        updateData.email = settings.email;
+      }
+      if (settings.phone && settings.phone.trim() !== '' && settings.phone !== merchant.phone) {
+        updateData.phone = settings.phone;
+      }
+
+      console.log('📦 Dados a atualizar:', updateData);
+      console.log('📸 Logo no updateData:', updateData.logo_url);
 
       const { error } = await supabase
         .from('merchants')
-        .update({
-          logo_url: settings.logo_url,
-          primary_color: settings.primary_color,
-          secondary_color: settings.secondary_color,
-          accent_color: settings.accent_color,
-          cashback_percentage: parseFloat(settings.cashback_percentage),
-          business_name: settings.business_name,
-          name: settings.name,
-          email: settings.email,
-          phone: settings.phone
-        })
+        .update(updateData)
         .eq('id', merchant.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro detalhado ao salvar:', error);
+        console.error('Código do erro:', error.code);
+        console.error('Mensagem:', error.message);
+        console.error('Detalhes:', error.details);
+        throw error;
+      }
 
       toast.success('Configurações salvas com sucesso!');
       
@@ -288,12 +307,29 @@ export default function WhiteLabelSettings() {
             <div className="space-y-4">
               {/* Preview da Logo */}
               {settings.logo_url && (
-                <div className="flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-6 bg-gray-50">
-                  <img
-                    src={settings.logo_url}
-                    alt="Logo"
-                    className="max-h-32 object-contain"
-                  />
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-6 bg-gray-50 min-h-[150px]">
+                    <img
+                      src={settings.logo_url}
+                      alt="Logo"
+                      className="max-h-32 object-contain"
+                      onLoad={() => console.log('✅ Logo carregada com sucesso:', settings.logo_url)}
+                      onError={(e) => {
+                        console.error('❌ Erro ao carregar logo:', settings.logo_url);
+                        console.error('Detalhes do erro:', e);
+                        e.target.parentElement.innerHTML = `
+                          <div class="text-center text-red-600">
+                            <p class="font-semibold mb-2">❌ Erro ao carregar logo</p>
+                            <p class="text-xs text-gray-500 break-all">${settings.logo_url}</p>
+                            <p class="text-xs text-gray-500 mt-2">Tente fazer upload novamente</p>
+                          </div>
+                        `;
+                      }}
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 text-center break-all">
+                    URL: {settings.logo_url}
+                  </p>
                 </div>
               )}
               

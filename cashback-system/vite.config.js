@@ -10,5 +10,15 @@ export default defineConfig({
       '.sandbox.novita.ai',
       'localhost'
     ]
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        // Force new filename on every build
+        entryFileNames: `assets/[name]-[hash]-${Date.now()}.js`,
+        chunkFileNames: `assets/[name]-[hash]-${Date.now()}.js`,
+        assetFileNames: `assets/[name]-[hash]-${Date.now()}.[ext]`
+      }
+    }
   }
 })

@@ -1,0 +1,127 @@
+╔════════════════════════════════════════════════════════════════════╗
+║                                                                    ║
+║     🔧 CORRIGIR ERRO 409 (CONFLICT) - CONSTRAINT UNIQUE          ║
+║                                                                    ║
+╚════════════════════════════════════════════════════════════════════╝
+
+🚨 PROBLEMA IDENTIFICADO:
+   - Erro 409 (Conflict) ao cadastrar cliente
+   - Tabela 'customers' tem UNIQUE constraint no campo 'phone'
+   - Isso impede o mesmo telefone em estabelecimentos diferentes
+
+✅ SOLUÇÃO: Remover UNIQUE do phone e criar constraint composta
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 PASSO A PASSO (COPIAR E COLAR):
+
+1️⃣ Acesse o Supabase SQL Editor:
+   https://supabase.com/dashboard/project/mtylboaluqswdkgljgsd
+
+2️⃣ Clique em "+ New Query"
+
+3️⃣ COPIE E COLE este SQL (VERSÃO SIMPLIFICADA):
+
+-- Remover constraint UNIQUE do phone
+ALTER TABLE customers DROP CONSTRAINT IF EXISTS customers_phone_key CASCADE;
+ALTER TABLE customers DROP CONSTRAINT IF EXISTS customers_phone_unique CASCADE;
+DROP INDEX IF EXISTS customers_phone_key CASCADE;
+DROP INDEX IF EXISTS idx_customers_phone CASCADE;
+
+-- Criar constraint composta: phone + merchant_id
+ALTER TABLE customers 
+ADD CONSTRAINT customers_phone_merchant_unique 
+UNIQUE (phone, referred_by_merchant_id);
+
+4️⃣ Clique em "RUN"
+
+5️⃣ Se der algum erro, tente a VERSÃO AUTOMÁTICA abaixo
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚡ VERSÃO AUTOMÁTICA (Se a versão acima não funcionar):
+
+-- Remove automaticamente QUALQUER constraint UNIQUE do phone
+DO $$
+DECLARE
+    constraint_rec RECORD;
+BEGIN
+    FOR constraint_rec IN 
+        SELECT constraint_name 
+        FROM information_schema.table_constraints 
+        WHERE table_name = 'customers' 
+        AND constraint_type = 'UNIQUE'
+        AND constraint_name LIKE '%phone%'
+    LOOP
+        EXECUTE 'ALTER TABLE customers DROP CONSTRAINT IF EXISTS ' || constraint_rec.constraint_name || ' CASCADE';
+        RAISE NOTICE 'Dropped constraint: %', constraint_rec.constraint_name;
+    END LOOP;
+END $$;
+
+-- Criar constraint composta
+ALTER TABLE customers 
+ADD CONSTRAINT customers_phone_merchant_unique 
+UNIQUE (phone, referred_by_merchant_id);
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 O QUE ESTE SQL FAZ:
+
+ANTES:
+❌ Campo 'phone' tinha UNIQUE constraint
+❌ Telefone 11999999999 só podia existir UMA VEZ na tabela inteira
+❌ Bloqueava cadastro em estabelecimentos diferentes
+
+DEPOIS:
+✅ Remove UNIQUE do phone sozinho
+✅ Cria UNIQUE composto: (phone + merchant_id)
+✅ Permite mesmo phone em estabelecimentos diferentes
+✅ Mas impede duplicatas dentro do mesmo estabelecimento
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 EXEMPLO PRÁTICO:
+
+Telefone: 11999999999
+
+ANTES (com erro 409):
+- Restaurant A: cliente ID 1 ✅
+- Restaurant B: ERRO 409 ❌ (phone já existe!)
+
+DEPOIS (funcionando):
+- Restaurant A: cliente ID 1 ✅
+- Restaurant B: cliente ID 2 ✅
+- Loja C: cliente ID 3 ✅
+
+Cada estabelecimento tem seu próprio registro!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔍 VERIFICAR SE FUNCIONOU:
+
+1. Execute o SQL no Supabase
+2. Aguarde "Success"
+3. Tente cadastrar um cliente novamente
+4. O erro 409 deve desaparecer!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚠️  SE AINDA DER ERRO:
+
+Me envie:
+1. A mensagem de erro completa do SQL
+2. O novo erro do console (se ainda houver 409)
+3. Vou investigar outros constraints possíveis
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📝 ARQUIVOS:
+
+📄 FIX-CUSTOMERS-CONSTRAINT-409.sql    ← SQL completo com todas opções
+📄 EXECUTAR-FIX-409-AGORA.txt          ← Você está lendo este arquivo
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💡 Execute o SQL e me avise o resultado! 🚀
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

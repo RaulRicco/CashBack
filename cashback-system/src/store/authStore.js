@@ -32,6 +32,11 @@ export const useAuthStore = create(
             throw new Error('Credenciais inválidas');
           }
 
+          // ✅ VERIFICAÇÃO DE EMAIL OBRIGATÓRIA
+          if (!employee.email_verified) {
+            throw new Error('Email não verificado. Verifique seu email antes de fazer login.');
+          }
+
           // TODO: Implementar verificação real de senha com bcrypt
           // Por enquanto, aceitar qualquer senha para desenvolvimento
           
