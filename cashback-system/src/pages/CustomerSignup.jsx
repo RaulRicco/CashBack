@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { UserPlus, Phone, User, Store, Calendar, Lock } from 'lucide-react';
 import { trackEvent } from '../lib/tracking';
 import { BRAND_CONFIG, getLogo, getBrandName } from '../config/branding';
+import MerchantSEO from '../components/MerchantSEO';
 
 export default function CustomerSignup() {
   const { slug } = useParams();
@@ -197,9 +198,13 @@ export default function CustomerSignup() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
-        {/* Logo do Estabelecimento no topo */}
+    <>
+      {/* Meta tags dinâmicas para compartilhamento em redes sociais */}
+      <MerchantSEO merchant={merchant} pageType="signup" />
+      
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
+          {/* Logo do Estabelecimento no topo */}
         <div className="text-center mb-8 pb-6 border-b border-gray-200">
           {merchant.logo_url ? (
             <img 
@@ -335,6 +340,35 @@ export default function CustomerSignup() {
               </>
             )}
           </button>
+          
+          {/* Link para login de clientes existentes */}
+          <div className="mt-4 text-center">
+            <p className="text-sm text-gray-600">
+              Já tem cadastro?{' '}
+              <button
+                type="button"
+                onClick={() => {
+                  // Preserva o contexto do merchant ao redirecionar para login
+                  // Verifica se está em domínio personalizado
+                  const currentHost = window.location.hostname;
+                  const isCustomDomain = !currentHost.includes('localhost') && 
+                                        !currentHost.includes('127.0.0.1') &&
+                                        !currentHost.includes('localcashback');
+                  
+                  if (isCustomDomain) {
+                    // Em domínio personalizado, redireciona para /customer/login mantendo o domínio
+                    window.location.href = '/customer/login';
+                  } else {
+                    // No domínio principal, usa navigate para /customer/login com slug
+                    navigate(`/customer/login/${slug}`);
+                  }
+                }}
+                className="text-primary-600 hover:text-primary-700 font-semibold hover:underline"
+              >
+                Fazer Login
+              </button>
+            </p>
+          </div>
         </form>
 
         {/* Benefícios */}
@@ -377,5 +411,6 @@ export default function CustomerSignup() {
         </div>
       </div>
     </div>
+    </>
   );
 }

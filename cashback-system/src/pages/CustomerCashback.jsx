@@ -7,6 +7,7 @@ import { syncCustomerToIntegrations } from '../lib/integrations';
 import { useNotification } from '../hooks/useNotification';
 import NotificationContainer from '../components/NotificationContainer';
 import { notifyCashbackReceived } from '../lib/pushNotifications';
+import MerchantSEO from '../components/MerchantSEO';
 
 export default function CustomerCashback() {
   const { token } = useParams();
@@ -40,9 +41,10 @@ export default function CustomerCashback() {
   }, [token]);
 
   // Inicializar tracking do estabelecimento quando merchant carregar
+  // NOTA: Apenas para casos onde merchant foi setado sem passar pelo processQRCode
   useEffect(() => {
-    if (merchant) {
-      console.log('🎯 Inicializando tracking do estabelecimento:', merchant.name);
+    if (merchant && !window.fbq && !window.dataLayer) {
+      console.log('🎯 Inicializando tracking do estabelecimento (fallback):', merchant.name);
       
       // Inicializar Google Tag Manager
       if (merchant.gtm_id) {
@@ -55,9 +57,14 @@ export default function CustomerCashback() {
         console.log('📘 Carregando Meta Pixel:', merchant.meta_pixel_id);
         initMetaPixel(merchant.meta_pixel_id);
       }
+    }
 
-      // Track PageView
-      trackPageView('CustomerCashbackReceived');
+    // Track PageView sempre que merchant mudar
+    if (merchant) {
+      // Aguardar um pouco para garantir que tracking foi inicializado
+      setTimeout(() => {
+        trackPageView('CustomerCashbackReceived');
+      }, 500);
     }
   }, [merchant]);
 
@@ -87,9 +94,21 @@ export default function CustomerCashback() {
       // Verificar se já foi escaneado
       if (txData.qr_scanned) {
         console.log('⚠️ QR Code já foi escaneado anteriormente');
+        
+        // Inicializar tracking mesmo para QR já escaneado
+        const merchantData = txData.merchant;
+        if (merchantData.gtm_id) {
+          console.log('📊 Inicializando GTM:', merchantData.gtm_id);
+          initGTM(merchantData.gtm_id);
+        }
+        if (merchantData.meta_pixel_id) {
+          console.log('📘 Inicializando Meta Pixel:', merchantData.meta_pixel_id);
+          initMetaPixel(merchantData.meta_pixel_id);
+        }
+        
         setTransaction(txData);
         setCustomer(txData.customer);
-        setMerchant(txData.merchant);
+        setMerchant(merchantData);
         setLoading(false);
         return;
       }
@@ -110,7 +129,27 @@ export default function CustomerCashback() {
 
       setTransaction(updatedTx);
       setCustomer(updatedTx.customer);
-      setMerchant(updatedTx.merchant);
+      
+      // 🔥 INICIALIZAR TRACKING IMEDIATAMENTE antes de disparar eventos
+      const merchantData = updatedTx.merchant;
+      
+      // Inicializar Google Tag Manager se configurado
+      if (merchantData.gtm_id) {
+        console.log('📊 Inicializando GTM:', merchantData.gtm_id);
+        initGTM(merchantData.gtm_id);
+      }
+      
+      // Inicializar Meta Pixel se configurado
+      if (merchantData.meta_pixel_id) {
+        console.log('📘 Inicializando Meta Pixel:', merchantData.meta_pixel_id);
+        initMetaPixel(merchantData.meta_pixel_id);
+      }
+      
+      // Aguardar um pouco para garantir que os scripts foram carregados
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      // Agora sim, setar o merchant (para não inicializar duas vezes no useEffect)
+      setMerchant(merchantData);
 
       // Tracking: QR Code Escaneado
       trackCashbackScanned({
@@ -143,6 +182,8 @@ export default function CustomerCashback() {
             cashback_amount: updatedTx.cashback_amount
           });
           console.log('📘 Meta Pixel: Evento Purchase disparado');
+        } else {
+          console.warn('⚠️ Meta Pixel não está disponível. window.fbq não encontrado.');
         }
 
         // Google Tag Manager - Conversão
@@ -157,6 +198,8 @@ export default function CustomerCashback() {
             transaction_id: updatedTx.id
           });
           console.log('📊 GTM: Evento conversion disparado');
+        } else {
+          console.warn('⚠️ Google Tag Manager não está disponível. window.dataLayer não encontrado.');
         }
       }
 
@@ -231,9 +274,13 @@ export default function CustomerCashback() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-600 via-green-700 to-green-900 flex items-center justify-center p-4">
-      {/* Container de Notificações */}
-      <NotificationContainer notifications={notifications} />
+    <>
+      {/* Meta tags dinâmicas para compartilhamento em redes sociais */}
+      <MerchantSEO merchant={merchant} pageType="signup" />
+      
+      <div className="min-h-screen bg-gradient-to-br from-green-600 via-green-700 to-green-900 flex items-center justify-center p-4">
+        {/* Container de Notificações */}
+        <NotificationContainer notifications={notifications} />
       
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8">
         {/* Ícone de Sucesso */}
@@ -317,6 +364,7 @@ export default function CustomerCashback() {
           100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
         }
       `}</style>
-    </div>
+      </div>
+    </>
   );
 }

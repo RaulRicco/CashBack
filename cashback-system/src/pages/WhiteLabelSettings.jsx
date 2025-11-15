@@ -293,6 +293,13 @@ export default function WhiteLabelSettings() {
                     src={settings.logo_url}
                     alt="Logo"
                     className="max-h-32 object-contain"
+                    onError={(e) => {
+                      console.log('❌ Erro ao carregar logo:', e.target.src);
+                      console.log('Detalhes do erro:', e);
+                      // Ocultar imagem quebrada
+                      e.target.style.display = 'none';
+                      toast.error('Erro ao carregar logo. Verifique as permissões do Storage no Supabase.');
+                    }}
                   />
                 </div>
               )}
