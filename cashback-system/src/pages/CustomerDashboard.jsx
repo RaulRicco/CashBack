@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import NotificationPermission from '../components/NotificationPermission';
+import MerchantSEO from '../components/MerchantSEO';
 
 export default function CustomerDashboard() {
   const { phone } = useParams();
@@ -152,7 +153,7 @@ export default function CustomerDashboard() {
       if (merchantId) {
         const { data: merchantData } = await supabase
           .from('merchants')
-          .select('id, name, cashback_program_name, primary_color, secondary_color, accent_color, logo_url')
+          .select('id, name, cashback_program_name, primary_color, secondary_color, accent_color, logo_url, cashback_percentage')
           .eq('id', merchantId)
           .single();
         
@@ -244,9 +245,13 @@ export default function CustomerDashboard() {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-xs text-gray-400">
-              Esqueceu sua senha? Entre em contato com o estabelecimento.
-            </p>
+            <button
+              type="button"
+              onClick={() => navigate('/customer/forgot-password')}
+              className="text-sm text-primary-600 hover:text-primary-700 font-medium hover:underline"
+            >
+              Esqueceu sua senha?
+            </button>
           </div>
         </div>
       </div>
@@ -350,8 +355,12 @@ export default function CustomerDashboard() {
   console.log('📊 Histórico final renderizado:', unifiedHistory.length, 'itens');
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+    <>
+      {/* Meta tags dinâmicas para compartilhamento em redes sociais */}
+      <MerchantSEO merchant={merchant} pageType="dashboard" />
+      
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
       <div 
         className="text-white"
         style={{
@@ -580,6 +589,7 @@ export default function CustomerDashboard() {
 
       {/* Solicitação de Permissão de Notificação */}
       <NotificationPermission customerPhone={phone} />
-    </div>
+      </div>
+    </>
   );
 }

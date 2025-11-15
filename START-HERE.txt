@@ -1,0 +1,75 @@
+╔══════════════════════════════════════════════════════════════════╗
+║                                                                  ║
+║  🚀 CORREÇÃO DO ERRO DE UPLOAD DE LOGO - COMECE AQUI            ║
+║                                                                  ║
+╚══════════════════════════════════════════════════════════════════╝
+
+PROBLEMA:
+❌ Logo não aparece após fazer upload no perfil do estabelecimento
+❌ Console mostra erro ao carregar imagem
+
+SOLUÇÃO: 3 passos simples (15 minutos)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PASSO 1: PUSH DO CÓDIGO
+─────────────────────────────────────────────────────────────────
+
+$ cd /home/root/webapp
+$ git push origin main
+
+⚠️  Se der erro de autenticação, use GitHub Desktop
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PASSO 2: EXECUTAR SQL NO SUPABASE ⭐ MAIS IMPORTANTE
+─────────────────────────────────────────────────────────────────
+
+1. Acesse: https://supabase.com/dashboard
+2. Selecione seu projeto
+3. SQL Editor → New Query
+4. Abra o arquivo: FIX-LOGO-UPLOAD-DEFINITIVO.sql
+5. Copie TODO o conteúdo
+6. Cole no editor SQL
+7. Run (Ctrl+Enter)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PASSO 3: DEPLOY NO SERVIDOR
+─────────────────────────────────────────────────────────────────
+
+$ ssh root@31.97.167.88
+$ cd /var/www/cashback/cashback-system
+$ git pull origin main
+$ npm run build
+$ systemctl reload nginx
+$ exit
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TESTE:
+─────────────────────────────────────────────────────────────────
+
+1. Abra o sistema
+2. Login → "Meu CashBack"
+3. Upload de logo
+4. Salvar
+5. ✅ Logo deve aparecer!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DOCUMENTAÇÃO COMPLETA:
+
+📄 README-FIX-LOGO.md           → Resumo visual
+📄 SOLUCAO-LOGO-UPLOAD.md       → Guia completo
+📄 RESUMO-FINAL-LOGO-FIX.md     → Resumo executivo
+📄 FIX-LOGO-UPLOAD-DEFINITIVO.sql → SQL (EXECUTAR!) ⭐
+📄 COMANDOS-FIX-LOGO.sh         → Comandos prontos
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PRECISA DE AJUDA?
+
+Leia: README-FIX-LOGO.md (tem tudo explicado)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

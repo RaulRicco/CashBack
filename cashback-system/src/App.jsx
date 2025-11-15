@@ -22,6 +22,9 @@ import CustomerCashback from './pages/CustomerCashback';
 import CustomerRedemption from './pages/CustomerRedemption';
 import CustomerDashboard from './pages/CustomerDashboard';
 import CustomerSignup from './pages/CustomerSignup';
+import CustomerLogin from './pages/CustomerLogin';
+import CustomerForgotPassword from './pages/CustomerForgotPassword';
+import CustomerResetPassword from './pages/CustomerResetPassword';
 import ForceUpdate from './pages/ForceUpdate';
 import AdminNotifications from './pages/AdminNotifications';
 
@@ -96,6 +99,10 @@ function App() {
         <Route path="/customer/cashback/:token" element={<CustomerCashback />} />
         <Route path="/customer/redemption/:token" element={<CustomerRedemption />} />
         <Route path="/customer/dashboard/:phone" element={<CustomerDashboard />} />
+        <Route path="/customer/login/:slug" element={<CustomerLogin />} />
+        <Route path="/customer/login" element={<CustomerLogin />} />
+        <Route path="/customer/forgot-password" element={<CustomerForgotPassword />} />
+        <Route path="/customer/reset-password" element={<CustomerResetPassword />} />
         
         {/* Protected Routes (Merchant/Employee Dashboard) */}
         <Route 
