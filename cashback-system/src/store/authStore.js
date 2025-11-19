@@ -20,30 +20,36 @@ export const useAuthStore = create(
       login: async (email, password) => {
         set({ isLoading: true });
         try {
-          // Buscar funcionário
-          const { data: employees, error: employeeError } = await supabase
-            .from('employees')
-            .select('*, merchant:merchants(*)')
-            .eq('email', email)
-            .eq('is_active', true);
+          // Autenticar com Supabase Auth
+          const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+            email,
+            password
+          });
 
-          if (employeeError) {
-            throw new Error('Erro ao buscar funcionário: ' + employeeError.message);
+          if (authError) {
+            throw new Error(authError.message);
           }
 
-          if (!employees || employees.length === 0) {
+          if (!authData.user) {
             throw new Error('Credenciais inválidas');
           }
 
-          const employee = employees[0];
+          // Buscar dados do merchant associado ao user_id
+          const { data: merchants, error: merchantError } = await supabase
+            .from('merchants')
+            .select('*')
+            .eq('id', authData.user.id);
 
-          // TODO: Implementar verificação real de senha com bcrypt
-          // Por enquanto, aceitar qualquer senha para desenvolvimento
+          if (merchantError) {
+            console.error('Erro ao buscar merchant:', merchantError);
+          }
+
+          const merchant = merchants && merchants.length > 0 ? merchants[0] : null;
           
           set({
-            user: { email: employee.email, id: employee.id },
-            employee: employee,
-            merchant: employee.merchant,
+            user: authData.user,
+            employee: null, // Não usamos mais employees
+            merchant: merchant,
             isAuthenticated: true,
             isLoading: false
           });
@@ -55,7 +61,8 @@ export const useAuthStore = create(
         }
       },
 
-      logout: () => {
+      logout: async () => {
+        await supabase.auth.signOut();
         set({
           user: null,
           merchant: null,
@@ -65,23 +72,25 @@ export const useAuthStore = create(
       },
 
       checkAuth: async () => {
-        const state = get();
-        if (state.isAuthenticated && state.employee) {
-          // Revalidar sessão
-          const { data: employees } = await supabase
-            .from('employees')
-            .select('*, merchant:merchants(*)')
-            .eq('id', state.employee.id)
-            .eq('is_active', true);
+        // Verificar sessão do Supabase Auth
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session && session.user) {
+          // Buscar merchant associado
+          const { data: merchants } = await supabase
+            .from('merchants')
+            .select('*')
+            .eq('id', session.user.id);
 
-          if (employees && employees.length > 0) {
-            set({
-              employee: employees[0],
-              merchant: employees[0].merchant
-            });
-          } else {
-            get().logout();
-          }
+          const merchant = merchants && merchants.length > 0 ? merchants[0] : null;
+
+          set({
+            user: session.user,
+            merchant: merchant,
+            isAuthenticated: true
+          });
+        } else {
+          get().logout();
         }
       }
     }),
