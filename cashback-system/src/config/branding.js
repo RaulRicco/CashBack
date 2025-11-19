@@ -43,12 +43,16 @@ export const BRAND_CONFIG = {
   /**
    * Logo principal (PNG ou SVG)
    * Caminho relativo a /public/
+   * 
+   * CONFIGURAÇÃO ATUALIZADA:
+   * - logo-localcashback.png = Logo HORIZONTAL (landing page, dashboard, headers)
+   * - logo-icon.png = Logo QUADRADA (login, favicon, ícones PWA)
    */
   logo: {
-    main: '/logo-light.png',        // Logo completa com texto (fundo claro)
-    icon: '/logo-icon.png',         // Apenas ícone circular (para favicons)
-    light: '/logo-light.png',       // Versão clara (fundos claros)
-    dark: '/logo-dark.png',         // Versão escura (fundos escuros)
+    main: '/logo-localcashback.png',        // Logo horizontal completa (landing, dashboard)
+    icon: '/logo-icon.png',                 // Logo quadrada (login, favicon, ícones)
+    light: '/logo-localcashback.png',       // Versão clara (fundos claros)
+    dark: '/logo-localcashback.png',        // Versão escura (fundos escuros)
   },
   
   /**
