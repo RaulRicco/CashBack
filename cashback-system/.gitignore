@@ -22,3 +22,14 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Arquivos temporários de debug
+check_*.js
+check_*.mjs
+verify_*.sh
+cashback.db
+
+# Arquivos de documentação com secrets
+EXECUTAR-NO-SUPABASE.md
+MAILCHIMP-CORRIGIDO.md
+fix-integrations-final*.sql
