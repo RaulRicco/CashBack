@@ -21,16 +21,21 @@ export const useAuthStore = create(
         set({ isLoading: true });
         try {
           // Buscar funcionário
-          const { data: employee, error: employeeError } = await supabase
+          const { data: employees, error: employeeError } = await supabase
             .from('employees')
             .select('*, merchant:merchants(*)')
             .eq('email', email)
-            .eq('is_active', true)
-            .single();
+            .eq('is_active', true);
 
-          if (employeeError || !employee) {
+          if (employeeError) {
+            throw new Error('Erro ao buscar funcionário: ' + employeeError.message);
+          }
+
+          if (!employees || employees.length === 0) {
             throw new Error('Credenciais inválidas');
           }
+
+          const employee = employees[0];
 
           // TODO: Implementar verificação real de senha com bcrypt
           // Por enquanto, aceitar qualquer senha para desenvolvimento
@@ -63,17 +68,16 @@ export const useAuthStore = create(
         const state = get();
         if (state.isAuthenticated && state.employee) {
           // Revalidar sessão
-          const { data: employee } = await supabase
+          const { data: employees } = await supabase
             .from('employees')
             .select('*, merchant:merchants(*)')
             .eq('id', state.employee.id)
-            .eq('is_active', true)
-            .single();
+            .eq('is_active', true);
 
-          if (employee) {
+          if (employees && employees.length > 0) {
             set({
-              employee: employee,
-              merchant: employee.merchant
+              employee: employees[0],
+              merchant: employees[0].merchant
             });
           } else {
             get().logout();
