@@ -8,7 +8,7 @@ import { Gift, Phone, DollarSign, QrCode, X } from 'lucide-react';
 import { trackCashbackGenerated } from '../lib/tracking';
 
 export default function Cashback() {
-  const { merchant, employee } = useAuthStore();
+  const { merchant, user } = useAuthStore();
   const [phone, setPhone] = useState('');
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
@@ -66,7 +66,7 @@ export default function Cashback() {
         .insert({
           merchant_id: merchant.id,
           customer_id: customer.id,
-          employee_id: employee.id,
+          employee_id: user?.id || null,  // Usar user.id em vez de employee.id
           transaction_type: 'cashback',
           amount: purchaseAmount,
           cashback_amount: cashbackAmount,
