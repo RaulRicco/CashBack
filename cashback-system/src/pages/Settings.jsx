@@ -537,48 +537,48 @@ export default function Settings() {
           <div className="space-y-6">
             {/* Nome do Programa */}
             <div>
-              <h2 className="text-xl font-semibold mb-2 flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-primary-600" />
+              <h2 className="text-xl font-semibold mb-2 flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                <TrendingUp className="w-5 h-5 text-primary-600 dark:text-primary-400" />
                 Nome do Programa de Cashback
               </h2>
-              <p className="text-gray-600 mb-4">
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Nome personalizado que aparecerá para seus clientes
               </p>
               <input
                 type="text"
                 value={settings.cashback_program_name}
                 onChange={(e) => setSettings({ ...settings, cashback_program_name: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 placeholder="Ex: Programa Fidelidade João"
               />
             </div>
 
             {/* Percentual de Cashback */}
             <div>
-              <h2 className="text-xl font-semibold mb-2 flex items-center gap-2">
-                <Percent className="w-5 h-5 text-blue-600" />
+              <h2 className="text-xl font-semibold mb-2 flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                <Percent className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 Percentual de Cashback
               </h2>
-              <p className="text-gray-600 mb-4">
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Defina o percentual de cashback que seus clientes vão ganhar em cada compra
               </p>
 
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 mb-4">
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6 mb-4">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">Percentual Atual</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Percentual Atual</p>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-4xl font-bold text-blue-600">
+                      <span className="text-4xl font-bold text-blue-600 dark:text-blue-400">
                         {parseFloat(settings.cashback_percentage).toFixed(2)}
                       </span>
-                      <span className="text-2xl text-blue-600">%</span>
+                      <span className="text-2xl text-blue-600 dark:text-blue-400">%</span>
                     </div>
                   </div>
-                  <div className="p-4 bg-white rounded-full">
-                    <TrendingUp className="w-8 h-8 text-blue-600" />
+                  <div className="p-4 bg-white dark:bg-gray-800 rounded-full">
+                    <TrendingUp className="w-8 h-8 text-blue-600 dark:text-blue-400" />
                   </div>
                 </div>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   Clientes ganham R$ {(parseFloat(settings.cashback_percentage) / 100 * 100).toFixed(2)} 
                   {' '}a cada R$ 100,00 em compras
                 </p>
@@ -592,7 +592,7 @@ export default function Settings() {
                   max="100"
                   value={settings.cashback_percentage}
                   onChange={(e) => setSettings({ ...settings, cashback_percentage: e.target.value })}
-                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
+                  className="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
                   placeholder="5.00"
                 />
                 <Percent className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -600,15 +600,15 @@ export default function Settings() {
             </div>
 
             {/* Disponibilidade Imediata */}
-            <div className="border-t pt-6">
-              <h2 className="text-xl font-semibold mb-2">
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+              <h2 className="text-xl font-semibold mb-2 text-gray-900 dark:text-gray-100">
                 Disponibilidade do Cashback
               </h2>
-              <p className="text-gray-600 mb-4">
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Defina quando o cashback fica disponível para uso
               </p>
               
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"
@@ -617,8 +617,8 @@ export default function Settings() {
                     className="w-5 h-5 text-green-600 rounded focus:ring-green-500"
                   />
                   <div>
-                    <p className="font-medium text-gray-900">Disponível imediatamente</p>
-                    <p className="text-sm text-gray-600">
+                    <p className="font-medium text-gray-900 dark:text-gray-100">Disponível imediatamente</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       O cashback fica disponível assim que a compra é registrada
                     </p>
                   </div>
@@ -627,11 +627,11 @@ export default function Settings() {
             </div>
 
             {/* Expiração do Cashback */}
-            <div className="border-t pt-6">
-              <h2 className="text-xl font-semibold mb-2">
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+              <h2 className="text-xl font-semibold mb-2 text-gray-900 dark:text-gray-100">
                 Expiração do Cashback
               </h2>
-              <p className="text-gray-600 mb-4">
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Defina se o cashback tem validade
               </p>
 
@@ -644,15 +644,15 @@ export default function Settings() {
                     className="w-5 h-5 text-primary-600 rounded focus:ring-primary-500"
                   />
                   <div>
-                    <p className="font-medium text-gray-900">Cashback expira após um período</p>
-                    <p className="text-sm text-gray-600">
+                    <p className="font-medium text-gray-900 dark:text-gray-100">Cashback expira após um período</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       Defina um prazo de validade para o cashback acumulado
                     </p>
                   </div>
                 </label>
 
                 {settings.cashback_expires && (
-                  <div className="ml-8 space-y-4 bg-gray-50 rounded-lg p-4">
+                  <div className="ml-8 space-y-4 bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Prazo de Validade (em dias)
@@ -663,17 +663,17 @@ export default function Settings() {
                         max="3650"
                         value={settings.cashback_expiration_days}
                         onChange={(e) => setSettings({ ...settings, cashback_expiration_days: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                         placeholder="180"
                       />
-                      <p className="mt-2 text-sm text-gray-500">
+                      <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                         Sugerido: 180 dias (6 meses) | 365 dias (1 ano)
                       </p>
                     </div>
 
                     {settings.cashback_expiration_days && (
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                        <p className="text-sm text-blue-800">
+                      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                        <p className="text-sm text-blue-800 dark:text-blue-300">
                           <strong>Resumo:</strong> O cashback expirará {settings.cashback_expiration_days} dias 
                           após a compra ({Math.floor(settings.cashback_expiration_days / 30)} meses 
                           {settings.cashback_expiration_days % 30 > 0 && ` e ${settings.cashback_expiration_days % 30} dias`})
@@ -689,7 +689,7 @@ export default function Settings() {
             <button
               onClick={() => handleSave('cashback')}
               disabled={saving}
-              className="w-full px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+              className="w-full px-6 py-3 bg-primary-600 dark:bg-primary-500 text-white dark:text-black rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
             >
               {saving ? 'Salvando...' : 'Salvar Configurações de Cashback'}
             </button>
