@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
-import { Store, User, Mail, Lock, Phone, MapPin, ArrowLeft } from 'lucide-react';
+import { Store, User, Mail, Lock, Phone, MapPin, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { BRAND_CONFIG, getLogo, getBrandName } from '../config/branding';
 
 export default function Signup() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
   const [formData, setFormData] = useState({
     // Dados do estabelecimento
     merchantName: '',
@@ -265,14 +267,26 @@ export default function Signup() {
                   <input
                     id="ownerPassword"
                     name="ownerPassword"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     value={formData.ownerPassword}
                     onChange={handleChange}
                     required
                     minLength={6}
-                    className="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     placeholder="Mínimo 6 caracteres"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </button>
                 </div>
               </div>
 
@@ -287,14 +301,26 @@ export default function Signup() {
                   <input
                     id="ownerPasswordConfirm"
                     name="ownerPasswordConfirm"
-                    type="password"
+                    type={showPasswordConfirm ? "text" : "password"}
                     value={formData.ownerPasswordConfirm}
                     onChange={handleChange}
                     required
                     minLength={6}
-                    className="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     placeholder="Repita a senha"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswordConfirm(!showPasswordConfirm)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                    tabIndex={-1}
+                  >
+                    {showPasswordConfirm ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </button>
                 </div>
               </div>
             </div>

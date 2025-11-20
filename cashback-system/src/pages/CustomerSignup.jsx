@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
-import { UserPlus, Phone, User, Store, Calendar, Lock, LogIn } from 'lucide-react';
+import { UserPlus, Phone, User, Store, Calendar, Lock, Eye, EyeOff, LogIn } from 'lucide-react';
 import { trackEvent } from '../lib/tracking';
 import { BRAND_CONFIG, getLogo, getBrandName } from '../config/branding';
+import MerchantSEO from '../components/MerchantSEO';
 
 export default function CustomerSignup() {
   const { slug } = useParams();
@@ -12,6 +13,7 @@ export default function CustomerSignup() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [merchant, setMerchant] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -204,9 +206,13 @@ export default function CustomerSignup() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
-        {/* Logo do Estabelecimento no topo */}
+    <>
+      {/* Meta tags dinâmicas para compartilhamento em redes sociais */}
+      <MerchantSEO merchant={merchant} pageType="signup" />
+      
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
+          {/* Logo do Estabelecimento no topo */}
         <div className="text-center mb-8 pb-6 border-b border-gray-200">
           {merchant.logo_url ? (
             <img 
@@ -322,14 +328,26 @@ export default function CustomerSignup() {
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 placeholder="Mínimo 6 caracteres"
                 required
                 minLength={6}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                tabIndex={-1}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5" />
+                ) : (
+                  <Eye className="h-5 w-5" />
+                )}
+              </button>
             </div>
             <p className="mt-1 text-sm text-gray-500">
               Use esta senha para acessar seu perfil
@@ -353,6 +371,35 @@ export default function CustomerSignup() {
               </>
             )}
           </button>
+          
+          {/* Link para login de clientes existentes */}
+          <div className="mt-4 text-center">
+            <p className="text-sm text-gray-600">
+              Já tem cadastro?{' '}
+              <button
+                type="button"
+                onClick={() => {
+                  // Preserva o contexto do merchant ao redirecionar para login
+                  // Verifica se está em domínio personalizado
+                  const currentHost = window.location.hostname;
+                  const isCustomDomain = !currentHost.includes('localhost') && 
+                                        !currentHost.includes('127.0.0.1') &&
+                                        !currentHost.includes('localcashback');
+                  
+                  if (isCustomDomain) {
+                    // Em domínio personalizado, redireciona para /customer/login mantendo o domínio
+                    window.location.href = '/customer/login';
+                  } else {
+                    // No domínio principal, usa navigate para /customer/login com slug
+                    navigate(`/customer/login/${slug}`);
+                  }
+                }}
+                className="text-primary-600 hover:text-primary-700 font-semibold hover:underline"
+              >
+                Fazer Login
+              </button>
+            </p>
+          </div>
         </form>
 
         {/* Link para Login */}
@@ -409,5 +456,6 @@ export default function CustomerSignup() {
         </div>
       </div>
     </div>
+    </>
   );
 }

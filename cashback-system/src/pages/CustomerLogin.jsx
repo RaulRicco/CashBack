@@ -1,27 +1,30 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
-import { LogIn, Phone, Lock, Store, UserPlus, KeyRound, Eye, EyeOff } from 'lucide-react';
+import { Phone, Store } from 'lucide-react';
 import { BRAND_CONFIG } from '../config/branding';
+import MerchantSEO from '../components/MerchantSEO';
 
 export default function CustomerLogin() {
   const { slug } = useParams();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [merchantLoading, setMerchantLoading] = useState(true);
   const [merchant, setMerchant] = useState(null);
-  const [formData, setFormData] = useState({
-    phone: '',
-    password: '',
-  });
+  const [phone, setPhone] = useState('');
 
   useEffect(() => {
-    loadMerchant();
+    // Se tem slug na URL, carregar merchant por slug
+    if (slug) {
+      loadMerchantBySlug();
+    } else {
+      // Se não tem slug, detectar pelo domínio personalizado
+      detectMerchantByDomain();
+    }
   }, [slug]);
 
-  const loadMerchant = async () => {
+  const loadMerchantBySlug = async () => {
     try {
       const { data, error } = await supabase
         .from('merchants')
@@ -33,95 +36,67 @@ export default function CustomerLogin() {
       if (error) throw error;
 
       if (!data) {
-        toast.error('Link de acesso inválido ou expirado');
+        toast.error('Link inválido ou expirado');
         return;
       }
 
       setMerchant(data);
+      
+      // Inicializar tracking específico do merchant se configurado
+      if (data.gtm_id || data.meta_pixel_id) {
+        const { initGTM, initMetaPixel } = await import('../lib/tracking');
+        if (data.gtm_id) initGTM(data.gtm_id);
+        if (data.meta_pixel_id) initMetaPixel(data.meta_pixel_id);
+      }
     } catch (error) {
       console.error('Erro ao carregar estabelecimento:', error);
       toast.error('Erro ao carregar informações do estabelecimento');
     } finally {
-      setLoading(false);
+      setMerchantLoading(false);
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!formData.phone.trim() || !formData.password.trim()) {
-      toast.error('Por favor, preencha todos os campos');
-      return;
-    }
-
-    setSubmitting(true);
-
+  const detectMerchantByDomain = async () => {
     try {
-      // Limpar telefone (apenas números)
-      const phoneClean = formData.phone.replace(/\D/g, '');
-
-      if (phoneClean.length < 10 || phoneClean.length > 11) {
-        toast.error('Número de telefone inválido');
-        setSubmitting(false);
+      const currentHost = window.location.hostname;
+      
+      // Se está em localhost ou domínio principal, não há merchant específico
+      if (currentHost.includes('localhost') || 
+          currentHost.includes('127.0.0.1') ||
+          currentHost.includes('localcashback.com')) {
+        toast.error('Acesse através do link do estabelecimento');
+        setMerchantLoading(false);
         return;
       }
 
-      // Buscar cliente por phone E merchant_id (multi-tenant)
-      const { data: customer, error } = await supabase
-        .from('customers')
-        .select('id, password_hash, email, email_verified')
-        .eq('phone', phoneClean)
-        .eq('referred_by_merchant_id', merchant.id)
+      // Buscar merchant pelo custom_domain
+      const { data, error } = await supabase
+        .from('merchants')
+        .select('*')
+        .eq('custom_domain', currentHost)
+        .eq('is_active', true)
         .single();
 
-      if (error || !customer) {
-        toast.error('Cliente não encontrado neste estabelecimento');
-        setSubmitting(false);
+      if (error || !data) {
+        console.error('Merchant não encontrado para domínio:', currentHost);
+        toast.error('Estabelecimento não encontrado para este domínio');
+        setMerchantLoading(false);
         return;
       }
 
-      // Verificar senha (usando btoa para decode simples - em produção use bcrypt)
-      const passwordHash = btoa(formData.password);
+      setMerchant(data);
       
-      if (customer.password_hash !== passwordHash) {
-        toast.error('Senha incorreta');
-        setSubmitting(false);
-        return;
+      // Inicializar tracking específico do merchant se configurado
+      if (data.gtm_id || data.meta_pixel_id) {
+        const { initGTM, initMetaPixel } = await import('../lib/tracking');
+        if (data.gtm_id) initGTM(data.gtm_id);
+        if (data.meta_pixel_id) initMetaPixel(data.meta_pixel_id);
       }
-
-      // Verificar se email foi verificado (se o cliente tiver email)
-      if (customer.email && !customer.email_verified) {
-        toast.error(
-          'Email não verificado. Verifique seu email antes de fazer login.',
-          { duration: 5000 }
-        );
-        // Oferecer reenvio de email de verificação
-        toast((t) => (
-          <div className="flex flex-col gap-2">
-            <span className="font-medium">Não recebeu o email?</span>
-            <button
-              onClick={() => {
-                toast.dismiss(t.id);
-                navigate(`/customer/resend-verification/${slug}?phone=${phoneClean}`);
-              }}
-              className="bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-700"
-            >
-              Reenviar email de verificação
-            </button>
-          </div>
-        ), { duration: 10000 });
-        setSubmitting(false);
-        return;
-      }
-
-      // Login bem-sucedido
-      toast.success('Login realizado com sucesso!');
-      navigate(`/customer/dashboard/${phoneClean}`);
     } catch (error) {
-      console.error('Erro ao fazer login:', error);
-      toast.error('Erro ao fazer login. Tente novamente.');
+      console.error('Erro ao detectar estabelecimento:', error);
+      toast.error('Erro ao carregar informações do estabelecimento');
     } finally {
-      setSubmitting(false);
+      setMerchantLoading(false);
     }
   };
 
@@ -135,10 +110,57 @@ export default function CustomerLogin() {
 
   const handlePhoneChange = (e) => {
     const formatted = formatPhone(e.target.value);
-    setFormData({ ...formData, phone: formatted });
+    setPhone(formatted);
   };
 
-  if (loading) {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!phone.trim()) {
+      toast.error('Por favor, digite seu telefone');
+      return;
+    }
+
+    // Validar formato do telefone (apenas números)
+    const phoneClean = phone.replace(/\D/g, '');
+    if (phoneClean.length < 10 || phoneClean.length > 11) {
+      toast.error('Número de telefone inválido');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Verificar se o cliente existe
+      const { data: existingCustomer, error } = await supabase
+        .from('customers')
+        .select('id, phone')
+        .eq('phone', phoneClean)
+        .single();
+
+      if (error || !existingCustomer) {
+        toast.error('Cliente não encontrado. Por favor, cadastre-se primeiro.');
+        setLoading(false);
+        
+        // Redirecionar para página de cadastro se merchant foi identificado
+        if (merchant && merchant.signup_link_slug) {
+          setTimeout(() => {
+            navigate(`/signup/${merchant.signup_link_slug}`);
+          }, 2000);
+        }
+        return;
+      }
+
+      // Cliente existe, redirecionar para dashboard (página de senha)
+      navigate(`/customer/dashboard/${phoneClean}`);
+    } catch (error) {
+      console.error('Erro ao verificar cliente:', error);
+      toast.error('Erro ao verificar cliente. Tente novamente.');
+      setLoading(false);
+    }
+  };
+
+  if (merchantLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center">
         <div className="text-center">
@@ -156,9 +178,9 @@ export default function CustomerLogin() {
           <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <Store className="w-10 h-10 text-red-600" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Link Inválido</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Estabelecimento não encontrado</h2>
           <p className="text-gray-600">
-            Este link de acesso não é válido ou está inativo.
+            Por favor, acesse através do link fornecido pelo estabelecimento.
           </p>
         </div>
       </div>
@@ -166,171 +188,113 @@ export default function CustomerLogin() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
-        {/* Logo do Estabelecimento */}
-        <div className="text-center mb-8 pb-6 border-b border-gray-200">
-          {merchant.logo_url ? (
-            <img 
-              src={merchant.logo_url}
-              alt={merchant.name}
-              className="h-24 w-auto mx-auto mb-4 object-contain"
-              onError={(e) => {
-                e.target.style.display = 'none';
-                e.target.parentElement.innerHTML = `
-                  <div class="w-24 h-24 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
-                  </div>
-                `;
-              }}
-            />
-          ) : (
-            <div className="w-24 h-24 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Store className="w-12 h-12 text-white" />
-            </div>
-          )}
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Fazer Login
-          </h1>
-          <p className="text-gray-600">
-            Acesse sua conta em {merchant.name}
-          </p>
-        </div>
-
-        {/* Formulário */}
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Telefone
-            </label>
-            <div className="relative">
-              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="tel"
-                value={formData.phone}
-                onChange={handlePhoneChange}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                placeholder="(00) 00000-0000"
-                required
+    <>
+      {/* Meta tags dinâmicas para compartilhamento em redes sociais */}
+      <MerchantSEO merchant={merchant} pageType="login" />
+      
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
+          {/* Logo do Estabelecimento no topo */}
+          <div className="text-center mb-8 pb-6 border-b border-gray-200">
+            {merchant.logo_url ? (
+              <img 
+                src={merchant.logo_url} 
+                alt={merchant.name}
+                className="h-24 w-auto mx-auto mb-4"
               />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Senha
-            </label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                placeholder="Digite sua senha"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                title={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
-              >
-                {showPassword ? (
-                  <EyeOff className="w-5 h-5" />
-                ) : (
-                  <Eye className="w-5 h-5" />
-                )}
-              </button>
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white py-3 rounded-lg font-semibold hover:from-primary-700 hover:to-primary-800 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2 shadow-lg shadow-primary-500/50"
-          >
-            {submitting ? (
-              <>
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                Entrando...
-              </>
             ) : (
-              <>
-                <LogIn className="w-5 h-5" />
-                Entrar
-              </>
+              <div className="w-24 h-24 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Store className="w-12 h-12 text-white" />
+              </div>
             )}
-          </button>
-
-          {/* Link para Esqueci Senha - Mais proeminente */}
-          <div className="mt-4 text-center">
-            <Link
-              to={`/customer/forgot-password/${slug}`}
-              className="inline-flex items-center gap-2 text-sm font-semibold text-primary-600 hover:text-primary-700 hover:underline transition-colors bg-primary-50 px-4 py-2.5 rounded-lg hover:bg-primary-100"
-            >
-              <KeyRound className="w-4 h-4" />
-              Esqueceu sua senha? Recupere aqui
-            </Link>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Fazer Login
+            </h1>
+            <p className="text-gray-600">
+              Digite seu telefone para acessar seu cashback em {merchant.name}
+            </p>
           </div>
-        </form>
 
-        {/* Link para Cadastro */}
-        <div className="mt-4 text-center">
-          <p className="text-sm text-gray-600">
-            Ainda não tem cadastro?{' '}
-            <Link
-              to={`/customer/signup/${slug}`}
-              className="font-semibold text-primary-600 hover:text-primary-700 inline-flex items-center gap-1 transition-colors"
+          {/* Formulário */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Telefone
+              </label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={handlePhoneChange}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="(00) 00000-0000"
+                  required
+                  autoFocus
+                />
+              </div>
+              <p className="mt-1 text-sm text-gray-500">
+                O mesmo telefone usado no cadastro
+              </p>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white py-3 rounded-lg font-semibold hover:from-primary-700 hover:to-primary-800 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2 shadow-lg shadow-primary-500/50"
             >
-              <UserPlus className="w-4 h-4" />
-              Cadastrar Agora
-            </Link>
-          </p>
-        </div>
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  Verificando...
+                </>
+              ) : (
+                <>
+                  <Phone className="w-5 h-5" />
+                  Continuar
+                </>
+              )}
+            </button>
 
-        {/* Benefícios */}
-        <div className="mt-8 pt-8 border-t border-gray-200">
-          <h3 className="text-sm font-semibold text-gray-900 mb-4 text-center">
-            Suas vantagens com {BRAND_CONFIG.name}:
-          </h3>
-          <ul className="space-y-3">
-            <li className="flex items-start gap-3">
-              <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                <span className="text-green-600 text-xs">✓</span>
-              </div>
-              <span className="text-sm text-gray-600">
-                <strong>{merchant.cashback_percentage}% de cashback</strong> em todas as compras
-              </span>
-            </li>
-            <li className="flex items-start gap-3">
-              <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                <span className="text-green-600 text-xs">✓</span>
-              </div>
-              <span className="text-sm text-gray-600">
-                Acesse seu saldo e histórico
-              </span>
-            </li>
-            <li className="flex items-start gap-3">
-              <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                <span className="text-green-600 text-xs">✓</span>
-              </div>
-              <span className="text-sm text-gray-600">
-                Resgate quando quiser
-              </span>
-            </li>
-          </ul>
-        </div>
+            {/* Link para cadastro */}
+            <div className="text-center">
+              <p className="text-sm text-gray-600">
+                Ainda não tem cadastro?{' '}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (merchant.signup_link_slug) {
+                      const currentHost = window.location.hostname;
+                      const isCustomDomain = !currentHost.includes('localhost') && 
+                                            !currentHost.includes('127.0.0.1') &&
+                                            !currentHost.includes('localcashback');
+                      
+                      if (isCustomDomain) {
+                        // Em domínio personalizado, redireciona para /signup mantendo o domínio
+                        window.location.href = `/signup/${merchant.signup_link_slug}`;
+                      } else {
+                        // No domínio principal, usa navigate
+                        navigate(`/signup/${merchant.signup_link_slug}`);
+                      }
+                    }
+                  }}
+                  className="text-primary-600 hover:text-primary-700 font-semibold hover:underline"
+                >
+                  Cadastre-se aqui
+                </button>
+              </p>
+            </div>
+          </form>
 
-        {/* Powered by */}
-        <div className="mt-6 pt-6 border-t border-gray-200 text-center">
-          <p className="text-xs text-gray-500">
-            Powered by <span className="font-semibold">{BRAND_CONFIG.name}</span>
-          </p>
+          {/* Powered by LocalCashback */}
+          <div className="mt-6 pt-6 border-t border-gray-200 text-center">
+            <p className="text-xs text-gray-400 flex items-center justify-center gap-1">
+              Powered by
+              <span className="font-semibold text-gray-500">LocalCashback</span>
+            </p>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

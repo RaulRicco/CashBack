@@ -116,31 +116,31 @@ export default function Reports() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-              <TrendingUp className="w-8 h-8 text-primary-600" />
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+              <TrendingUp className="w-8 h-8 text-primary-600 dark:text-primary-400" />
               Relatórios e Analytics
             </h1>
-            <p className="text-gray-600 mt-1">
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
               Análise detalhada do desempenho do seu cashback
             </p>
           </div>
 
           <div className="flex gap-2">
             {/* Filtro de Data */}
-            <div className="flex items-center gap-2 bg-white p-2 rounded-lg shadow-sm">
-              <Calendar className="w-5 h-5 text-gray-400" />
+            <div className="flex items-center gap-2 bg-white dark:bg-gray-900 p-2 rounded-lg shadow-sm">
+              <Calendar className="w-5 h-5 text-gray-400 dark:text-gray-500" />
               <input
                 type="date"
                 value={dateRange.start}
                 onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-                className="px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-primary-500"
+                className="px-2 py-1 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded focus:ring-2 focus:ring-primary-500"
               />
-              <span className="text-gray-500">até</span>
+              <span className="text-gray-500 dark:text-gray-400">até</span>
               <input
                 type="date"
                 value={dateRange.end}
                 onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-                className="px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-primary-500"
+                className="px-2 py-1 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded focus:ring-2 focus:ring-primary-500"
               />
             </div>
 
@@ -157,26 +157,26 @@ export default function Reports() {
         {/* Resumo */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="card">
-            <p className="text-sm text-gray-600 mb-1">Total de Transações</p>
-            <p className="text-3xl font-bold text-primary-600">{summaryData.totalTransactions}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total de Transações</p>
+            <p className="text-3xl font-bold text-primary-600 dark:text-primary-400">{summaryData.totalTransactions}</p>
           </div>
           <div className="card">
-            <p className="text-sm text-gray-600 mb-1">Receita Total</p>
-            <p className="text-3xl font-bold text-green-600">R$ {summaryData.totalRevenue.toFixed(2)}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Receita Total</p>
+            <p className="text-3xl font-bold text-green-600 dark:text-green-400">R$ {summaryData.totalRevenue.toFixed(2)}</p>
           </div>
           <div className="card">
-            <p className="text-sm text-gray-600 mb-1">Cashback Distribuído</p>
-            <p className="text-3xl font-bold text-purple-600">R$ {summaryData.totalCashback.toFixed(2)}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Cashback Distribuído</p>
+            <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">R$ {summaryData.totalCashback.toFixed(2)}</p>
           </div>
           <div className="card">
-            <p className="text-sm text-gray-600 mb-1">Total Resgatado</p>
-            <p className="text-3xl font-bold text-orange-600">R$ {summaryData.totalRedemptions.toFixed(2)}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Resgatado</p>
+            <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">R$ {summaryData.totalRedemptions.toFixed(2)}</p>
           </div>
         </div>
 
         {/* Gráfico de Receita e Cashback */}
         <div className="card">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">
             Receita vs Cashback
           </h2>
           {loading ? (
@@ -221,7 +221,7 @@ export default function Reports() {
 
         {/* Gráfico de Transações */}
         <div className="card">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">
             Número de Transações por Dia
           </h2>
           {loading ? (
@@ -243,11 +243,11 @@ export default function Reports() {
         </div>
 
         {/* Insights */}
-        <div className="card bg-gradient-to-br from-primary-50 to-primary-100 border border-primary-200">
-          <h2 className="text-xl font-bold text-primary-900 mb-4">
+        <div className="card bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 border border-primary-200 dark:border-primary-800">
+          <h2 className="text-xl font-bold text-primary-900 dark:text-primary-300 mb-4">
             📊 Insights do Período
           </h2>
-          <div className="space-y-2 text-primary-800">
+          <div className="space-y-2 text-primary-800 dark:text-primary-300">
             <p>
               • <strong>Ticket Médio:</strong> R$ {
                 summaryData.totalTransactions > 0 

@@ -215,11 +215,11 @@ export default function Integrations() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-              <Mail className="w-8 h-8 text-primary-600" />
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+              <Mail className="w-8 h-8 text-primary-600 dark:text-primary-400" />
               Integrações de Email Marketing
             </h1>
-            <p className="text-gray-600 mt-1">
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
               Conecte seu sistema com Mailchimp ou RD Station
             </p>
           </div>
@@ -245,14 +245,14 @@ export default function Integrations() {
 
         {/* Tabs */}
         <div className="card">
-          <div className="border-b border-gray-200">
+          <div className="border-b border-gray-200 dark:border-gray-700">
             <nav className="flex gap-4">
               <button
                 onClick={() => setActiveTab('mailchimp')}
                 className={`pb-4 px-2 font-medium transition-colors border-b-2 ${
                   activeTab === 'mailchimp'
-                    ? 'border-primary-600 text-primary-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                    ? 'border-primary-600 dark:border-primary-400 text-primary-600 dark:text-primary-400'
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                 }`}
               >
                 <div className="flex items-center gap-2">
@@ -272,8 +272,8 @@ export default function Integrations() {
                 onClick={() => setActiveTab('rdstation')}
                 className={`pb-4 px-2 font-medium transition-colors border-b-2 ${
                   activeTab === 'rdstation'
-                    ? 'border-primary-600 text-primary-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                    ? 'border-primary-600 dark:border-primary-400 text-primary-600 dark:text-primary-400'
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                 }`}
               >
                 <div className="flex items-center gap-2">
@@ -289,8 +289,8 @@ export default function Integrations() {
                 onClick={() => setActiveTab('logs')}
                 className={`pb-4 px-2 font-medium transition-colors border-b-2 ${
                   activeTab === 'logs'
-                    ? 'border-primary-600 text-primary-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                    ? 'border-primary-600 dark:border-primary-400 text-primary-600 dark:text-primary-400'
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                 }`}
               >
                 <div className="flex items-center gap-2">
@@ -305,7 +305,7 @@ export default function Integrations() {
           {activeTab === 'mailchimp' && (
             <div className="p-6 space-y-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-900">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
                   Configurar Mailchimp
                 </h2>
                 {getConfigByProvider('mailchimp') && (
@@ -326,7 +326,7 @@ export default function Integrations() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     API Key
                   </label>
                   <div className="relative">
@@ -340,18 +340,18 @@ export default function Integrations() {
                     <button
                       type="button"
                       onClick={() => setShowApiKey({ ...showApiKey, mailchimp: !showApiKey.mailchimp })}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
                     >
                       {showApiKey.mailchimp ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     Encontre em: Account → Extras → API Keys
                   </p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Audience ID (List ID)
                   </label>
                   <input
@@ -361,13 +361,13 @@ export default function Integrations() {
                     className="input"
                     placeholder="abc123def"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     Encontre em: Audience → Settings → Audience name and defaults
                   </p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Server Prefix
                   </label>
                   <input
@@ -377,13 +377,13 @@ export default function Integrations() {
                     className="input"
                     placeholder="us1"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     Exemplo: us1, us2, us3 (encontrado no final da sua API Key)
                   </p>
                 </div>
 
                 <div className="border-t pt-4">
-                  <h3 className="font-medium text-gray-900 mb-3">
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-3">
                     Sincronização Automática
                   </h3>
                   
@@ -395,7 +395,7 @@ export default function Integrations() {
                         onChange={(e) => setMailchimpForm({ ...mailchimpForm, sync_on_signup: e.target.checked })}
                         className="w-4 h-4 text-primary-600"
                       />
-                      <span className="text-sm">Ao cadastrar novo cliente</span>
+                      <span className="text-sm dark:text-gray-300">Ao cadastrar novo cliente</span>
                     </label>
 
                     <label className="flex items-center gap-2">
@@ -405,7 +405,7 @@ export default function Integrations() {
                         onChange={(e) => setMailchimpForm({ ...mailchimpForm, sync_on_purchase: e.target.checked })}
                         className="w-4 h-4 text-primary-600"
                       />
-                      <span className="text-sm">Ao fazer compra (gerar cashback)</span>
+                      <span className="text-sm dark:text-gray-300">Ao fazer compra (gerar cashback)</span>
                     </label>
 
                     <label className="flex items-center gap-2">
@@ -415,7 +415,7 @@ export default function Integrations() {
                         onChange={(e) => setMailchimpForm({ ...mailchimpForm, sync_on_redemption: e.target.checked })}
                         className="w-4 h-4 text-primary-600"
                       />
-                      <span className="text-sm">Ao resgatar cashback</span>
+                      <span className="text-sm dark:text-gray-300">Ao resgatar cashback</span>
                     </label>
                   </div>
                 </div>
@@ -455,7 +455,7 @@ export default function Integrations() {
           {activeTab === 'rdstation' && (
             <div className="p-6 space-y-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-900">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
                   Configurar RD Station
                 </h2>
                 {getConfigByProvider('rdstation') && (
@@ -476,7 +476,7 @@ export default function Integrations() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Access Token
                   </label>
                   <div className="relative">
@@ -490,18 +490,18 @@ export default function Integrations() {
                     <button
                       type="button"
                       onClick={() => setShowApiKey({ ...showApiKey, rdstation: !showApiKey.rdstation })}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
                     >
                       {showApiKey.rdstation ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     Gere em: Integrações → Private Token
                   </p>
                 </div>
 
                 <div className="border-t pt-4">
-                  <h3 className="font-medium text-gray-900 mb-3">
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-3">
                     Sincronização Automática
                   </h3>
                   
@@ -513,7 +513,7 @@ export default function Integrations() {
                         onChange={(e) => setRdstationForm({ ...rdstationForm, sync_on_signup: e.target.checked })}
                         className="w-4 h-4 text-primary-600"
                       />
-                      <span className="text-sm">Ao cadastrar novo cliente</span>
+                      <span className="text-sm dark:text-gray-300">Ao cadastrar novo cliente</span>
                     </label>
 
                     <label className="flex items-center gap-2">
@@ -523,7 +523,7 @@ export default function Integrations() {
                         onChange={(e) => setRdstationForm({ ...rdstationForm, sync_on_purchase: e.target.checked })}
                         className="w-4 h-4 text-primary-600"
                       />
-                      <span className="text-sm">Ao fazer compra (gerar cashback)</span>
+                      <span className="text-sm dark:text-gray-300">Ao fazer compra (gerar cashback)</span>
                     </label>
 
                     <label className="flex items-center gap-2">
@@ -533,7 +533,7 @@ export default function Integrations() {
                         onChange={(e) => setRdstationForm({ ...rdstationForm, sync_on_redemption: e.target.checked })}
                         className="w-4 h-4 text-primary-600"
                       />
-                      <span className="text-sm">Ao resgatar cashback</span>
+                      <span className="text-sm dark:text-gray-300">Ao resgatar cashback</span>
                     </label>
                   </div>
                 </div>
@@ -572,12 +572,12 @@ export default function Integrations() {
           {/* Logs Tab */}
           {activeTab === 'logs' && (
             <div className="p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                 Últimas Sincronizações
               </h2>
 
               {syncLogs.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
+                <div className="text-center py-12 text-gray-500 dark:text-gray-400">
                   Nenhum log de sincronização ainda
                 </div>
               ) : (
@@ -585,29 +585,29 @@ export default function Integrations() {
                   {syncLogs.map((log) => (
                     <div
                       key={log.id}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                      className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
                     >
                       <div className="flex items-center gap-3">
                         {log.status === 'success' ? (
-                          <CheckCircle className="w-5 h-5 text-green-600" />
+                          <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
                         ) : (
-                          <XCircle className="w-5 h-5 text-red-600" />
+                          <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
                         )}
                         <div>
-                          <p className="font-medium text-gray-900">
+                          <p className="font-medium text-gray-900 dark:text-gray-100">
                             {log.customers?.name || log.customers?.phone || 'Cliente'}
                           </p>
-                          <p className="text-sm text-gray-600">
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
                             {log.integration_configs.provider} • {log.action}
                           </p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
                           {new Date(log.created_at).toLocaleString('pt-BR')}
                         </p>
                         {log.error_message && (
-                          <p className="text-xs text-red-600 mt-1">
+                          <p className="text-xs text-red-600 dark:text-red-400 mt-1">
                             {log.error_message}
                           </p>
                         )}
@@ -621,11 +621,11 @@ export default function Integrations() {
         </div>
 
         {/* Info */}
-        <div className="card bg-blue-50 border border-blue-200">
-          <h3 className="font-semibold text-blue-900 mb-2">
+        <div className="card bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+          <h3 className="font-semibold text-blue-900 dark:text-blue-300 mb-2">
             📧 Como funciona?
           </h3>
-          <ul className="text-sm text-blue-800 space-y-1">
+          <ul className="text-sm text-blue-800 dark:text-blue-400 space-y-1">
             <li>• Configure suas credenciais de API do Mailchimp ou RD Station</li>
             <li>• O botão "Testar Conexão" valida apenas o formato das credenciais</li>
             <li>• <strong>Para testar de verdade:</strong> Salve a configuração e use "Sincronizar Todos os Clientes"</li>
@@ -635,11 +635,11 @@ export default function Integrations() {
           </ul>
         </div>
 
-        <div className="card bg-yellow-50 border border-yellow-200">
-          <h3 className="font-semibold text-yellow-900 mb-2">
+        <div className="card bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
+          <h3 className="font-semibold text-yellow-900 dark:text-yellow-300 mb-2">
             ⚠️ Importante sobre Teste de Conexão
           </h3>
-          <p className="text-sm text-yellow-800">
+          <p className="text-sm text-yellow-800 dark:text-yellow-400">
             Devido a restrições de segurança do navegador (CORS), não é possível testar a conexão diretamente com as APIs do Mailchimp e RD Station.
             <br /><br />
             <strong>Recomendação:</strong> Salve as configurações e clique em "Sincronizar Todos os Clientes". Se houver erro, ele aparecerá na aba "Logs".
