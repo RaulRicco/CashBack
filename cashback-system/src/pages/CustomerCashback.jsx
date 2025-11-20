@@ -7,7 +7,6 @@ import { syncCustomerToIntegrations } from '../lib/integrations';
 import { useNotification } from '../hooks/useNotification';
 import NotificationContainer from '../components/NotificationContainer';
 import { notifyCashbackReceived } from '../lib/pushNotifications';
-import { useDynamicManifest } from '../hooks/useDynamicManifest';
 import MerchantSEO from '../components/MerchantSEO';
 
 export default function CustomerCashback() {
@@ -17,9 +16,6 @@ export default function CustomerCashback() {
   const [transaction, setTransaction] = useState(null);
   const [customer, setCustomer] = useState(null);
   const [merchant, setMerchant] = useState(null);
-  
-  // 🎯 PWA dinâmico por estabelecimento (atualiza quando merchant muda)
-  useDynamicManifest(merchant);
   const [error, setError] = useState(null);
   const { notifications, showNotification } = useNotification();
   

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Wallet, Gift, History, TrendingUp, Loader, ArrowUpCircle, ArrowDownCircle, Filter, Lock, Store, Mail } from 'lucide-react';
+import { Wallet, Gift, History, TrendingUp, Loader, ArrowUpCircle, ArrowDownCircle, Filter, Lock, Store, Mail, Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -10,9 +10,11 @@ import MerchantSEO from '../components/MerchantSEO';
 
 export default function CustomerDashboard() {
   const { phone } = useParams();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [customer, setCustomer] = useState(null);
   const [merchant, setMerchant] = useState(null);
   const [transactions, setTransactions] = useState([]);
@@ -29,10 +31,58 @@ export default function CustomerDashboard() {
         setAuthenticated(true);
         loadCustomerData();
       } else {
+        // Carregar merchant mesmo sem estar autenticado (para mostrar logo)
+        loadMerchantOnly();
         setLoading(false);
       }
     }
   }, [phone]);
+
+  const loadMerchantOnly = async () => {
+    try {
+      console.log('🔍 Buscando cliente com telefone:', phone);
+      
+      // Buscar cliente apenas para pegar merchant_id (usando limit(1) ao invés de single())
+      const { data: customerList, error: customerError } = await supabase
+        .from('customers')
+        .select('referred_by_merchant_id')
+        .eq('phone', phone)
+        .order('created_at', { ascending: false })  // Pegar o mais recente
+        .limit(1);
+
+      const customerData = customerList && customerList.length > 0 ? customerList[0] : null;
+
+      console.log('📞 Resposta da busca do cliente:', { customerData, customerError });
+
+      if (customerError) {
+        console.error('❌ Erro ao buscar cliente:', customerError);
+        console.error('❌ Erro status:', customerError.code);
+        console.error('❌ Erro message:', customerError.message);
+        console.error('❌ Erro details:', customerError.details);
+        return;
+      }
+
+      if (customerData?.referred_by_merchant_id) {
+        console.log('✅ Cliente encontrado, buscando merchant:', customerData.referred_by_merchant_id);
+        
+        const { data: merchantData } = await supabase
+          .from('merchants')
+          .select('id, name, cashback_program_name, primary_color, secondary_color, accent_color, logo_url, cashback_percentage')
+          .eq('id', customerData.referred_by_merchant_id)
+          .single();
+        
+        if (merchantData) {
+          console.log('✅ Merchant encontrado:', merchantData.name);
+          setMerchant(merchantData);
+          applyMerchantColors(merchantData);
+        }
+      } else {
+        console.warn('⚠️ Cliente sem merchant_id associado');
+      }
+    } catch (error) {
+      console.error('💥 Erro fatal ao carregar merchant:', error);
+    }
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -45,18 +95,38 @@ export default function CustomerDashboard() {
     setLoading(true);
 
     try {
-      // Buscar cliente e verificar senha
-      const { data: customerData, error: customerError } = await supabase
+      console.log('🔐 Tentando fazer login com telefone:', phone);
+      
+      // Buscar cliente e verificar senha (usando limit(1) ao invés de single())
+      const { data: customerList, error: customerError } = await supabase
         .from('customers')
         .select('id, password_hash')
         .eq('phone', phone)
-        .single();
+        .order('created_at', { ascending: false })  // Pegar o mais recente
+        .limit(1);
+
+      const customerData = customerList && customerList.length > 0 ? customerList[0] : null;
+
+      console.log('🔐 Resposta do login:', { customerData, customerError });
 
       if (customerError) {
+        console.error('❌ Erro no login:', customerError);
+        console.error('❌ Erro code:', customerError.code);
+        console.error('❌ Erro message:', customerError.message);
+        console.error('❌ Erro hint:', customerError.hint);
+        console.error('❌ Erro details:', customerError.details);
+        toast.error(`Erro ao buscar cliente: ${customerError.message || 'Cliente não encontrado'}`);
+        setLoading(false);
+        return;
+      }
+
+      if (!customerData) {
         toast.error('Cliente não encontrado');
         setLoading(false);
         return;
       }
+
+      console.log('✅ Cliente encontrado, verificando senha...');
 
       // Verificar senha (usando btoa para decode simples)
       const passwordHash = btoa(password);
@@ -113,14 +183,27 @@ export default function CustomerDashboard() {
     try {
       setLoading(true);
 
-      // Buscar cliente
-      const { data: customerData, error: customerError } = await supabase
+      // Buscar cliente (usando limit(1) ao invés de single())
+      const { data: customerList, error: customerError } = await supabase
         .from('customers')
         .select('*')
         .eq('phone', phone)
-        .single();
+        .order('created_at', { ascending: false })  // Pegar o mais recente
+        .limit(1);
 
       if (customerError) throw customerError;
+
+      const customerData = customerList && customerList.length > 0 ? customerList[0] : null;
+      
+      if (!customerData) {
+        throw new Error('Cliente não encontrado');
+      }
+
+      console.log('👤 Dados do cliente carregados:', {
+        available_cashback: customerData.available_cashback,
+        total_cashback: customerData.total_cashback,
+        total_spent: customerData.total_spent
+      });
 
       setCustomer(customerData);
 
@@ -192,15 +275,28 @@ export default function CustomerDashboard() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Lock className="w-8 h-8 text-white" />
+          {/* Logo do Merchant (se disponível) */}
+          {merchant?.logo_url && (
+            <div className="text-center mb-6">
+              <img 
+                src={merchant.logo_url} 
+                alt={merchant.name}
+                className="h-20 w-auto mx-auto"
+              />
             </div>
+          )}
+          
+          <div className="text-center mb-8">
+            {!merchant?.logo_url && (
+              <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Lock className="w-8 h-8 text-white" />
+              </div>
+            )}
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
               Acesso ao Perfil
             </h1>
             <p className="text-gray-600">
-              Digite sua senha para acessar
+              {merchant?.name ? `Digite sua senha para acessar ${merchant.name}` : 'Digite sua senha para acessar'}
             </p>
           </div>
 
@@ -224,14 +320,26 @@ export default function CustomerDashboard() {
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   placeholder="Digite sua senha"
                   required
                   autoFocus
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                  tabIndex={-1}
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </button>
               </div>
             </div>
 
@@ -247,7 +355,7 @@ export default function CustomerDashboard() {
           <div className="mt-6 text-center">
             <button
               type="button"
-              onClick={() => navigate('/customer/forgot-password')}
+              onClick={() => navigate(`/customer/forgot-password/${phone}`)}
               className="text-sm text-primary-600 hover:text-primary-700 font-medium hover:underline"
             >
               Esqueceu sua senha?
@@ -401,7 +509,11 @@ export default function CustomerDashboard() {
                 <span className="text-sm">Disponível</span>
               </div>
               <p className="text-3xl font-bold">
-                R$ {parseFloat(customer.available_cashback || 0).toFixed(2)}
+                R$ {(() => {
+                  const value = parseFloat(customer.available_cashback || 0);
+                  console.log('💰 Saldo Disponível:', value, 'raw:', customer.available_cashback);
+                  return value.toFixed(2);
+                })()}
               </p>
             </div>
 
@@ -411,17 +523,34 @@ export default function CustomerDashboard() {
                 <span className="text-sm">Total Acumulado</span>
               </div>
               <p className="text-3xl font-bold">
-                R$ {parseFloat(customer.total_cashback || 0).toFixed(2)}
+                R$ {(() => {
+                  const value = parseFloat(customer.total_cashback || 0);
+                  console.log('📈 Total Acumulado:', value, 'raw:', customer.total_cashback);
+                  return value.toFixed(2);
+                })()}
               </p>
             </div>
 
             <div className="bg-white bg-opacity-10 backdrop-blur rounded-xl p-4">
               <div className="flex items-center gap-2 mb-2">
-                <Wallet className="w-5 h-5" />
-                <span className="text-sm">Total Gasto</span>
+                <ArrowDownCircle className="w-5 h-5" />
+                <span className="text-sm">Total Resgatado</span>
               </div>
               <p className="text-3xl font-bold">
-                R$ {parseFloat(customer.total_spent || 0).toFixed(2)}
+                R$ {(() => {
+                  console.log('📊 Redemptions disponíveis:', redemptions.length);
+                  console.log('📊 Redemptions data:', redemptions);
+                  
+                  // Calcular total resgatado somando todos os redemptions
+                  const totalRedeemed = redemptions.reduce((sum, redemption) => {
+                    const amount = parseFloat(redemption.amount || 0);
+                    console.log('  ➖ Resgate:', amount, 'ID:', redemption.id);
+                    return sum + amount;
+                  }, 0);
+                  
+                  console.log('💸 Total Resgatado calculado:', totalRedeemed);
+                  return totalRedeemed.toFixed(2);
+                })()}
               </p>
             </div>
           </div>
