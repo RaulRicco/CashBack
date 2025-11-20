@@ -40,14 +40,28 @@ export default function CustomerDashboard() {
 
   const loadMerchantOnly = async () => {
     try {
+      console.log('🔍 Buscando cliente com telefone:', phone);
+      
       // Buscar cliente apenas para pegar merchant_id
-      const { data: customerData } = await supabase
+      const { data: customerData, error: customerError } = await supabase
         .from('customers')
         .select('referred_by_merchant_id')
         .eq('phone', phone)
         .single();
 
+      console.log('📞 Resposta da busca do cliente:', { customerData, customerError });
+
+      if (customerError) {
+        console.error('❌ Erro ao buscar cliente:', customerError);
+        console.error('❌ Erro status:', customerError.code);
+        console.error('❌ Erro message:', customerError.message);
+        console.error('❌ Erro details:', customerError.details);
+        return;
+      }
+
       if (customerData?.referred_by_merchant_id) {
+        console.log('✅ Cliente encontrado, buscando merchant:', customerData.referred_by_merchant_id);
+        
         const { data: merchantData } = await supabase
           .from('merchants')
           .select('id, name, cashback_program_name, primary_color, secondary_color, accent_color, logo_url, cashback_percentage')
@@ -55,12 +69,15 @@ export default function CustomerDashboard() {
           .single();
         
         if (merchantData) {
+          console.log('✅ Merchant encontrado:', merchantData.name);
           setMerchant(merchantData);
           applyMerchantColors(merchantData);
         }
+      } else {
+        console.warn('⚠️ Cliente sem merchant_id associado');
       }
     } catch (error) {
-      console.error('Erro ao carregar merchant:', error);
+      console.error('💥 Erro fatal ao carregar merchant:', error);
     }
   };
 
@@ -75,6 +92,8 @@ export default function CustomerDashboard() {
     setLoading(true);
 
     try {
+      console.log('🔐 Tentando fazer login com telefone:', phone);
+      
       // Buscar cliente e verificar senha
       const { data: customerData, error: customerError } = await supabase
         .from('customers')
@@ -82,11 +101,26 @@ export default function CustomerDashboard() {
         .eq('phone', phone)
         .single();
 
+      console.log('🔐 Resposta do login:', { customerData, customerError });
+
       if (customerError) {
+        console.error('❌ Erro no login:', customerError);
+        console.error('❌ Erro code:', customerError.code);
+        console.error('❌ Erro message:', customerError.message);
+        console.error('❌ Erro hint:', customerError.hint);
+        console.error('❌ Erro details:', customerError.details);
+        toast.error(`Erro ao buscar cliente: ${customerError.message || 'Cliente não encontrado'}`);
+        setLoading(false);
+        return;
+      }
+
+      if (!customerData) {
         toast.error('Cliente não encontrado');
         setLoading(false);
         return;
       }
+
+      console.log('✅ Cliente encontrado, verificando senha...');
 
       // Verificar senha (usando btoa para decode simples)
       const passwordHash = btoa(password);
