@@ -20,25 +20,50 @@ export const useAuthStore = create(
       login: async (email, password) => {
         set({ isLoading: true });
         try {
-          // Buscar funcionário
-          const { data: employee, error: employeeError } = await supabase
-            .from('employees')
-            .select('*, merchant:merchants(*)')
-            .eq('email', email)
-            .eq('is_active', true)
-            .single();
+          // ✅ USAR SUPABASE AUTH - Autenticação real
+          const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+            email,
+            password
+          });
 
-          if (employeeError || !employee) {
+          if (authError) {
             throw new Error('Credenciais inválidas');
           }
 
-          // TODO: Implementar verificação real de senha com bcrypt
-          // Por enquanto, aceitar qualquer senha para desenvolvimento
+          if (!authData.user) {
+            throw new Error('Erro ao fazer login');
+          }
+
+          // ✅ Buscar dados do merchant associado ao usuário
+          // Assumindo que o email do Auth corresponde ao email do merchant ou há uma relação
+          const { data: merchants, error: merchantError } = await supabase
+            .from('merchants')
+            .select('*')
+            .eq('email', email)
+            .limit(1);
+
+          if (merchantError) {
+            console.error('Erro ao buscar merchant:', merchantError);
+          }
+
+          const merchant = merchants && merchants.length > 0 ? merchants[0] : null;
+
+          // Criar objeto employee-like para compatibilidade
+          const employeeData = {
+            id: authData.user.id,
+            email: authData.user.email,
+            email_verified: authData.user.email_confirmed_at ? true : false,
+            merchant_id: merchant?.id || null,
+            is_active: true
+          };
           
           set({
-            user: { email: employee.email, id: employee.id },
-            employee: employee,
-            merchant: employee.merchant,
+            user: { 
+              email: authData.user.email, 
+              id: authData.user.id 
+            },
+            employee: employeeData,
+            merchant: merchant,
             isAuthenticated: true,
             isLoading: false
           });
@@ -50,7 +75,10 @@ export const useAuthStore = create(
         }
       },
 
-      logout: () => {
+      logout: async () => {
+        // ✅ Fazer logout no Supabase Auth
+        await supabase.auth.signOut();
+        
         set({
           user: null,
           merchant: null,
@@ -60,24 +88,35 @@ export const useAuthStore = create(
       },
 
       checkAuth: async () => {
-        const state = get();
-        if (state.isAuthenticated && state.employee) {
-          // Revalidar sessão
-          const { data: employee } = await supabase
-            .from('employees')
-            .select('*, merchant:merchants(*)')
-            .eq('id', state.employee.id)
-            .eq('is_active', true)
-            .single();
+        // ✅ Verificar sessão do Supabase Auth
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.user) {
+          // Buscar merchant associado
+          const { data: merchants } = await supabase
+            .from('merchants')
+            .select('*')
+            .eq('email', session.user.email)
+            .limit(1);
 
-          if (employee) {
-            set({
-              employee: employee,
-              merchant: employee.merchant
-            });
-          } else {
-            get().logout();
-          }
+          const merchant = merchants && merchants.length > 0 ? merchants[0] : null;
+
+          const employeeData = {
+            id: session.user.id,
+            email: session.user.email,
+            email_verified: session.user.email_confirmed_at ? true : false,
+            merchant_id: merchant?.id || null,
+            is_active: true
+          };
+
+          set({
+            user: { email: session.user.email, id: session.user.id },
+            employee: employeeData,
+            merchant: merchant,
+            isAuthenticated: true
+          });
+        } else {
+          get().logout();
         }
       }
     }),

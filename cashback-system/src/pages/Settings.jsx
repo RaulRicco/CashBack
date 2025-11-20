@@ -273,23 +273,23 @@ export default function Settings() {
     <DashboardLayout>
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <div className="p-2 bg-blue-100 rounded-lg">
-            <SettingsIcon className="w-6 h-6 text-blue-600" />
+          <div className="p-2 bg-blue-100 dark:bg-blue-500 rounded-lg">
+            <SettingsIcon className="w-6 h-6 text-blue-600 dark:text-black" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Configurações</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Configurações</h1>
         </div>
-        <p className="text-gray-600">Gerencie as configurações da sua conta e cashback</p>
+        <p className="text-gray-600 dark:text-gray-400">Gerencie as configurações da sua conta e cashback</p>
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200 mb-6">
+      <div className="border-b border-gray-200 dark:border-gray-700 mb-6">
         <div className="flex gap-8 overflow-x-auto">
           <button
             onClick={() => setActiveTab('profile')}
             className={`pb-4 px-1 border-b-2 font-medium transition-colors whitespace-nowrap ${
               activeTab === 'profile'
-                ? 'border-primary-600 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                ? 'border-primary-600 dark:border-primary-400 text-primary-600 dark:text-primary-400'
+                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
             }`}
           >
             <div className="flex items-center gap-2">
@@ -301,8 +301,8 @@ export default function Settings() {
             onClick={() => setActiveTab('general')}
             className={`pb-4 px-1 border-b-2 font-medium transition-colors whitespace-nowrap ${
               activeTab === 'general'
-                ? 'border-primary-600 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                ? 'border-primary-600 dark:border-primary-400 text-primary-600 dark:text-primary-400'
+                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
             }`}
           >
             Geral
@@ -311,8 +311,8 @@ export default function Settings() {
             onClick={() => setActiveTab('cashback')}
             className={`pb-4 px-1 border-b-2 font-medium transition-colors whitespace-nowrap ${
               activeTab === 'cashback'
-                ? 'border-primary-600 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                ? 'border-primary-600 dark:border-primary-400 text-primary-600 dark:text-primary-400'
+                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
             }`}
           >
             Cashback
@@ -321,8 +321,8 @@ export default function Settings() {
             onClick={() => setActiveTab('signup')}
             className={`pb-4 px-1 border-b-2 font-medium transition-colors whitespace-nowrap ${
               activeTab === 'signup'
-                ? 'border-primary-600 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                ? 'border-primary-600 dark:border-primary-400 text-primary-600 dark:text-primary-400'
+                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
             }`}
           >
             Link de Cadastro
@@ -331,8 +331,8 @@ export default function Settings() {
             onClick={() => setActiveTab('marketing')}
             className={`pb-4 px-1 border-b-2 font-medium transition-colors whitespace-nowrap ${
               activeTab === 'marketing'
-                ? 'border-primary-600 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                ? 'border-primary-600 dark:border-primary-400 text-primary-600 dark:text-primary-400'
+                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
             }`}
           >
             Marketing
@@ -341,23 +341,23 @@ export default function Settings() {
       </div>
 
       {/* Tab Content */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6">
         {/* Profile Settings */}
         {activeTab === 'profile' && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl font-semibold mb-2 flex items-center gap-2">
-                <User className="w-5 h-5 text-primary-600" />
+              <h2 className="text-xl font-semibold mb-2 flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                <User className="w-5 h-5 text-primary-600 dark:text-primary-400" />
                 Meu Perfil
               </h2>
-              <p className="text-gray-600 text-sm mb-6">
+              <p className="text-gray-600 dark:text-gray-400 text-sm mb-6">
                 Gerencie suas informações pessoais e de contato
               </p>
               
               <div className="space-y-4 max-w-2xl">
                 {/* Nome */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Nome Completo *
                   </label>
                   <div className="relative">
@@ -366,19 +366,19 @@ export default function Settings() {
                       type="text"
                       value={profileData.name}
                       onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       placeholder="Seu nome completo"
                       required
                     />
                   </div>
-                  <p className="mt-1 text-sm text-gray-500">
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                     Este nome será exibido no sistema
                   </p>
                 </div>
 
                 {/* Email */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Email *
                   </label>
                   <div className="relative">
@@ -387,19 +387,19 @@ export default function Settings() {
                       type="email"
                       value={profileData.email}
                       onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       placeholder="seu@email.com"
                       required
                     />
                   </div>
-                  <p className="mt-1 text-sm text-gray-500">
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                     Usado para login e notificações
                   </p>
                 </div>
 
                 {/* Telefone */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Telefone
                   </label>
                   <div className="relative">
@@ -408,39 +408,39 @@ export default function Settings() {
                       type="tel"
                       value={profileData.phone}
                       onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       placeholder="(00) 00000-0000"
                     />
                   </div>
-                  <p className="mt-1 text-sm text-gray-500">
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                     Número de contato (opcional)
                   </p>
                 </div>
 
                 {/* Função/Cargo */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Função no Sistema
                   </label>
-                  <div className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-800 capitalize">
+                  <div className="px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 dark:bg-primary-500 text-primary-800 dark:text-black capitalize">
                       {profileData.role === 'owner' && '👑 Proprietário'}
                       {profileData.role === 'manager' && '👔 Gerente'}
                       {profileData.role === 'employee' && '👤 Funcionário'}
                       {!profileData.role && '👤 Usuário'}
                     </span>
                   </div>
-                  <p className="mt-1 text-sm text-gray-500">
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                     Seu nível de acesso no sistema
                   </p>
                 </div>
 
                 {/* Informações adicionais */}
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h3 className="text-sm font-semibold text-blue-900 mb-2">
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                  <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-2">
                     ℹ️ Informações
                   </h3>
-                  <ul className="text-sm text-blue-800 space-y-1">
+                  <ul className="text-sm text-blue-800 dark:text-blue-300 space-y-1">
                     <li>• O email é usado para fazer login no sistema</li>
                     <li>• Apenas proprietários podem alterar configurações do estabelecimento</li>
                     <li>• Para alterar sua função, contate o proprietário</li>
@@ -452,7 +452,7 @@ export default function Settings() {
                   <button
                     onClick={handleSaveProfile}
                     disabled={saving}
-                    className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-lg font-semibold hover:from-primary-700 hover:to-primary-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-primary-500/50"
+                    className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 dark:from-primary-500 dark:to-primary-600 text-white dark:text-black rounded-lg font-semibold hover:from-primary-700 hover:to-primary-800 dark:hover:from-primary-600 dark:hover:to-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-primary-500/50"
                   >
                     {saving ? (
                       <>
@@ -467,7 +467,7 @@ export default function Settings() {
                     )}
                   </button>
                   
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
                     * Campos obrigatórios
                   </p>
                 </div>
@@ -480,50 +480,50 @@ export default function Settings() {
         {activeTab === 'general' && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl font-semibold mb-4">Informações Gerais</h2>
+              <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Informações Gerais</h2>
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Nome do Estabelecimento
                   </label>
                   <input
                     type="text"
                     value={settings.name}
                     onChange={(e) => setSettings({ ...settings, name: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Email
                   </label>
                   <input
                     type="email"
                     value={settings.email}
                     disabled
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed"
                   />
-                  <p className="mt-1 text-sm text-gray-500">Email não pode ser alterado</p>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Email não pode ser alterado</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Telefone
                   </label>
                   <input
                     type="tel"
                     value={settings.phone}
                     onChange={(e) => setSettings({ ...settings, phone: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
 
                 <button
                   onClick={() => handleSave('general')}
                   disabled={saving}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-2 bg-blue-600 dark:bg-blue-500 text-white dark:text-black rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {saving ? 'Salvando...' : 'Salvar Alterações'}
                 </button>
@@ -537,48 +537,48 @@ export default function Settings() {
           <div className="space-y-6">
             {/* Nome do Programa */}
             <div>
-              <h2 className="text-xl font-semibold mb-2 flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-primary-600" />
+              <h2 className="text-xl font-semibold mb-2 flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                <TrendingUp className="w-5 h-5 text-primary-600 dark:text-primary-400" />
                 Nome do Programa de Cashback
               </h2>
-              <p className="text-gray-600 mb-4">
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Nome personalizado que aparecerá para seus clientes
               </p>
               <input
                 type="text"
                 value={settings.cashback_program_name}
                 onChange={(e) => setSettings({ ...settings, cashback_program_name: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 placeholder="Ex: Programa Fidelidade João"
               />
             </div>
 
             {/* Percentual de Cashback */}
             <div>
-              <h2 className="text-xl font-semibold mb-2 flex items-center gap-2">
-                <Percent className="w-5 h-5 text-blue-600" />
+              <h2 className="text-xl font-semibold mb-2 flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                <Percent className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 Percentual de Cashback
               </h2>
-              <p className="text-gray-600 mb-4">
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Defina o percentual de cashback que seus clientes vão ganhar em cada compra
               </p>
 
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 mb-4">
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6 mb-4">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">Percentual Atual</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Percentual Atual</p>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-4xl font-bold text-blue-600">
+                      <span className="text-4xl font-bold text-blue-600 dark:text-blue-400">
                         {parseFloat(settings.cashback_percentage).toFixed(2)}
                       </span>
-                      <span className="text-2xl text-blue-600">%</span>
+                      <span className="text-2xl text-blue-600 dark:text-blue-400">%</span>
                     </div>
                   </div>
-                  <div className="p-4 bg-white rounded-full">
-                    <TrendingUp className="w-8 h-8 text-blue-600" />
+                  <div className="p-4 bg-white dark:bg-gray-800 rounded-full">
+                    <TrendingUp className="w-8 h-8 text-blue-600 dark:text-blue-400" />
                   </div>
                 </div>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   Clientes ganham R$ {(parseFloat(settings.cashback_percentage) / 100 * 100).toFixed(2)} 
                   {' '}a cada R$ 100,00 em compras
                 </p>
@@ -592,7 +592,7 @@ export default function Settings() {
                   max="100"
                   value={settings.cashback_percentage}
                   onChange={(e) => setSettings({ ...settings, cashback_percentage: e.target.value })}
-                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
+                  className="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
                   placeholder="5.00"
                 />
                 <Percent className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -600,15 +600,15 @@ export default function Settings() {
             </div>
 
             {/* Disponibilidade Imediata */}
-            <div className="border-t pt-6">
-              <h2 className="text-xl font-semibold mb-2">
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+              <h2 className="text-xl font-semibold mb-2 text-gray-900 dark:text-gray-100">
                 Disponibilidade do Cashback
               </h2>
-              <p className="text-gray-600 mb-4">
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Defina quando o cashback fica disponível para uso
               </p>
               
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"
@@ -617,8 +617,8 @@ export default function Settings() {
                     className="w-5 h-5 text-green-600 rounded focus:ring-green-500"
                   />
                   <div>
-                    <p className="font-medium text-gray-900">Disponível imediatamente</p>
-                    <p className="text-sm text-gray-600">
+                    <p className="font-medium text-gray-900 dark:text-gray-100">Disponível imediatamente</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       O cashback fica disponível assim que a compra é registrada
                     </p>
                   </div>
@@ -627,11 +627,11 @@ export default function Settings() {
             </div>
 
             {/* Expiração do Cashback */}
-            <div className="border-t pt-6">
-              <h2 className="text-xl font-semibold mb-2">
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+              <h2 className="text-xl font-semibold mb-2 text-gray-900 dark:text-gray-100">
                 Expiração do Cashback
               </h2>
-              <p className="text-gray-600 mb-4">
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Defina se o cashback tem validade
               </p>
 
@@ -644,17 +644,17 @@ export default function Settings() {
                     className="w-5 h-5 text-primary-600 rounded focus:ring-primary-500"
                   />
                   <div>
-                    <p className="font-medium text-gray-900">Cashback expira após um período</p>
-                    <p className="text-sm text-gray-600">
+                    <p className="font-medium text-gray-900 dark:text-gray-100">Cashback expira após um período</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       Defina um prazo de validade para o cashback acumulado
                     </p>
                   </div>
                 </label>
 
                 {settings.cashback_expires && (
-                  <div className="ml-8 space-y-4 bg-gray-50 rounded-lg p-4">
+                  <div className="ml-8 space-y-4 bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Prazo de Validade (em dias)
                       </label>
                       <input
@@ -663,17 +663,17 @@ export default function Settings() {
                         max="3650"
                         value={settings.cashback_expiration_days}
                         onChange={(e) => setSettings({ ...settings, cashback_expiration_days: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                         placeholder="180"
                       />
-                      <p className="mt-2 text-sm text-gray-500">
+                      <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                         Sugerido: 180 dias (6 meses) | 365 dias (1 ano)
                       </p>
                     </div>
 
                     {settings.cashback_expiration_days && (
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                        <p className="text-sm text-blue-800">
+                      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                        <p className="text-sm text-blue-800 dark:text-blue-300">
                           <strong>Resumo:</strong> O cashback expirará {settings.cashback_expiration_days} dias 
                           após a compra ({Math.floor(settings.cashback_expiration_days / 30)} meses 
                           {settings.cashback_expiration_days % 30 > 0 && ` e ${settings.cashback_expiration_days % 30} dias`})
@@ -689,7 +689,7 @@ export default function Settings() {
             <button
               onClick={() => handleSave('cashback')}
               disabled={saving}
-              className="w-full px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+              className="w-full px-6 py-3 bg-primary-600 dark:bg-primary-500 text-white dark:text-black rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
             >
               {saving ? 'Salvando...' : 'Salvar Configurações de Cashback'}
             </button>
@@ -700,35 +700,35 @@ export default function Settings() {
         {activeTab === 'signup' && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl font-semibold mb-2 flex items-center gap-2">
-                <Share2 className="w-5 h-5 text-blue-600" />
+              <h2 className="text-xl font-semibold mb-2 flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                <Share2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 Link de Cadastro de Clientes
               </h2>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
                 Compartilhe este link para que novos clientes se cadastrem no seu programa de cashback
               </p>
 
               {/* Link de Cadastro Atual */}
               {signupUrl && (
-                <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 mb-6">
-                  <p className="text-sm font-medium text-gray-700 mb-3">Seu Link de Cadastro:</p>
-                  <div className="flex items-center gap-2 bg-white rounded-lg p-3 border-2 border-green-200">
-                    <code className="flex-1 text-sm text-green-700 font-mono break-all">
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-6 mb-6">
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Seu Link de Cadastro:</p>
+                  <div className="flex items-center gap-2 bg-white dark:bg-gray-800 rounded-lg p-3 border-2 border-green-200 dark:border-green-700">
+                    <code className="flex-1 text-sm text-green-700 dark:text-green-400 font-mono break-all">
                       {signupUrl}
                     </code>
                     <button
                       onClick={() => copyToClipboard(signupUrl)}
-                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
+                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors flex-shrink-0"
                       title="Copiar link"
                     >
                       {copied ? (
-                        <Check className="w-5 h-5 text-green-600" />
+                        <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
                       ) : (
-                        <Copy className="w-5 h-5 text-gray-600" />
+                        <Copy className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                       )}
                     </button>
                   </div>
-                  <p className="text-sm text-gray-600 mt-3">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-3">
                     💡 Compartilhe nas redes sociais, WhatsApp ou coloque no seu site
                   </p>
                 </div>
@@ -736,7 +736,7 @@ export default function Settings() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     <Globe className="w-4 h-4 inline mr-1" />
                     Domínio Personalizado (opcional)
                   </label>
@@ -744,17 +744,17 @@ export default function Settings() {
                     type="text"
                     value={settings.custom_domain}
                     onChange={(e) => setSettings({ ...settings, custom_domain: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="cashback.minhaloja.com.br"
                   />
-                  <p className="mt-2 text-sm text-gray-500">
+                  <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                     Configure um domínio personalizado para usar nos links de cashback. 
                     Ex: cashback.seusite.com.br
                   </p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Slug do Link (identificador único)
                   </label>
                   <input
@@ -764,10 +764,10 @@ export default function Settings() {
                       ...settings, 
                       signup_link_slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-')
                     })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
                     placeholder="minha-loja"
                   />
-                  <p className="mt-2 text-sm text-gray-500">
+                  <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                     Use apenas letras minúsculas, números e hífens. 
                     Gerado automaticamente se deixado em branco.
                   </p>
@@ -776,7 +776,7 @@ export default function Settings() {
                 <button
                   onClick={() => handleSave('domain')}
                   disabled={saving}
-                  className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                  className="w-full px-6 py-3 bg-blue-600 dark:bg-blue-500 text-white dark:text-black rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                 >
                   {saving ? 'Salvando...' : 'Salvar Configurações'}
                 </button>
@@ -868,24 +868,24 @@ export default function Settings() {
         {activeTab === 'marketing' && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl font-semibold mb-2 flex items-center gap-2">
-                <Code className="w-5 h-5 text-blue-600" />
+              <h2 className="text-xl font-semibold mb-2 flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                <Code className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 Configurações de Marketing
               </h2>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
                 Configure o Google Tag Manager e Meta Pixel para rastrear conversões e comportamento dos clientes
               </p>
 
               <div className="space-y-6">
                 {/* Google Tag Manager */}
-                <div className="border border-gray-200 rounded-lg p-4">
+                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                   <div className="flex items-start gap-3 mb-4">
-                    <div className="p-2 bg-yellow-100 rounded-lg flex-shrink-0">
-                      <Code className="w-5 h-5 text-yellow-600" />
+                    <div className="p-2 bg-yellow-100 dark:bg-yellow-500 rounded-lg flex-shrink-0">
+                      <Code className="w-5 h-5 text-yellow-600 dark:text-black" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 mb-1">Google Tag Manager</h3>
-                      <p className="text-sm text-gray-600">
+                      <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Google Tag Manager</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
                         ID do container GTM (ex: GTM-XXXXXXX)
                       </p>
                     </div>
@@ -896,20 +896,20 @@ export default function Settings() {
                       type={showGTM ? "text" : "password"}
                       value={settings.gtm_id}
                       onChange={(e) => setSettings({ ...settings, gtm_id: e.target.value })}
-                      className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                      className="w-full px-4 py-2 pr-10 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
                       placeholder="GTM-XXXXXXX"
                     />
                     <button
                       type="button"
                       onClick={() => setShowGTM(!showGTM)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                     >
                       {showGTM ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                   
-                  <div className="mt-3 bg-blue-50 rounded-lg p-3">
-                    <p className="text-xs text-blue-800">
+                  <div className="mt-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
+                    <p className="text-xs text-blue-800 dark:text-blue-400">
                       <strong>Eventos rastreados:</strong> PageView, CashbackGenerated, CashbackScanned, 
                       Purchase, RedemptionGenerated, RedemptionCompleted
                     </p>
@@ -917,14 +917,14 @@ export default function Settings() {
                 </div>
 
                 {/* Meta Pixel */}
-                <div className="border border-gray-200 rounded-lg p-4">
+                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                   <div className="flex items-start gap-3 mb-4">
-                    <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0">
-                      <Code className="w-5 h-5 text-blue-600" />
+                    <div className="p-2 bg-blue-100 dark:bg-blue-500 rounded-lg flex-shrink-0">
+                      <Code className="w-5 h-5 text-blue-600 dark:text-black" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 mb-1">Meta Pixel (Facebook)</h3>
-                      <p className="text-sm text-gray-600">
+                      <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Meta Pixel (Facebook)</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
                         ID do Meta Pixel (somente números)
                       </p>
                     </div>
@@ -935,13 +935,13 @@ export default function Settings() {
                       type={showPixel ? "text" : "password"}
                       value={settings.meta_pixel_id}
                       onChange={(e) => setSettings({ ...settings, meta_pixel_id: e.target.value })}
-                      className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                      className="w-full px-4 py-2 pr-10 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
                       placeholder="123456789012345"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPixel(!showPixel)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                     >
                       {showPixel ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>

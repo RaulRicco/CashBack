@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
-import { UserPlus, Phone, User, Store, Calendar, Lock } from 'lucide-react';
+import { UserPlus, Phone, User, Store, Calendar, Lock, Eye, EyeOff, LogIn } from 'lucide-react';
 import { trackEvent } from '../lib/tracking';
 import { BRAND_CONFIG, getLogo, getBrandName } from '../config/branding';
 import MerchantSEO from '../components/MerchantSEO';
@@ -13,6 +13,7 @@ export default function CustomerSignup() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [merchant, setMerchant] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -42,6 +43,12 @@ export default function CustomerSignup() {
       }
 
       setMerchant(data);
+      
+      // 🎯 Injetar manifest dinâmico quando merchant for carregado
+      if (data.id) {
+        const { injectDynamicManifest } = await import('../utils/dynamicManifest');
+        injectDynamicManifest(data.id);
+      }
       
       // Inicializar tracking específico do merchant se configurado
       if (data.gtm_id || data.meta_pixel_id) {
@@ -93,16 +100,17 @@ export default function CustomerSignup() {
     setSubmitting(true);
 
     try {
-      // Verificar se o cliente já existe
+      // Verificar se o cliente já existe NESTE estabelecimento específico
       const { data: existingCustomer } = await supabase
         .from('customers')
         .select('id, phone, name, password_hash')
         .eq('phone', phoneClean)
+        .eq('referred_by_merchant_id', merchant.id)
         .single();
 
       if (existingCustomer) {
-        // Cliente já existe, solicitar senha para login
-        toast.error('Este telefone já está cadastrado. Por favor, faça login com sua senha.');
+        // Cliente já existe NESTE estabelecimento, solicitar senha para login
+        toast.error('Este telefone já está cadastrado neste estabelecimento. Por favor, faça login com sua senha.');
         setSubmitting(false);
         return;
       }
@@ -208,9 +216,20 @@ export default function CustomerSignup() {
         <div className="text-center mb-8 pb-6 border-b border-gray-200">
           {merchant.logo_url ? (
             <img 
-              src={merchant.logo_url} 
+              src={merchant.logo_url}
               alt={merchant.name}
-              className="h-24 w-auto mx-auto mb-4"
+              className="h-24 w-auto mx-auto mb-4 object-contain"
+              onError={(e) => {
+                console.error('Erro ao carregar logo:', merchant.logo_url);
+                e.target.style.display = 'none';
+                e.target.parentElement.innerHTML = `
+                  <div class="w-24 h-24 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                  </div>
+                `;
+              }}
             />
           ) : (
             <div className="w-24 h-24 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -309,14 +328,26 @@ export default function CustomerSignup() {
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 placeholder="Mínimo 6 caracteres"
                 required
                 minLength={6}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                tabIndex={-1}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5" />
+                ) : (
+                  <Eye className="h-5 w-5" />
+                )}
+              </button>
             </div>
             <p className="mt-1 text-sm text-gray-500">
               Use esta senha para acessar seu perfil
@@ -370,6 +401,20 @@ export default function CustomerSignup() {
             </p>
           </div>
         </form>
+
+        {/* Link para Login */}
+        <div className="mt-4 text-center">
+          <p className="text-sm text-gray-600">
+            Já tem cadastro?{' '}
+            <Link
+              to={`/customer/login/${slug}`}
+              className="font-semibold text-primary-600 hover:text-primary-700 inline-flex items-center gap-1 transition-colors"
+            >
+              <LogIn className="w-4 h-4" />
+              Fazer Login
+            </Link>
+          </p>
+        </div>
 
         {/* Benefícios */}
         <div className="mt-8 pt-8 border-t border-gray-200">

@@ -1,0 +1,230 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                                                                               ║
+║           🔐 RECUPERAÇÃO DE SENHA PARA CLIENTES - IMPLEMENTADO               ║
+║                                                                               ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+
+═══════════════════════════════════════════════════════════════════════════════
+✅ O QUE FOI FEITO
+═══════════════════════════════════════════════════════════════════════════════
+
+Sistema completo de recuperação de senha para CLIENTES (não estabelecimentos).
+
+FUNCIONALIDADES:
+  ✅ Solicitar código de recuperação via telefone
+  ✅ Validar código (6 dígitos, expira em 30 min)
+  ✅ Redefinir senha
+  ✅ Link "Esqueceu sua senha?" na tela de login
+
+IDENTIDADE VISUAL:
+  ✅ Mesma identidade dos estabelecimentos
+  ✅ Gradiente de fundo primary
+  ✅ Card branco centralizado
+  ✅ Logo do sistema
+  ✅ Animações e feedbacks visuais
+
+
+═══════════════════════════════════════════════════════════════════════════════
+📂 ARQUIVOS CRIADOS
+═══════════════════════════════════════════════════════════════════════════════
+
+CÓDIGO:
+  ✅ src/pages/CustomerForgotPassword.jsx      (7.6 KB)
+  ✅ src/pages/CustomerResetPassword.jsx       (11.3 KB)
+  ✅ CREATE-CUSTOMER-PASSWORD-RECOVERY.sql     (3.9 KB)
+
+DOCUMENTAÇÃO:
+  ✅ RECUPERACAO-SENHA-CLIENTES.md             (12 KB)
+  ✅ RESUMO-RECUPERACAO-SENHA.txt              (este arquivo)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+🔧 ARQUIVOS MODIFICADOS
+═══════════════════════════════════════════════════════════════════════════════
+
+  ✅ src/App.jsx                               (rotas adicionadas)
+  ✅ src/pages/CustomerDashboard.jsx           (link "Esqueceu senha")
+
+
+═══════════════════════════════════════════════════════════════════════════════
+🔄 FLUXO DE USO
+═══════════════════════════════════════════════════════════════════════════════
+
+1. Cliente acessa: /customer/dashboard/11999999999
+
+2. Não lembra senha → Clica em "Esqueceu sua senha?"
+
+3. Redireciona para: /customer/forgot-password
+
+4. Digita telefone: (11) 99999-9999
+
+5. Clica em "Gerar Código de Recuperação"
+
+6. Sistema:
+   → Busca cliente pelo telefone
+   → Gera código: 789456
+   → Salva no banco (expira em 30 min)
+   → Mostra toast com código
+   → Redireciona para /customer/reset-password?phone=...&token=...
+
+7. Página valida token:
+   → Se válido: mostra formulário de nova senha
+   → Se inválido/expirado: mostra erro + botão "Solicitar Novo"
+
+8. Cliente define nova senha
+
+9. Sistema:
+   → Atualiza senha
+   → Marca token como usado
+   → Redireciona para dashboard
+
+10. Cliente faz login com NOVA senha ✅
+
+
+═══════════════════════════════════════════════════════════════════════════════
+🗄️ BANCO DE DADOS
+═══════════════════════════════════════════════════════════════════════════════
+
+TABELA: customer_password_recovery_tokens
+
+ESTRUTURA:
+  - id (UUID)
+  - customer_id (UUID) → FK para customers
+  - token (VARCHAR 6)
+  - expires_at (TIMESTAMPTZ)
+  - used (BOOLEAN)
+  - created_at (TIMESTAMPTZ)
+  - used_at (TIMESTAMPTZ)
+
+POLÍTICAS RLS:
+  ✅ Inserção pública (gerar tokens)
+  ✅ Leitura pública (validar tokens)
+  ✅ Atualização pública (marcar como usado)
+
+FUNÇÃO DE LIMPEZA:
+  delete_expired_customer_tokens()
+  → Deleta tokens expirados há mais de 24 horas
+
+
+═══════════════════════════════════════════════════════════════════════════════
+🚀 DEPLOY
+═══════════════════════════════════════════════════════════════════════════════
+
+PASSO 1 - Executar SQL no Supabase:
+  1. Acesse: https://supabase.com
+  2. Selecione o projeto
+  3. Vá em SQL Editor
+  4. Cole o conteúdo de CREATE-CUSTOMER-PASSWORD-RECOVERY.sql
+  5. Execute (Run)
+
+PASSO 2 - Deploy do Frontend:
+  ssh root@31.97.167.88
+  cd /var/www/cashback/cashback-system
+  git pull origin main
+  npm install --legacy-peer-deps
+  npm run build
+  sudo systemctl reload nginx
+
+PASSO 3 - Testar:
+  https://localcashback.com.br/customer/dashboard/11999999999
+  → Clicar em "Esqueceu sua senha?"
+  → Seguir fluxo de recuperação
+
+
+═══════════════════════════════════════════════════════════════════════════════
+🧪 TESTE RÁPIDO
+═══════════════════════════════════════════════════════════════════════════════
+
+1. Criar cliente de teste (SQL):
+   INSERT INTO customers (phone, name, password_hash, cashback_balance)
+   VALUES ('11999999999', 'Cliente Teste', 'MTIzNDU2', 0.00);
+   -- Senha: 123456
+
+2. Acesse:
+   https://localcashback.com.br/customer/dashboard/11999999999
+
+3. Clique em "Esqueceu sua senha?"
+
+4. Digite: (11) 99999-9999
+
+5. Copie o código que aparece no toast
+
+6. Defina nova senha
+
+7. Faça login com a NOVA senha
+
+
+═══════════════════════════════════════════════════════════════════════════════
+⚠️ IMPORTANTE
+═══════════════════════════════════════════════════════════════════════════════
+
+PRODUÇÃO:
+  ⚠️ Código mostrado em TOAST (desenvolvimento)
+  ✅ Em produção: integrar SMS/WhatsApp
+  
+SEGURANÇA:
+  ⚠️ Usando btoa() para hash (desenvolvimento)
+  ✅ Em produção: usar bcrypt/Argon2
+  
+RATE LIMITING:
+  ⚠️ Sem limite de tentativas (desenvolvimento)
+  ✅ Em produção: limitar tentativas/hora
+
+
+═══════════════════════════════════════════════════════════════════════════════
+📊 COMPARAÇÃO
+═══════════════════════════════════════════════════════════════════════════════
+
+                    ESTABELECIMENTO       |       CLIENTE
+─────────────────────────────────────────────────────────────────────────────
+Identificador:      Email                 |       Telefone
+Tabela Tokens:      password_recovery_    |       customer_password_
+                    tokens                |       recovery_tokens
+Página Forgot:      /forgot-password      |       /customer/forgot-password
+Página Reset:       /reset-password       |       /customer/reset-password
+Envio:              Email (futuro)        |       SMS/WhatsApp (futuro)
+UI:                 ✅ Visual padrão      |       ✅ Mesmo visual
+
+
+═══════════════════════════════════════════════════════════════════════════════
+✅ CHECKLIST
+═══════════════════════════════════════════════════════════════════════════════
+
+DESENVOLVIMENTO:
+  [✅] CustomerForgotPassword.jsx criado
+  [✅] CustomerResetPassword.jsx criado
+  [✅] Rotas adicionadas no App.jsx
+  [✅] Link na tela de login
+  [✅] SQL da tabela criado
+  [✅] Build compilado
+  [✅] Documentação criada
+
+PRODUÇÃO (próximos passos):
+  [ ] Executar SQL no Supabase
+  [ ] Integrar envio de SMS/WhatsApp
+  [ ] Implementar bcrypt
+  [ ] Adicionar rate limiting
+  [ ] Configurar cron job de limpeza
+
+
+═══════════════════════════════════════════════════════════════════════════════
+📝 RESUMO
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ Sistema completo implementado
+✅ Mesma identidade visual
+✅ Validação de token (expiração + uso único)
+✅ Link acessível na tela de login
+✅ Build pronto para deploy
+✅ SQL pronto para Supabase
+
+
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                                                                               ║
+║                    ✅ IMPLEMENTAÇÃO CONCLUÍDA! ✅                             ║
+║                                                                               ║
+║                  Aguardando apenas execução do SQL                            ║
+║                       no Supabase para ativar                                 ║
+║                                                                               ║
+╚═══════════════════════════════════════════════════════════════════════════════╝

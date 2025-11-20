@@ -95,10 +95,10 @@ export async function sendNotificationToAll(notification) {
       throw new Error('REST API Key não configurada');
     }
 
-    // Usar o proxy local para evitar CORS
+    // Usar o proxy local para evitar CORS (mesma origem em produção)
     const proxyUrl = window.location.hostname === 'localhost' 
       ? 'http://localhost:3001'
-      : 'https://localcashback.com.br';
+      : '';
 
     const response = await fetch(`${proxyUrl}/api/onesignal/send-to-all`, {
       method: 'POST',
@@ -150,10 +150,10 @@ export async function sendNotificationToUser(userId, notification) {
   try {
     console.log(`📤 Enviando notificação para usuário ${userId} via proxy:`, notification);
 
-    // Usar o proxy local para evitar CORS
+    // Usar o proxy local para evitar CORS (mesma origem em produção)
     const proxyUrl = window.location.hostname === 'localhost' 
       ? 'http://localhost:3001'
-      : 'https://localcashback.com.br';
+      : '';
 
     const response = await fetch(`${proxyUrl}/api/onesignal/send-to-user`, {
       method: 'POST',
