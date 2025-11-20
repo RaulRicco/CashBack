@@ -176,6 +176,7 @@ export default function Dashboard() {
             value={`R$ ${stats.averageTicket.toFixed(2)}`}
             icon={DollarSign}
             color="orange"
+            logoUrl={merchant?.logo_url}
           />
         </div>
 
