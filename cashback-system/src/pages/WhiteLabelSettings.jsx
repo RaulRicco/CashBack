@@ -219,18 +219,18 @@ export default function WhiteLabelSettings() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <Palette className="h-7 w-7 text-primary-600" />
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+              <Palette className="h-7 w-7 text-primary-600 dark:text-primary-400" />
               Meu CashBack
             </h1>
-            <p className="text-gray-600 mt-1">
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
               Personalize a identidade visual e configurações do seu estabelecimento
             </p>
           </div>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 disabled:opacity-50 flex items-center gap-2"
+            className="bg-primary-600 dark:bg-primary-500 text-white dark:text-black px-4 py-2 rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 disabled:opacity-50 flex items-center gap-2"
           >
             {saving ? (
               <RefreshCw className="h-5 w-5 animate-spin" />
@@ -243,56 +243,56 @@ export default function WhiteLabelSettings() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Informações do Negócio */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
               Informações do Negócio
             </h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Nome do Estabelecimento
                 </label>
                 <input
                   type="text"
                   value={settings.business_name}
                   onChange={(e) => setSettings({ ...settings, business_name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-primary-500"
                   placeholder="Nome da sua loja"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Nome do Responsável
                 </label>
                 <input
                   type="text"
                   value={settings.name}
                   onChange={(e) => setSettings({ ...settings, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-primary-500"
                   placeholder="Seu nome"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Email
                 </label>
                 <input
                   type="email"
                   value={settings.email}
                   onChange={(e) => setSettings({ ...settings, email: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-primary-500"
                   placeholder="contato@sualoja.com"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Telefone
                 </label>
                 <input
                   type="tel"
                   value={settings.phone}
                   onChange={(e) => setSettings({ ...settings, phone: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-primary-500"
                   placeholder="(00) 00000-0000"
                 />
               </div>
@@ -300,16 +300,16 @@ export default function WhiteLabelSettings() {
           </div>
 
           {/* Logo */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Upload className="h-5 w-5 text-primary-600" />
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+              <Upload className="h-5 w-5 text-primary-600 dark:text-primary-400" />
               Logo do Estabelecimento
             </h2>
             <div className="space-y-4">
               {/* Preview da Logo */}
               {settings.logo_url && (
                 <div className="flex flex-col gap-2">
-                  <div className="flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-6 bg-gray-50 min-h-[150px]">
+                  <div className="flex items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-6 bg-gray-50 dark:bg-gray-800 min-h-[150px]">
                     <img
                       src={settings.logo_url}
                       alt="Logo"
@@ -328,7 +328,7 @@ export default function WhiteLabelSettings() {
                       }}
                     />
                   </div>
-                  <p className="text-xs text-gray-500 text-center break-all">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 text-center break-all">
                     URL: {settings.logo_url}
                   </p>
                 </div>
@@ -337,18 +337,18 @@ export default function WhiteLabelSettings() {
               {/* Upload Area - Toda área clicável */}
               <label 
                 htmlFor="logo-upload" 
-                className="border-2 border-dashed border-gray-300 rounded-lg p-8 hover:border-primary-400 transition-colors bg-gray-50 cursor-pointer block"
+                className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-8 hover:border-primary-400 dark:hover:border-primary-500 transition-colors bg-gray-50 dark:bg-gray-800 cursor-pointer block"
               >
                 <div className="flex flex-col items-center justify-center gap-3">
-                  <div className="w-16 h-16 rounded-full bg-primary-100 flex items-center justify-center">
-                    <Upload className="h-8 w-8 text-primary-600" />
+                  <div className="w-16 h-16 rounded-full bg-primary-100 dark:bg-primary-500 flex items-center justify-center">
+                    <Upload className="h-8 w-8 text-primary-600 dark:text-black" />
                   </div>
                   
                   <div className="text-center">
-                    <span className="text-base font-semibold text-primary-600 hover:text-primary-700 transition-colors block">
+                    <span className="text-base font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors block">
                       {settings.logo_url ? 'Alterar Logo' : 'Selecionar Logo'}
                     </span>
-                    <p className="text-xs text-gray-500 mt-2">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                       Recomendado: PNG ou JPG, máximo 2MB, fundo transparente
                     </p>
                   </div>
@@ -366,7 +366,7 @@ export default function WhiteLabelSettings() {
               
               {/* Status do Upload */}
               {uploading && (
-                <div className="flex items-center justify-center gap-2 text-primary-600 bg-primary-50 py-3 px-4 rounded-lg">
+                <div className="flex items-center justify-center gap-2 text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 py-3 px-4 rounded-lg">
                   <RefreshCw className="h-5 w-5 animate-spin" />
                   <span className="text-sm font-medium">Fazendo upload...</span>
                 </div>
@@ -375,13 +375,13 @@ export default function WhiteLabelSettings() {
           </div>
 
           {/* Cores */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
               Cores do Sistema
             </h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Cor Primária
                 </label>
                 <div className="flex gap-2">
@@ -389,19 +389,19 @@ export default function WhiteLabelSettings() {
                     type="color"
                     value={settings.primary_color}
                     onChange={(e) => setSettings({ ...settings, primary_color: e.target.value })}
-                    className="h-10 w-20 rounded border border-gray-300 cursor-pointer"
+                    className="h-10 w-20 rounded border border-gray-300 dark:border-gray-700 cursor-pointer"
                   />
                   <input
                     type="text"
                     value={settings.primary_color}
                     onChange={(e) => setSettings({ ...settings, primary_color: e.target.value })}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 font-mono text-sm"
+                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-primary-500 font-mono text-sm"
                     placeholder="#10b981"
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Cor Secundária
                 </label>
                 <div className="flex gap-2">
@@ -409,19 +409,19 @@ export default function WhiteLabelSettings() {
                     type="color"
                     value={settings.secondary_color}
                     onChange={(e) => setSettings({ ...settings, secondary_color: e.target.value })}
-                    className="h-10 w-20 rounded border border-gray-300 cursor-pointer"
+                    className="h-10 w-20 rounded border border-gray-300 dark:border-gray-700 cursor-pointer"
                   />
                   <input
                     type="text"
                     value={settings.secondary_color}
                     onChange={(e) => setSettings({ ...settings, secondary_color: e.target.value })}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 font-mono text-sm"
+                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-primary-500 font-mono text-sm"
                     placeholder="#059669"
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Cor de Destaque
                 </label>
                 <div className="flex gap-2">
@@ -429,13 +429,13 @@ export default function WhiteLabelSettings() {
                     type="color"
                     value={settings.accent_color}
                     onChange={(e) => setSettings({ ...settings, accent_color: e.target.value })}
-                    className="h-10 w-20 rounded border border-gray-300 cursor-pointer"
+                    className="h-10 w-20 rounded border border-gray-300 dark:border-gray-700 cursor-pointer"
                   />
                   <input
                     type="text"
                     value={settings.accent_color}
                     onChange={(e) => setSettings({ ...settings, accent_color: e.target.value })}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 font-mono text-sm"
+                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-primary-500 font-mono text-sm"
                     placeholder="#34d399"
                   />
                 </div>
@@ -444,8 +444,8 @@ export default function WhiteLabelSettings() {
           </div>
 
           {/* Preview de Cores */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
               Preview das Cores
             </h2>
             <div className="space-y-3">
@@ -471,8 +471,8 @@ export default function WhiteLabelSettings() {
           </div>
 
           {/* Cashback */}
-          <div className="bg-white rounded-lg shadow p-6 lg:col-span-2">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6 lg:col-span-2">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
               Configuração de Cashback
             </h2>
             <div className="max-w-md">
@@ -488,7 +488,7 @@ export default function WhiteLabelSettings() {
                 onChange={(e) => setSettings({ ...settings, cashback_percentage: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
               />
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 Define quanto % será devolvido aos clientes em cada compra
               </p>
             </div>
