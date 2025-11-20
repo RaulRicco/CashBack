@@ -101,6 +101,7 @@ function App() {
         <Route path="/customer/dashboard/:phone" element={<CustomerDashboard />} />
         <Route path="/customer/login/:slug" element={<CustomerLogin />} />
         <Route path="/customer/login" element={<CustomerLogin />} />
+        <Route path="/customer/forgot-password/:phone" element={<CustomerForgotPassword />} />
         <Route path="/customer/forgot-password" element={<CustomerForgotPassword />} />
         <Route path="/customer/reset-password" element={<CustomerResetPassword />} />
         
