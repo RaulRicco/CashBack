@@ -32,7 +32,7 @@ export default function CustomerSignup() {
         .from('merchants')
         .select('*')
         .eq('signup_link_slug', slug)
-        .eq('is_active', true)
+        .eq('active', true)
         .single();
 
       if (error) throw error;
