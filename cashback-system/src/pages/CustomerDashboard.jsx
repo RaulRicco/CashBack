@@ -199,6 +199,12 @@ export default function CustomerDashboard() {
         throw new Error('Cliente não encontrado');
       }
 
+      console.log('👤 Dados do cliente carregados:', {
+        available_cashback: customerData.available_cashback,
+        total_cashback: customerData.total_cashback,
+        total_spent: customerData.total_spent
+      });
+
       setCustomer(customerData);
 
       // Buscar transações (entradas de cashback)
@@ -503,7 +509,11 @@ export default function CustomerDashboard() {
                 <span className="text-sm">Disponível</span>
               </div>
               <p className="text-3xl font-bold">
-                R$ {parseFloat(customer.available_cashback || 0).toFixed(2)}
+                R$ {(() => {
+                  const value = parseFloat(customer.available_cashback || 0);
+                  console.log('💰 Saldo Disponível:', value, 'raw:', customer.available_cashback);
+                  return value.toFixed(2);
+                })()}
               </p>
             </div>
 
@@ -513,7 +523,11 @@ export default function CustomerDashboard() {
                 <span className="text-sm">Total Acumulado</span>
               </div>
               <p className="text-3xl font-bold">
-                R$ {parseFloat(customer.total_cashback || 0).toFixed(2)}
+                R$ {(() => {
+                  const value = parseFloat(customer.total_cashback || 0);
+                  console.log('📈 Total Acumulado:', value, 'raw:', customer.total_cashback);
+                  return value.toFixed(2);
+                })()}
               </p>
             </div>
 
@@ -524,10 +538,17 @@ export default function CustomerDashboard() {
               </div>
               <p className="text-3xl font-bold">
                 R$ {(() => {
+                  console.log('📊 Redemptions disponíveis:', redemptions.length);
+                  console.log('📊 Redemptions data:', redemptions);
+                  
                   // Calcular total resgatado somando todos os redemptions
                   const totalRedeemed = redemptions.reduce((sum, redemption) => {
-                    return sum + parseFloat(redemption.amount || 0);
+                    const amount = parseFloat(redemption.amount || 0);
+                    console.log('  ➖ Resgate:', amount, 'ID:', redemption.id);
+                    return sum + amount;
                   }, 0);
+                  
+                  console.log('💸 Total Resgatado calculado:', totalRedeemed);
                   return totalRedeemed.toFixed(2);
                 })()}
               </p>
