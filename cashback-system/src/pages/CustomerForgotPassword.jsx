@@ -28,11 +28,14 @@ export default function CustomerForgotPassword() {
   const loadMerchant = async (customerPhone) => {
     try {
       const phoneClean = customerPhone.replace(/\D/g, '');
-      const { data: customerData } = await supabase
+      const { data: customerList } = await supabase
         .from('customers')
         .select('referred_by_merchant_id')
         .eq('phone', phoneClean)
-        .single();
+        .order('created_at', { ascending: false })  // Pegar o mais recente
+        .limit(1);
+
+      const customerData = customerList && customerList.length > 0 ? customerList[0] : null;
 
       if (customerData?.referred_by_merchant_id) {
         const { data: merchantData } = await supabase
@@ -82,13 +85,16 @@ export default function CustomerForgotPassword() {
         return;
       }
 
-      // Buscar cliente pelo telefone e data de nascimento
-      const { data: customer, error: findError } = await supabase
+      // Buscar cliente pelo telefone e data de nascimento (usando limit(1))
+      const { data: customerList, error: findError } = await supabase
         .from('customers')
         .select('id, name, phone, birthdate')
         .eq('phone', phoneClean)
         .eq('birthdate', birthdate)
-        .single();
+        .order('created_at', { ascending: false })  // Pegar o mais recente
+        .limit(1);
+
+      const customer = customerList && customerList.length > 0 ? customerList[0] : null;
 
       if (findError || !customer) {
         toast.error('Telefone ou data de nascimento incorretos');
