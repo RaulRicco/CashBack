@@ -519,11 +519,17 @@ export default function CustomerDashboard() {
 
             <div className="bg-white bg-opacity-10 backdrop-blur rounded-xl p-4">
               <div className="flex items-center gap-2 mb-2">
-                <Wallet className="w-5 h-5" />
-                <span className="text-sm">Total Gasto</span>
+                <ArrowDownCircle className="w-5 h-5" />
+                <span className="text-sm">Total Resgatado</span>
               </div>
               <p className="text-3xl font-bold">
-                R$ {parseFloat(customer.total_spent || 0).toFixed(2)}
+                R$ {(() => {
+                  // Calcular total resgatado somando todos os redemptions
+                  const totalRedeemed = redemptions.reduce((sum, redemption) => {
+                    return sum + parseFloat(redemption.amount || 0);
+                  }, 0);
+                  return totalRedeemed.toFixed(2);
+                })()}
               </p>
             </div>
           </div>
