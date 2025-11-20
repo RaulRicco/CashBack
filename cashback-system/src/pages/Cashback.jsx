@@ -69,13 +69,21 @@ export default function Cashback() {
       // Verificar se employee existe na tabela employees (quando merchant loga, employee pode ser mock)
       let validEmployeeId = null;
       if (employee?.id) {
-        const { data: employeeCheck } = await supabase
+        console.log('🔍 Verificando employee_id:', employee.id);
+        const { data: employeeCheck, error: employeeError } = await supabase
           .from('employees')
           .select('id')
           .eq('id', employee.id)
-          .single();
+          .maybeSingle();  // ✅ Não lança erro se não encontrar
+        
+        if (employeeError) {
+          console.warn('⚠️ Erro ao verificar employee:', employeeError);
+        }
         
         validEmployeeId = employeeCheck?.id || null;
+        console.log('✅ Employee validado:', validEmployeeId || 'NULL (merchant operando diretamente)');
+      } else {
+        console.log('ℹ️ Nenhum employee.id fornecido, usando NULL');
       }
 
       // Tentar criar transação com retry em caso de conflito 409
