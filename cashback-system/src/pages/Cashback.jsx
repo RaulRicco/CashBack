@@ -66,6 +66,18 @@ export default function Cashback() {
       let retryCount = 0;
       const maxRetries = 3;
 
+      // Verificar se employee existe na tabela employees (quando merchant loga, employee pode ser mock)
+      let validEmployeeId = null;
+      if (employee?.id) {
+        const { data: employeeCheck } = await supabase
+          .from('employees')
+          .select('id')
+          .eq('id', employee.id)
+          .single();
+        
+        validEmployeeId = employeeCheck?.id || null;
+      }
+
       // Tentar criar transação com retry em caso de conflito 409
       while (retryCount < maxRetries && !transaction) {
         const qrToken = generateUniqueToken();
@@ -75,7 +87,7 @@ export default function Cashback() {
           .insert({
             merchant_id: merchant.id,
             customer_id: customer.id,
-            employee_id: employee.id,
+            employee_id: validEmployeeId,  // ✅ NULL se merchant está operando diretamente
             transaction_type: 'cashback',
             amount: purchaseAmount,
             cashback_amount: cashbackAmount,
