@@ -74,7 +74,7 @@ export default function CustomerLogin() {
         .from('merchants')
         .select('*')
         .eq('custom_domain', currentHost)
-        .eq('is_active', true)
+        .eq('active', true)
         .single();
 
       if (error || !data) {
