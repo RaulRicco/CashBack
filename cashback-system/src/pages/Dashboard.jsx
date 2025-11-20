@@ -24,7 +24,8 @@ export default function Dashboard() {
     totalCashbackGiven: 0,
     totalRedemptions: 0,
     newCustomersThisMonth: 0,
-    averageTicket: 0
+    averageTicket: 0,
+    totalRevenue: 0
   });
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState({
@@ -42,13 +43,19 @@ export default function Dashboard() {
     try {
       setLoading(true);
 
-      // Total de clientes únicos
-      const { count: totalCustomers } = await supabase
+      // Buscar TODAS as transações deste merchant (para calcular total de clientes)
+      const { data: allTransactions } = await supabase
         .from('transactions')
-        .select('customer_id', { count: 'exact', head: true })
-        .eq('merchant_id', merchant.id);
+        .select('customer_id, created_at')
+        .eq('merchant_id', merchant.id)
+        .eq('status', 'completed')
+        .order('created_at', { ascending: true });
 
-      // Transações no período
+      // Total de clientes únicos deste merchant
+      const uniqueCustomerIds = [...new Set(allTransactions?.map(t => t.customer_id) || [])];
+      const totalCustomers = uniqueCustomerIds.length;
+
+      // Transações no período selecionado
       const { data: transactions } = await supabase
         .from('transactions')
         .select('*')
@@ -67,12 +74,25 @@ export default function Dashboard() {
         .gte('created_at', dateRange.start)
         .lte('created_at', dateRange.end + 'T23:59:59');
 
-      // Novos clientes do mês
-      const { count: newCustomersThisMonth } = await supabase
-        .from('customers')
-        .select('id', { count: 'exact', head: true })
-        .gte('created_at', dateRange.start)
-        .lte('created_at', dateRange.end + 'T23:59:59');
+      // Novos clientes do período (clientes cuja PRIMEIRA transação foi neste período)
+      const newCustomersSet = new Set();
+      uniqueCustomerIds.forEach(customerId => {
+        // Primeira transação deste cliente
+        const firstTransaction = allTransactions.find(t => t.customer_id === customerId);
+        
+        // Verificar se a primeira transação foi no período selecionado
+        if (firstTransaction) {
+          const firstDate = new Date(firstTransaction.created_at);
+          const startDate = new Date(dateRange.start);
+          const endDate = new Date(dateRange.end + 'T23:59:59');
+          
+          if (firstDate >= startDate && firstDate <= endDate) {
+            newCustomersSet.add(customerId);
+          }
+        }
+      });
+      
+      const newCustomersThisMonth = newCustomersSet.size;
 
       const totalTransactions = transactions?.length || 0;
       const totalCashbackGiven = transactions?.reduce((sum, t) => sum + parseFloat(t.cashback_amount), 0) || 0;
@@ -81,12 +101,13 @@ export default function Dashboard() {
       const averageTicket = totalTransactions > 0 ? totalAmount / totalTransactions : 0;
 
       setStats({
-        totalCustomers: totalCustomers || 0,
+        totalCustomers: totalCustomers,
         totalTransactions,
         totalCashbackGiven,
         totalRedemptions,
-        newCustomersThisMonth: newCustomersThisMonth || 0,
-        averageTicket
+        newCustomersThisMonth: newCustomersThisMonth,
+        averageTicket,
+        totalRevenue: totalAmount
       });
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
@@ -144,10 +165,10 @@ export default function Dashboard() {
           />
           
           <StatsCard
-            title="Cashback Distribuído"
-            value={`R$ ${stats.totalCashbackGiven.toFixed(2)}`}
-            icon={Gift}
-            color="purple"
+            title="Receita Total"
+            value={`R$ ${stats.totalRevenue.toFixed(2)}`}
+            icon={DollarSign}
+            color="indigo"
           />
           
           <StatsCard
@@ -169,15 +190,15 @@ export default function Dashboard() {
           {/* Cashback Pendente */}
           <div className="card">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 Cashback Ativo
               </h3>
-              <ArrowUpRight className="w-5 h-5 text-green-600" />
+              <ArrowUpRight className="w-5 h-5 text-green-600 dark:text-green-400" />
             </div>
-            <div className="text-3xl font-bold text-green-600 mb-2">
+            <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
               R$ {stats.totalCashbackGiven.toFixed(2)}
             </div>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Total distribuído no período
             </p>
           </div>
@@ -185,15 +206,15 @@ export default function Dashboard() {
           {/* Resgates */}
           <div className="card">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 Resgates Realizados
               </h3>
-              <ArrowDownRight className="w-5 h-5 text-red-600" />
+              <ArrowDownRight className="w-5 h-5 text-red-600 dark:text-red-400" />
             </div>
-            <div className="text-3xl font-bold text-red-600 mb-2">
+            <div className="text-3xl font-bold text-red-600 dark:text-red-400 mb-2">
               R$ {stats.totalRedemptions.toFixed(2)}
             </div>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Total resgatado no período
             </p>
           </div>

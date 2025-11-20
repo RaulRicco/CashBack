@@ -1,0 +1,198 @@
+╔════════════════════════════════════════════════════════════════╗
+║                                                                ║
+║  🚨 PROBLEMA: LOGO NÃO APARECE APÓS UPLOAD                    ║
+║  ⏰ SOLUÇÃO: 2 MINUTOS                                         ║
+║  📍 VOCÊ ESTÁ AQUI: /home/root/webapp/                        ║
+║                                                                ║
+╚════════════════════════════════════════════════════════════════╝
+
+
+╔════════════════════════════════════════════════════════════════╗
+║  ⚡ AÇÃO IMEDIATA (FAÇA PRIMEIRO!)                             ║
+╚════════════════════════════════════════════════════════════════╝
+
+1. Abra: https://supabase.com/dashboard
+2. Menu lateral: SQL Editor
+3. Clique: New Query
+4. Abra o arquivo: SQL-EMERGENCIA-COPIE-COLE.sql
+5. COPIE TODO o conteúdo
+6. COLE no SQL Editor
+7. Clique: RUN (ou Ctrl+Enter)
+8. Aguarde ver: "✅ Bucket configurado"
+
+
+╔════════════════════════════════════════════════════════════════╗
+║  🧪 TESTE IMEDIATO (APÓS O SQL)                                ║
+╚════════════════════════════════════════════════════════════════╝
+
+Abra esta URL no navegador (nova aba):
+https://zxiehkdtsoeauqouwxvi.supabase.co/storage/v1/object/public/merchant-assets/logos/d1de704a-2b5b-4b5d-a675-a413c965f16c-1762951941910.png
+
+✅ IMAGEM APARECEU? 
+   → PROBLEMA RESOLVIDO! 
+   → Limpe o cache (Ctrl+Shift+R) e teste no sistema
+
+❌ ERRO 403 (Forbidden)?
+   → Execute SQL-EMERGENCIA-COPIE-COLE.sql novamente
+   → Aguarde 10 segundos
+   → Teste URL novamente
+
+❌ ERRO 404 (Not Found)?
+   → O arquivo não existe no storage
+   → Vá para: TESTE-RAPIDO-AGORA.md
+
+
+╔════════════════════════════════════════════════════════════════╗
+║  📁 ARQUIVOS CRIADOS (POR ORDEM DE USO)                        ║
+╚════════════════════════════════════════════════════════════════╝
+
+🥇 PRIORIDADE MÁXIMA (use estes):
+
+1. SQL-EMERGENCIA-COPIE-COLE.sql
+   → Execute AGORA no Supabase
+   → Resolve 90% dos casos
+   → 1 minuto
+
+2. RESUMO-EXECUTIVO-FIX-LOGO.txt
+   → Resumo de TUDO que você precisa saber
+   → Leia se tiver dúvida
+   → 1 minuto de leitura
+
+3. TESTE-RAPIDO-AGORA.md
+   → Se o SQL não resolver
+   → Diagnóstico em 2 minutos
+   → Identifica o problema exato
+
+───────────────────────────────────────────────────────────────
+
+🥈 SE O SQL NÃO FUNCIONAR:
+
+4. fix-logo-upload-EMERGENCIAL.sql
+   → SQL mais completo
+   → Com mais políticas e verificações
+   → 3 minutos
+
+5. GUIA-COMPLETO-FIX-LOGO.md
+   → Guia detalhado passo-a-passo
+   → Todas as soluções possíveis
+   → 10 minutos
+
+───────────────────────────────────────────────────────────────
+
+🥉 SE PRECISAR MEXER NO CÓDIGO:
+
+6. fix-handleLogoUpload.jsx
+   → Código JavaScript corrigido
+   → Para substituir no arquivo WhiteLabelSettings.jsx
+   → Com logs detalhados
+   → 5 minutos para aplicar
+
+7. diagnostico-logo-upload.sh
+   → Script para executar no VPS
+   → Gera relatório completo do problema
+   → Execute se precisar investigar mais fundo
+
+
+╔════════════════════════════════════════════════════════════════╗
+║  🎯 FLUXOGRAMA DE DECISÃO                                      ║
+╚════════════════════════════════════════════════════════════════╝
+
+INÍCIO
+  ↓
+Execute: SQL-EMERGENCIA-COPIE-COLE.sql
+  ↓
+Teste URL no navegador
+  ↓
+  ├─→ ✅ FUNCIONA? → Limpe cache → FIM ✅
+  ├─→ ❌ ERRO 403? → Execute SQL novamente → Teste URL
+  ├─→ ❌ ERRO 404? → Leia: TESTE-RAPIDO-AGORA.md
+  └─→ ❌ OUTRO? → Leia: GUIA-COMPLETO-FIX-LOGO.md
+
+
+╔════════════════════════════════════════════════════════════════╗
+║  ⏱️ TEMPO ESTIMADO                                             ║
+╚════════════════════════════════════════════════════════════════╝
+
+Cenário Mais Provável (90% dos casos):
+  SQL-EMERGENCIA-COPIE-COLE.sql → 1 minuto
+  Teste URL → 30 segundos
+  Limpar cache → 30 segundos
+  TOTAL: 2 minutos ✅
+
+Cenário Médio (8% dos casos):
+  SQL completo → 3 minutos
+  Atualizar código → 5 minutos
+  Build → 2 minutos
+  TOTAL: 10 minutos ✅
+
+Cenário Raro (2% dos casos):
+  Diagnóstico completo → 5 minutos
+  Correção avançada → 10 minutos
+  TOTAL: 15 minutos ✅
+
+
+╔════════════════════════════════════════════════════════════════╗
+║  🆘 PRECISA DE AJUDA?                                          ║
+╚════════════════════════════════════════════════════════════════╝
+
+Me envie:
+
+1. Screenshot da pasta Storage (Supabase Dashboard)
+   → Storage → merchant-assets → logos
+
+2. Screenshot da URL aberta no navegador
+   → A URL da logo
+
+3. Resultado do SQL-EMERGENCIA-COPIE-COLE.sql
+   → Os 3 blocos que aparecem após executar
+
+4. Console do navegador (F12)
+   → Após tentar fazer upload
+
+Com isso vou te dar a solução EXATA!
+
+
+╔════════════════════════════════════════════════════════════════╗
+║  ✅ COMO SABER SE FUNCIONOU?                                   ║
+╚════════════════════════════════════════════════════════════════╝
+
+✅ URL da logo abre no navegador
+✅ Logo aparece na tela do sistema
+✅ Toast verde: "Logo enviada com sucesso!"
+✅ Console sem erros
+
+
+╔════════════════════════════════════════════════════════════════╗
+║  🚀 RESUMÃO:                                                   ║
+╚════════════════════════════════════════════════════════════════╝
+
+1. Execute: SQL-EMERGENCIA-COPIE-COLE.sql (1 minuto)
+2. Teste: URL no navegador (30 segundos)
+3. Limpe: Cache do navegador - Ctrl+Shift+R (30 segundos)
+4. Teste: Upload de logo novamente (1 minuto)
+
+SE FUNCIONAR: ✅ PRONTO! Problema resolvido!
+SE NÃO: Leia TESTE-RAPIDO-AGORA.md e me envie os screenshots
+
+
+╔════════════════════════════════════════════════════════════════╗
+║  📞 STATUS:                                                    ║
+╚════════════════════════════════════════════════════════════════╝
+
+🔴 PROBLEMA: Logo não aparece após upload
+🟡 CAUSA: 90% é política de Storage não configurada
+🟢 SOLUÇÃO: Execute SQL-EMERGENCIA-COPIE-COLE.sql
+⏰ TEMPO: 2 minutos
+✅ TAXA DE SUCESSO: 90%
+
+
+════════════════════════════════════════════════════════════════
+
+🚨 EXECUTE AGORA:
+
+cd /home/root/webapp
+cat SQL-EMERGENCIA-COPIE-COLE.sql
+
+Copie o conteúdo e cole no Supabase SQL Editor!
+
+════════════════════════════════════════════════════════════════

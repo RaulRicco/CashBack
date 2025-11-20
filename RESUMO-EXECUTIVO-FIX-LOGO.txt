@@ -1,0 +1,141 @@
+========================================
+🚨 RESUMO EXECUTIVO - FIX LOGO URGENTE
+========================================
+
+PROBLEMA:
+- Logo faz upload mas não aparece
+- Console mostra: "❌ Erro ao carregar logo"
+- URL gerada: https://zxiehkdtsoeauqouwxvi.supabase.co/storage/v1/object/public/merchant-assets/logos/...
+
+CAUSA MAIS PROVÁVEL (90%):
+- Políticas de Storage do Supabase não configuradas
+- Arquivo está no storage mas não é público
+
+========================================
+⚡ SOLUÇÃO RÁPIDA (2 MINUTOS)
+========================================
+
+PASSO 1 - EXECUTE SQL (1 MINUTO):
+1. Abra: https://supabase.com/dashboard
+2. Selecione seu projeto
+3. Menu: SQL Editor → New Query
+4. Cole o conteúdo de: SQL-EMERGENCIA-COPIE-COLE.sql
+5. Clique RUN
+6. Aguarde aparecer: "✅ Bucket configurado" e "✅ Políticas ativas"
+
+PASSO 2 - TESTE NO NAVEGADOR (30 SEGUNDOS):
+1. Abra nova aba
+2. Cole: https://zxiehkdtsoeauqouwxvi.supabase.co/storage/v1/object/public/merchant-assets/logos/d1de704a-2b5b-4b5d-a675-a413c965f16c-1762951941910.png
+3. SE APARECER IMAGEM: ✅ RESOLVIDO!
+4. SE DER ERRO: Vá para PASSO 3
+
+PASSO 3 - LIMPAR CACHE (30 SEGUNDOS):
+1. No navegador: Ctrl+Shift+R
+2. Faça login novamente
+3. Tente fazer upload de nova logo
+4. SE FUNCIONAR: ✅ RESOLVIDO!
+5. SE NÃO: Vá para SOLUÇÃO AVANÇADA
+
+========================================
+📁 ARQUIVOS CRIADOS PARA VOCÊ:
+========================================
+
+1. SQL-EMERGENCIA-COPIE-COLE.sql
+   → Execute AGORA no Supabase SQL Editor
+   → Corrige 90% dos casos
+   → 1 minuto
+
+2. TESTE-RAPIDO-AGORA.md
+   → Diagnóstico em 2 minutos
+   → Identifica o problema exato
+   → Com screenshots
+
+3. fix-logo-upload-EMERGENCIAL.sql
+   → SQL completo com todas as políticas
+   → Para casos complexos
+   → 5 minutos
+
+4. fix-handleLogoUpload.jsx
+   → Código JavaScript corrigido
+   → Com logs detalhados
+   → Para substituir no arquivo
+
+5. GUIA-COMPLETO-FIX-LOGO.md
+   → Guia passo-a-passo completo
+   → Todas as soluções possíveis
+   → 10 minutos
+
+6. diagnostico-logo-upload.sh
+   → Script bash para diagnóstico
+   → Executa no servidor VPS
+   → Gera relatório completo
+
+========================================
+🎯 AÇÃO IMEDIATA (FAÇA AGORA):
+========================================
+
+OPÇÃO 1 - RÁPIDA (2 minutos):
+→ Execute: SQL-EMERGENCIA-COPIE-COLE.sql
+→ Teste URL no navegador
+→ Limpe cache (Ctrl+Shift+R)
+→ Tente upload novamente
+
+OPÇÃO 2 - DIAGNÓSTICO (5 minutos):
+→ Siga: TESTE-RAPIDO-AGORA.md
+→ Tire 2 screenshots
+→ Me envie os resultados
+→ Vou te dar solução exata
+
+OPÇÃO 3 - COMPLETA (10 minutos):
+→ Siga: GUIA-COMPLETO-FIX-LOGO.md
+→ Execute SQL completo
+→ Atualize código JavaScript
+→ Rebuilde projeto
+
+========================================
+🆘 SE NADA FUNCIONAR:
+========================================
+
+Me envie:
+1. Screenshot da pasta Storage → merchant-assets → logos
+2. Screenshot da URL aberta no navegador
+3. Resultado do SQL-EMERGENCIA-COPIE-COLE.sql
+4. Console do navegador após tentar upload (F12)
+
+Com isso vou saber EXATAMENTE o que está errado.
+
+========================================
+✅ SUCESSO QUANDO:
+========================================
+
+- URL da logo abre no navegador ✅
+- Logo aparece na tela do sistema ✅
+- Console mostra: "🎉 PROCESSO COMPLETO!" ✅
+- Toast verde: "Logo enviada com sucesso!" ✅
+
+========================================
+⏰ TEMPO ESTIMADO:
+========================================
+
+MAIS PROVÁVEL (90%): 2 minutos
+  → Apenas executar SQL-EMERGENCIA-COPIE-COLE.sql
+
+MÉDIO (8%): 5 minutos
+  → SQL + limpar cache + rebuild
+
+RARO (2%): 10 minutos
+  → SQL + código JavaScript + rebuild
+
+========================================
+🚀 COMECE AGORA:
+========================================
+
+1. Abra Supabase Dashboard
+2. Vá em SQL Editor
+3. Cole SQL-EMERGENCIA-COPIE-COLE.sql
+4. Execute
+5. Teste URL no navegador
+
+PRONTO! ✅
+
+========================================

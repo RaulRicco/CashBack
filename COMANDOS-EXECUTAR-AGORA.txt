@@ -1,0 +1,130 @@
+╔════════════════════════════════════════════════════════════════════════╗
+║                                                                        ║
+║   🚨 RESOLVER ONESIGNAL - COPIE E COLE ESTES COMANDOS NO SERVIDOR   ║
+║                                                                        ║
+╚════════════════════════════════════════════════════════════════════════╝
+
+📋 SITUAÇÃO ATUAL:
+
+✅ A chave REST API NOVA está no arquivo .env
+❌ Mas o bundle JavaScript ainda tem a chave ANTIGA
+❌ Por isso você recebe "Access denied"
+
+💡 SOLUÇÃO: Rebuild completo para compilar a chave nova no JavaScript
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 OPÇÃO 1: SCRIPT AUTOMÁTICO COMPLETO (RECOMENDADO)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Copie e cole este ÚNICO comando no servidor:
+
+cd /var/www/cashback/cashback-system && \
+git pull origin main && \
+bash ../fix-onesignal-final.sh
+
+O script vai:
+✅ Verificar .env
+✅ Limpar cache
+✅ Fazer build novo
+✅ Verificar se chave nova está no bundle
+✅ Testar chave via curl
+✅ Reiniciar serviços
+✅ Mostrar resumo
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔍 OPÇÃO 2: DIAGNÓSTICO RÁPIDO PRIMEIRO (OPCIONAL)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Se quiser ver o estado atual antes de corrigir:
+
+cd /var/www/cashback/cashback-system && \
+git pull origin main && \
+bash ../diagnostic-quick.sh
+
+Depois execute a Opção 1 para corrigir.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📱 DEPOIS DE EXECUTAR O SCRIPT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. LIMPAR CACHE DO NAVEGADOR:
+   - Pressione: Ctrl + Shift + Del
+   - Selecione: "Imagens e arquivos em cache"
+   - Clique: "Limpar dados"
+
+2. ABRIR EM ABA ANÔNIMA:
+   - Pressione: Ctrl + Shift + N (Chrome) ou Ctrl + Shift + P (Firefox)
+   - Acesse: https://localcashback.com.br
+
+3. PERMITIR NOTIFICAÇÕES:
+   - Vá em: Admin > Notificações Push
+   - Quando aparecer popup do OneSignal
+   - Clique: "PERMITIR" / "ALLOW"
+
+4. TESTAR ENVIO:
+   - Título: "Teste"
+   - Mensagem: "Testando notificações"
+   - Clique: "Enviar Notificação"
+
+5. RESULTADO ESPERADO:
+   ✅ "Notificação enviada com sucesso!"
+   ✅ "Destinatários: X pessoas"
+   ❌ NÃO deve aparecer "Access denied"
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔧 SE AINDA DER ERRO (improvável)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Veja os logs do proxy:
+
+pm2 logs integration-proxy --nostream | tail -30
+
+E me envie o resultado para análise.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📚 DOCUMENTAÇÃO COMPLETA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Para entender o problema em detalhes, leia:
+/var/www/cashback/RESOLVER-ONESIGNAL-AGORA.md
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 RESUMO DO PROBLEMA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Vite compila as variáveis de ambiente DENTRO do JavaScript durante o build.
+
+Mesmo mudando o .env, o JavaScript antigo não atualiza automaticamente.
+
+SOLUÇÃO = Fazer build novo para recompilar com chave nova.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ CHECKLIST FINAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Antes de considerar resolvido, confirme:
+
+[ ] Script executado sem erros
+[ ] Verificação mostrou "✅ CHAVE NOVA ESTÁ NO BUNDLE"
+[ ] Teste curl retornou sucesso
+[ ] Cache do navegador limpo
+[ ] Site aberto em aba anônima
+[ ] Popup OneSignal apareceu e clicou "PERMITIR"
+[ ] Ao enviar teste, NÃO aparece "Access denied"
+[ ] Console mostra "✅ Notificação enviada com sucesso!"
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚀 Boa sorte! Desta vez vai funcionar!
+
+╔════════════════════════════════════════════════════════════════════════╗
+║  Pull Request: https://github.com/RaulRicco/CashBack/pull/2          ║
+╚════════════════════════════════════════════════════════════════════════╝
