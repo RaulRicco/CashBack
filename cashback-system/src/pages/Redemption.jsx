@@ -73,13 +73,25 @@ export default function Redemption() {
       // Gerar token único para o QR Code de resgate
       const qrToken = `REDEMPTION_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
 
+      // Verificar se employee existe na tabela employees (quando merchant loga, employee pode ser mock)
+      let validEmployeeId = null;
+      if (employee?.id) {
+        const { data: employeeCheck } = await supabase
+          .from('employees')
+          .select('id')
+          .eq('id', employee.id)
+          .single();
+        
+        validEmployeeId = employeeCheck?.id || null;
+      }
+
       // Criar resgate
       const { data: redemption, error: redemptionError } = await supabase
         .from('redemptions')
         .insert({
           merchant_id: merchant.id,
           customer_id: customer.id,
-          employee_id: employee.id,
+          employee_id: validEmployeeId,  // ✅ NULL se merchant está operando diretamente
           amount: redemptionAmount,
           qr_code_token: qrToken,
           status: 'pending'
