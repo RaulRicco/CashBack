@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { supabase } from '../lib/supabase';
 import DashboardLayout from '../components/DashboardLayout';
-import { UserPlus, Users, Plus } from 'lucide-react';
+import { UserPlus, Users, Plus, Edit, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function Employees() {
@@ -10,6 +10,7 @@ export default function Employees() {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingEmployee, setEditingEmployee] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -100,6 +101,98 @@ export default function Employees() {
     }
   };
 
+  const handleEditEmployee = async (e) => {
+    e.preventDefault();
+    
+    try {
+      const updateData = {
+        name: formData.name,
+        email: formData.email,
+        role: formData.role,
+        permissions: formData.permissions
+      };
+
+      // Só atualizar senha se foi fornecida
+      if (formData.password && formData.password.length >= 6) {
+        updateData.password = formData.password;
+      }
+
+      const { error } = await supabase
+        .from('employees')
+        .update(updateData)
+        .eq('id', editingEmployee.id);
+
+      if (error) throw error;
+
+      toast.success('Funcionário atualizado com sucesso!');
+      setEditingEmployee(null);
+      setFormData({ 
+        name: '', 
+        email: '', 
+        password: '',
+        role: 'operator',
+        permissions: {
+          dashboard: true,
+          cashback: true,
+          redemption: true,
+          customers: true,
+          employees: false,
+          reports: true,
+          integrations: false,
+          whitelabel: false,
+          settings: false
+        }
+      });
+      loadEmployees();
+    } catch (error) {
+      console.error('Erro ao atualizar funcionário:', error);
+      toast.error('Erro ao atualizar funcionário');
+    }
+  };
+
+  const startEditEmployee = (employee) => {
+    setEditingEmployee(employee);
+    setFormData({
+      name: employee.name,
+      email: employee.email,
+      password: '', // Não preencher senha ao editar
+      role: employee.role,
+      permissions: employee.permissions || {
+        dashboard: true,
+        cashback: true,
+        redemption: true,
+        customers: true,
+        employees: false,
+        reports: true,
+        integrations: false,
+        whitelabel: false,
+        settings: false
+      }
+    });
+    setShowAddForm(false); // Fechar form de adicionar se estiver aberto
+  };
+
+  const cancelEdit = () => {
+    setEditingEmployee(null);
+    setFormData({ 
+      name: '', 
+      email: '', 
+      password: '',
+      role: 'operator',
+      permissions: {
+        dashboard: true,
+        cashback: true,
+        redemption: true,
+        customers: true,
+        employees: false,
+        reports: true,
+        integrations: false,
+        whitelabel: false,
+        settings: false
+      }
+    });
+  };
+
   const handlePermissionChange = (permission) => {
     setFormData({
       ...formData,
@@ -142,7 +235,10 @@ export default function Employees() {
             </p>
           </div>
           <button
-            onClick={() => setShowAddForm(!showAddForm)}
+            onClick={() => {
+              setShowAddForm(!showAddForm);
+              setEditingEmployee(null);
+            }}
             className="btn-primary flex items-center gap-2"
           >
             <Plus className="w-5 h-5" />
@@ -338,6 +434,198 @@ export default function Employees() {
           </div>
         )}
 
+        {/* Formulário de Editar */}
+        {editingEmployee && (
+          <div className="card border-2 border-primary-500">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                Editar Funcionário
+              </h2>
+              <button
+                onClick={cancelEdit}
+                className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleEditEmployee} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Nome Completo
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  required
+                  className="input"
+                  placeholder="João Silva"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  required
+                  className="input"
+                  placeholder="joao@empresa.com"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Nova Senha (deixe em branco para manter a atual)
+                </label>
+                <input
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  minLength={6}
+                  className="input"
+                  placeholder="Mínimo 6 caracteres (opcional)"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Função
+                </label>
+                <select
+                  value={formData.role}
+                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                  className="input"
+                >
+                  <option value="operator">Operador</option>
+                  <option value="manager">Gerente</option>
+                  <option value="admin">Administrador</option>
+                </select>
+              </div>
+
+              {/* Permissões */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                  Permissões de Acesso
+                </label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.permissions.dashboard}
+                      onChange={() => handlePermissionChange('dashboard')}
+                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">Dashboard</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.permissions.cashback}
+                      onChange={() => handlePermissionChange('cashback')}
+                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">Cashback</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.permissions.redemption}
+                      onChange={() => handlePermissionChange('redemption')}
+                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">Resgate</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.permissions.customers}
+                      onChange={() => handlePermissionChange('customers')}
+                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">Clientes</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.permissions.employees}
+                      onChange={() => handlePermissionChange('employees')}
+                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">Funcionários</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.permissions.reports}
+                      onChange={() => handlePermissionChange('reports')}
+                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">Relatórios</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.permissions.integrations}
+                      onChange={() => handlePermissionChange('integrations')}
+                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">Integrações</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.permissions.whitelabel}
+                      onChange={() => handlePermissionChange('whitelabel')}
+                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">Meu CashBack</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.permissions.settings}
+                      onChange={() => handlePermissionChange('settings')}
+                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">Configurações</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <button type="submit" className="btn-primary">
+                  Salvar Alterações
+                </button>
+                <button
+                  type="button"
+                  onClick={cancelEdit}
+                  className="btn-secondary"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
+
+            <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+              <p className="text-sm text-amber-800 dark:text-amber-400">
+                ⚠️ <strong>Atenção:</strong> Deixe o campo senha em branco para manter a senha atual do funcionário.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Lista de Funcionários */}
         <div className="card">
           {loading ? (
@@ -395,12 +683,23 @@ export default function Employees() {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <button
-                          onClick={() => toggleEmployeeStatus(employee.id, employee.is_active)}
-                          className="text-primary-600 dark:text-primary-400 hover:text-primary-900 dark:hover:text-primary-300"
-                        >
-                          {employee.is_active ? 'Desativar' : 'Ativar'}
-                        </button>
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => startEditEmployee(employee)}
+                            className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 flex items-center gap-1"
+                            title="Editar funcionário"
+                          >
+                            <Edit className="w-4 h-4" />
+                            Editar
+                          </button>
+                          <button
+                            onClick={() => toggleEmployeeStatus(employee.id, employee.is_active)}
+                            className="text-primary-600 dark:text-primary-400 hover:text-primary-900 dark:hover:text-primary-300"
+                            title={employee.is_active ? 'Desativar funcionário' : 'Ativar funcionário'}
+                          >
+                            {employee.is_active ? 'Desativar' : 'Ativar'}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
