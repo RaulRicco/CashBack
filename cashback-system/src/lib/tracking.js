@@ -30,6 +30,15 @@ export const initGTM = (gtmId) => {
 export const initMetaPixel = (pixelId) => {
   if (!pixelId) return;
 
+  // 🚨 DESABILITADO: Meta Pixel está sendo gerenciado via Google Tag Manager
+  // Para evitar conflitos de inicialização duplicada, não inicializamos via código
+  console.log('📘 Meta Pixel configurado via GTM (ID:', pixelId, ')');
+  console.log('ℹ️ Meta Pixel será inicializado pelo Google Tag Manager');
+  
+  // NOTA: Se quiser voltar a usar via código, descomente o bloco abaixo
+  // e remova a tag do Meta Pixel do Google Tag Manager
+  
+  /*
   // Meta Pixel Code
   const script = document.createElement('script');
   script.innerHTML = `
@@ -53,6 +62,7 @@ export const initMetaPixel = (pixelId) => {
     src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"/>
   `;
   document.body.appendChild(noscript);
+  */
 };
 
 // Tracking Events

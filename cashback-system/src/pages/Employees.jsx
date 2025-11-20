@@ -133,11 +133,11 @@ export default function Employees() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-              <UserPlus className="w-8 h-8 text-primary-600" />
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+              <UserPlus className="w-8 h-8 text-primary-600 dark:text-primary-400" />
               Funcionários
             </h1>
-            <p className="text-gray-600 mt-1">
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
               Gerencie os funcionários que podem acessar o sistema
             </p>
           </div>
@@ -153,12 +153,12 @@ export default function Employees() {
         {/* Formulário de Adicionar */}
         {showAddForm && (
           <div className="card">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
               Novo Funcionário
             </h2>
             <form onSubmit={handleAddEmployee} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Nome Completo
                 </label>
                 <input
@@ -201,7 +201,7 @@ export default function Employees() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Função
                 </label>
                 <select
@@ -217,10 +217,10 @@ export default function Employees() {
 
               {/* Permissões */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                   Permissões de Acesso
                 </label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 p-4 bg-gray-50 rounded-lg">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
@@ -228,7 +228,7 @@ export default function Employees() {
                       onChange={() => handlePermissionChange('dashboard')}
                       className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                     />
-                    <span className="text-sm text-gray-700">Dashboard</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">Dashboard</span>
                   </label>
 
                   <label className="flex items-center gap-2 cursor-pointer">
@@ -330,8 +330,8 @@ export default function Employees() {
               </div>
             </form>
 
-            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-800">
+            <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <p className="text-sm text-blue-800 dark:text-blue-400">
                 ℹ️ <strong>Senha temporária:</strong> Por padrão, será enviada por email (funcionalidade a ser implementada)
               </p>
             </div>
@@ -346,50 +346,50 @@ export default function Employees() {
             </div>
           ) : employees.length === 0 ? (
             <div className="text-center py-12">
-              <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-600">Nenhum funcionário cadastrado</p>
+              <Users className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+              <p className="text-gray-600 dark:text-gray-400">Nenhum funcionário cadastrado</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead className="bg-gray-50 dark:bg-gray-800">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                       Nome
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                       Email
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                       Função
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                       Ações
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
                   {employees.map((employee) => (
-                    <tr key={employee.id} className="hover:bg-gray-50">
+                    <tr key={employee.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="font-medium text-gray-900">{employee.name}</div>
+                        <div className="font-medium text-gray-900 dark:text-gray-100">{employee.name}</div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                         {employee.email}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-primary-100 text-primary-800 capitalize">
+                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-primary-100 dark:bg-primary-500 text-primary-800 dark:text-black capitalize">
                           {employee.role}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                           employee.is_active
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
+                            ? 'bg-green-100 dark:bg-green-500 text-green-800 dark:text-black'
+                            : 'bg-red-100 dark:bg-red-500 text-red-800 dark:text-black'
                         }`}>
                           {employee.is_active ? 'Ativo' : 'Inativo'}
                         </span>
@@ -397,7 +397,7 @@ export default function Employees() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <button
                           onClick={() => toggleEmployeeStatus(employee.id, employee.is_active)}
-                          className="text-primary-600 hover:text-primary-900"
+                          className="text-primary-600 dark:text-primary-400 hover:text-primary-900 dark:hover:text-primary-300"
                         >
                           {employee.is_active ? 'Desativar' : 'Ativar'}
                         </button>

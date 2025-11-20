@@ -92,7 +92,7 @@ export default function Login() {
               </div>
               <input
                 id="password"
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -102,8 +102,8 @@ export default function Login() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-                title={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                tabIndex={-1}
               >
                 {showPassword ? (
                   <EyeOff className="h-5 w-5" />
