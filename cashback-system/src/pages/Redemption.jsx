@@ -28,10 +28,11 @@ export default function Redemption() {
         .from('customers')
         .select('*')
         .eq('phone', phone)
+        .eq('referred_by_merchant_id', merchant.id)
         .single();
 
       if (error || !data) {
-        toast.error('Cliente não encontrado');
+        toast.error('Cliente não encontrado neste estabelecimento');
         setCustomer(null);
       } else {
         setCustomer(data);

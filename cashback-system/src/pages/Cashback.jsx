@@ -26,30 +26,26 @@ export default function Cashback() {
         return;
       }
 
-      // Buscar ou criar cliente
+      // Buscar cliente NESTE estabelecimento específico
       let { data: customer, error: customerError } = await supabase
         .from('customers')
         .select('*')
         .eq('phone', phone)
+        .eq('referred_by_merchant_id', merchant.id)
         .single();
 
       if (customerError && customerError.code !== 'PGRST116') {
         throw customerError;
       }
 
+      // ⚠️ CLIENTE NÃO CADASTRADO - BLOQUEAR CASHBACK
       if (!customer) {
-        // Criar novo cliente
-        const { data: newCustomer, error: createError } = await supabase
-          .from('customers')
-          .insert({
-            phone: phone,
-            name: null
-          })
-          .select()
-          .single();
-
-        if (createError) throw createError;
-        customer = newCustomer;
+        toast.error(
+          'Cliente não cadastrado! Este telefone não está registrado no seu estabelecimento. Peça para o cliente se cadastrar primeiro.',
+          { duration: 6000 }
+        );
+        setLoading(false);
+        return;
       }
 
       // Calcular cashback
@@ -143,6 +139,31 @@ export default function Cashback() {
           <p className="text-gray-600 mt-2">
             Insira os dados da compra para gerar o QR Code de cashback para o cliente
           </p>
+        </div>
+
+        {/* Aviso Importante */}
+        <div className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-lg">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-amber-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-amber-800">
+                ⚠️ Cliente deve estar cadastrado
+              </h3>
+              <div className="mt-2 text-sm text-amber-700">
+                <p>
+                  O cliente precisa ter cadastro no seu estabelecimento para receber cashback.
+                  Se o telefone não estiver cadastrado, oriente o cliente a fazer o cadastro primeiro através do link:
+                </p>
+                <p className="mt-2 font-semibold text-amber-900">
+                  {window.location.origin}/customer/signup/{merchant?.slug || 'seu-slug'}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Formulário */}

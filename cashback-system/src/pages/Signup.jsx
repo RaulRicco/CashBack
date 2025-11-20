@@ -75,12 +75,28 @@ export default function Signup() {
 
       if (employeeError) throw employeeError;
 
-      toast.success('Conta criada com sucesso! Faça login para continuar.');
-      
-      // Redirecionar para login
-      setTimeout(() => {
-        navigate('/login');
-      }, 2000);
+      // 3. Enviar email de verificação
+      const { sendVerificationCode } = await import('../lib/emailVerification');
+      const verificationResult = await sendVerificationCode({
+        email: formData.ownerEmail,
+        employeeId: employeeData.id,
+        userName: formData.ownerName,
+      });
+
+      if (verificationResult.success) {
+        toast.success('Conta criada! Verifique seu email para ativar.');
+        
+        // Redirecionar para página de verificação
+        setTimeout(() => {
+          navigate(`/verify-email?email=${encodeURIComponent(formData.ownerEmail)}`);
+        }, 2000);
+      } else {
+        // Se falhar o envio do email, ainda assim avisar o usuário
+        toast.error('Conta criada, mas houve erro ao enviar email de verificação.');
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
+      }
 
     } catch (error) {
       console.error('Erro ao criar conta:', error);

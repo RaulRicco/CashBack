@@ -40,7 +40,7 @@ app.post('/api/mailchimp/test', async (req, res) => {
           'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json'
         },
-        timeout: 10000
+        timeout: 30000
       }
     );
 
@@ -67,6 +67,21 @@ app.post('/api/mailchimp/sync', async (req, res) => {
 
     const subscriberHash = crypto.createHash('md5').update((customer.email || customer.phone).toLowerCase().trim()).digest('hex');
 
+    // Formatar data de nascimento para Mailchimp (MM/DD formato para aniversário)
+    let birthdayField = {};
+    if (customer.birthdate) {
+      try {
+        const date = new Date(customer.birthdate);
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        birthdayField = {
+          BIRTHDAY: `${month}/${day}` // Formato MM/DD para automações de aniversário
+        };
+      } catch (e) {
+        console.log('[Mailchimp] Erro ao formatar birthdate:', e);
+      }
+    }
+
     const data = {
       email_address: customer.email || `${customer.phone}@cashback.local`,
       status: 'subscribed',
@@ -74,7 +89,8 @@ app.post('/api/mailchimp/sync', async (req, res) => {
         FNAME: customer.name || '',
         PHONE: customer.phone || '',
         CASHBACK: parseFloat(customer.available_cashback || 0).toFixed(2),
-        TOTALSPENT: parseFloat(customer.total_spent || 0).toFixed(2)
+        TOTALSPENT: parseFloat(customer.total_spent || 0).toFixed(2),
+        ...birthdayField // Adiciona BIRTHDAY se existir
       },
       tags: tags || []
     };
@@ -169,6 +185,12 @@ app.post('/api/rdstation/sync', async (req, res) => {
 
     console.log('[RD Station Sync] Sincronizando cliente:', customer.email || customer.phone);
 
+    // Formatar data de nascimento para RD Station (YYYY-MM-DD formato ISO para aniversário)
+    const birthdateField = customer.birthdate ? {
+      data_nascimento: customer.birthdate, // Formato YYYY-MM-DD
+      aniversario: customer.birthdate // Campo adicional para automações
+    } : {};
+
     const data = {
       token_rdstation: accessToken,
       identificador: 'cashback_system',
@@ -178,7 +200,8 @@ app.post('/api/rdstation/sync', async (req, res) => {
       saldo_cashback: parseFloat(customer.available_cashback || 0).toFixed(2),
       total_gasto: parseFloat(customer.total_spent || 0).toFixed(2),
       total_cashback: parseFloat(customer.total_cashback || 0).toFixed(2),
-      tags: (tags || []).join(',')
+      tags: (tags || []).join(','),
+      ...birthdateField // Adiciona data_nascimento e aniversario se existir
     };
 
     const response = await axios.post(
@@ -230,6 +253,13 @@ app.post('/api/onesignal/send-to-all', async (req, res) => {
       });
     }
 
+    // OneSignal v2 REST API Key começa com 'os_v2_' e usa formato diferente
+    const authHeader = restApiKey.startsWith('os_v2_') 
+      ? `Key ${restApiKey}`  // Novo formato v2
+      : `Basic ${restApiKey}`; // Formato antigo
+
+    console.log('[OneSignal] Auth header format:', authHeader.substring(0, 20) + '...');
+
     const response = await axios.post(
       'https://onesignal.com/api/v1/notifications',
       {
@@ -244,7 +274,7 @@ app.post('/api/onesignal/send-to-all', async (req, res) => {
       {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Basic ${restApiKey}`
+          'Authorization': authHeader
         }
       }
     );
@@ -274,6 +304,11 @@ app.post('/api/onesignal/send-to-user', async (req, res) => {
 
     console.log('[OneSignal] Enviando para usuário:', userId);
 
+    // OneSignal v2 REST API Key usa formato diferente
+    const authHeader = restApiKey.startsWith('os_v2_') 
+      ? `Key ${restApiKey}`  // Novo formato v2
+      : `Basic ${restApiKey}`; // Formato antigo
+
     const response = await axios.post(
       'https://onesignal.com/api/v1/notifications',
       {
@@ -288,7 +323,7 @@ app.post('/api/onesignal/send-to-user', async (req, res) => {
       {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Basic ${restApiKey}`
+          'Authorization': authHeader
         }
       }
     );
@@ -304,6 +339,203 @@ app.post('/api/onesignal/send-to-user', async (req, res) => {
     res.json({
       success: false,
       error: error.response?.data?.errors || error.message
+    });
+  }
+});
+
+// ========================================
+// CUSTOM DOMAINS MANAGEMENT
+// ========================================
+
+/**
+ * Verificar DNS do domínio
+ */
+app.post('/api/admin/verify-dns', async (req, res) => {
+  try {
+    const { domain } = req.body;
+    
+    console.log('[DNS Verification] Verificando domínio:', domain);
+
+    const { exec } = await import('child_process');
+    const { promisify } = await import('util');
+    const execPromise = promisify(exec);
+
+    // Obter IP do servidor
+    const { stdout: serverIP } = await execPromise('curl -s ifconfig.me');
+    const cleanServerIP = serverIP.trim();
+
+    console.log('[DNS Verification] IP do servidor:', cleanServerIP);
+
+    // Verificar DNS do domínio
+    try {
+      const { stdout: dnsOutput } = await execPromise(`nslookup ${domain}`);
+      console.log('[DNS Verification] Output nslookup:', dnsOutput);
+
+      // Extrair IP do domínio
+      const ipMatch = dnsOutput.match(/Address: ([\d.]+)/g);
+      if (!ipMatch || ipMatch.length < 2) {
+        return res.json({
+          success: false,
+          verified: false,
+          error: 'Não foi possível resolver o DNS do domínio. Verifique se está configurado corretamente.',
+          serverIP: cleanServerIP
+        });
+      }
+
+      // Pegar o último IP (ignora o DNS resolver)
+      const domainIP = ipMatch[ipMatch.length - 1].replace('Address: ', '').trim();
+
+      console.log('[DNS Verification] IP do domínio:', domainIP);
+
+      if (domainIP === cleanServerIP) {
+        console.log('[DNS Verification] ✅ DNS verificado com sucesso!');
+        return res.json({
+          success: true,
+          verified: true,
+          serverIP: cleanServerIP,
+          domainIP: domainIP,
+          message: 'DNS configurado corretamente!'
+        });
+      } else {
+        return res.json({
+          success: false,
+          verified: false,
+          serverIP: cleanServerIP,
+          domainIP: domainIP,
+          error: `DNS não aponta para este servidor. Configure o DNS para apontar para ${cleanServerIP}`
+        });
+      }
+    } catch (dnsError) {
+      console.error('[DNS Verification] Erro ao verificar DNS:', dnsError);
+      return res.json({
+        success: false,
+        verified: false,
+        error: 'Domínio não encontrado ou DNS não configurado.',
+        serverIP: cleanServerIP
+      });
+    }
+  } catch (error) {
+    console.error('[DNS Verification Error]', error);
+    res.json({
+      success: false,
+      verified: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * Configurar SSL para domínio (executa script)
+ */
+app.post('/api/admin/setup-ssl', async (req, res) => {
+  try {
+    const { domain, domainId } = req.body;
+
+    console.log('[SSL Setup] Configurando SSL para:', domain);
+
+    const { exec } = await import('child_process');
+    const { promisify } = await import('util');
+    const execPromise = promisify(exec);
+
+    // Executar script de configuração de domínio
+    const scriptPath = '/var/www/cashback/setup-custom-domain.sh';
+    const command = `bash ${scriptPath} ${domain}`;
+
+    console.log('[SSL Setup] Executando comando:', command);
+
+    try {
+      const { stdout, stderr } = await execPromise(command, {
+        timeout: 300000 // 5 minutos
+      });
+
+      console.log('[SSL Setup] Saída:', stdout);
+      if (stderr) console.error('[SSL Setup] Erros:', stderr);
+
+      // Verificar se teve sucesso procurando por "DOMÍNIO CONFIGURADO COM SUCESSO"
+      if (stdout.includes('DOMÍNIO CONFIGURADO COM SUCESSO') || stdout.includes('Certificado SSL gerado com sucesso')) {
+        console.log('[SSL Setup] ✅ SSL configurado com sucesso!');
+        return res.json({
+          success: true,
+          message: 'SSL configurado com sucesso! O domínio está ativo.',
+          output: stdout
+        });
+      } else {
+        console.error('[SSL Setup] ❌ Falha na configuração');
+        return res.json({
+          success: false,
+          error: 'Falha ao configurar SSL. Verifique os logs.',
+          output: stdout,
+          stderr: stderr
+        });
+      }
+    } catch (execError) {
+      console.error('[SSL Setup] Erro ao executar script:', execError);
+      return res.json({
+        success: false,
+        error: execError.message,
+        stderr: execError.stderr
+      });
+    }
+  } catch (error) {
+    console.error('[SSL Setup Error]', error);
+    res.json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// ========================================
+// RESEND EMAIL API
+// ========================================
+
+/**
+ * Enviar email via Resend
+ */
+app.post('/api/resend/send', async (req, res) => {
+  try {
+    const { apiKey, from, to, subject, html, text } = req.body;
+
+    console.log('[Resend] Enviando email para:', to);
+    console.log('[Resend] Assunto:', subject);
+
+    if (!apiKey) {
+      return res.json({
+        success: false,
+        error: 'API Key do Resend não fornecida'
+      });
+    }
+
+    const response = await axios.post(
+      'https://api.resend.com/emails',
+      {
+        from: from || 'onboarding@resend.dev',
+        to: Array.isArray(to) ? to : [to],
+        subject,
+        html,
+        text,
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        timeout: 30000
+      }
+    );
+
+    console.log('[Resend] ✅ Email enviado com sucesso! ID:', response.data.id);
+
+    res.json({
+      success: true,
+      id: response.data.id,
+      data: response.data
+    });
+  } catch (error) {
+    console.error('[Resend Error]', error.response?.data || error.message);
+    res.json({
+      success: false,
+      error: error.response?.data?.message || error.message
     });
   }
 });
@@ -330,6 +562,9 @@ app.listen(PORT, () => {
   console.log(`   POST /api/rdstation/sync`);
   console.log(`   POST /api/onesignal/send-to-all`);
   console.log(`   POST /api/onesignal/send-to-user`);
+  console.log(`   POST /api/resend/send`);
+  console.log(`   POST /api/admin/verify-dns`);
+  console.log(`   POST /api/admin/setup-ssl`);
 });
 
 export default app;
