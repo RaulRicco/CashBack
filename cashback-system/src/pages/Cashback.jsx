@@ -53,29 +53,62 @@ export default function Cashback() {
       const cashbackPercentage = merchant.cashback_percentage || 5;
       const cashbackAmount = (purchaseAmount * cashbackPercentage) / 100;
 
-      // Gerar token único para o QR Code
-      const qrToken = `CASHBACK_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+      // Gerar token único para o QR Code com UUID para garantir unicidade absoluta
+      const generateUniqueToken = () => {
+        const timestamp = Date.now();
+        const randomPart = Math.random().toString(36).substring(2, 15);
+        const randomPart2 = Math.random().toString(36).substring(2, 15);
+        return `CASHBACK_${merchant.id.substring(0, 8)}_${timestamp}_${randomPart}${randomPart2}`;
+      };
 
-      // Criar transação (AGORA JÁ COMO COMPLETED)
-      const { data: transaction, error: transactionError } = await supabase
-        .from('transactions')
-        .insert({
-          merchant_id: merchant.id,
-          customer_id: customer.id,
-          employee_id: employee.id,
-          transaction_type: 'cashback',
-          amount: purchaseAmount,
-          cashback_amount: cashbackAmount,
-          cashback_percentage: cashbackPercentage,
-          qr_code_token: qrToken,
-          status: 'completed',  // ✅ JÁ COMPLETO - CASHBACK IMEDIATO
-          qr_scanned: true,
-          qr_scanned_at: new Date().toISOString()
-        })
-        .select()
-        .single();
+      let transaction = null;
+      let transactionError = null;
+      let retryCount = 0;
+      const maxRetries = 3;
+
+      // Tentar criar transação com retry em caso de conflito 409
+      while (retryCount < maxRetries && !transaction) {
+        const qrToken = generateUniqueToken();
+
+        const result = await supabase
+          .from('transactions')
+          .insert({
+            merchant_id: merchant.id,
+            customer_id: customer.id,
+            employee_id: employee.id,
+            transaction_type: 'cashback',
+            amount: purchaseAmount,
+            cashback_amount: cashbackAmount,
+            cashback_percentage: cashbackPercentage,
+            qr_code_token: qrToken,
+            status: 'completed',  // ✅ JÁ COMPLETO - CASHBACK IMEDIATO
+            qr_scanned: true,
+            qr_scanned_at: new Date().toISOString()
+          })
+          .select()
+          .single();
+
+        if (result.error) {
+          // Se for erro 409 (conflito), tentar novamente
+          if (result.error.code === '23505' || result.error.message?.includes('duplicate')) {
+            console.log(`⚠️ Token duplicado detectado (tentativa ${retryCount + 1}/${maxRetries}), gerando novo token...`);
+            retryCount++;
+            await new Promise(resolve => setTimeout(resolve, 100)); // Aguardar 100ms antes de retry
+            continue;
+          } else {
+            // Outro tipo de erro, falhar imediatamente
+            transactionError = result.error;
+            break;
+          }
+        } else {
+          transaction = result.data;
+        }
+      }
 
       if (transactionError) throw transactionError;
+      if (!transaction) {
+        throw new Error('Não foi possível criar a transação após múltiplas tentativas. Tente novamente.');
+      }
 
       // ℹ️ O saldo do cliente é atualizado AUTOMATICAMENTE pelo trigger do banco de dados
       // quando uma transação com status='completed' é inserida.
@@ -90,11 +123,11 @@ export default function Cashback() {
       });
 
       // Gerar URL para o QR Code (o cliente vai escanear) - URL de conversão
-      const qrUrl = `${window.location.origin}/customer/cashback/${qrToken}/parabens`;
+      const qrUrl = `${window.location.origin}/customer/cashback/${transaction.qr_code_token}/parabens`;
 
       setQrData({
         url: qrUrl,
-        token: qrToken,
+        token: transaction.qr_code_token,
         amount: purchaseAmount,
         cashbackAmount: cashbackAmount,
         cashbackPercentage: cashbackPercentage,
