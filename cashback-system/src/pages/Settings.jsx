@@ -273,23 +273,23 @@ export default function Settings() {
     <DashboardLayout>
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <div className="p-2 bg-blue-100 rounded-lg">
-            <SettingsIcon className="w-6 h-6 text-blue-600" />
+          <div className="p-2 bg-blue-100 dark:bg-blue-500 rounded-lg">
+            <SettingsIcon className="w-6 h-6 text-blue-600 dark:text-black" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Configurações</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Configurações</h1>
         </div>
-        <p className="text-gray-600">Gerencie as configurações da sua conta e cashback</p>
+        <p className="text-gray-600 dark:text-gray-400">Gerencie as configurações da sua conta e cashback</p>
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200 mb-6">
+      <div className="border-b border-gray-200 dark:border-gray-700 mb-6">
         <div className="flex gap-8 overflow-x-auto">
           <button
             onClick={() => setActiveTab('profile')}
             className={`pb-4 px-1 border-b-2 font-medium transition-colors whitespace-nowrap ${
               activeTab === 'profile'
-                ? 'border-primary-600 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                ? 'border-primary-600 dark:border-primary-400 text-primary-600 dark:text-primary-400'
+                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
             }`}
           >
             <div className="flex items-center gap-2">
@@ -301,8 +301,8 @@ export default function Settings() {
             onClick={() => setActiveTab('general')}
             className={`pb-4 px-1 border-b-2 font-medium transition-colors whitespace-nowrap ${
               activeTab === 'general'
-                ? 'border-primary-600 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                ? 'border-primary-600 dark:border-primary-400 text-primary-600 dark:text-primary-400'
+                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
             }`}
           >
             Geral
@@ -311,8 +311,8 @@ export default function Settings() {
             onClick={() => setActiveTab('cashback')}
             className={`pb-4 px-1 border-b-2 font-medium transition-colors whitespace-nowrap ${
               activeTab === 'cashback'
-                ? 'border-primary-600 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                ? 'border-primary-600 dark:border-primary-400 text-primary-600 dark:text-primary-400'
+                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
             }`}
           >
             Cashback
@@ -321,8 +321,8 @@ export default function Settings() {
             onClick={() => setActiveTab('signup')}
             className={`pb-4 px-1 border-b-2 font-medium transition-colors whitespace-nowrap ${
               activeTab === 'signup'
-                ? 'border-primary-600 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                ? 'border-primary-600 dark:border-primary-400 text-primary-600 dark:text-primary-400'
+                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
             }`}
           >
             Link de Cadastro
@@ -331,8 +331,8 @@ export default function Settings() {
             onClick={() => setActiveTab('marketing')}
             className={`pb-4 px-1 border-b-2 font-medium transition-colors whitespace-nowrap ${
               activeTab === 'marketing'
-                ? 'border-primary-600 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                ? 'border-primary-600 dark:border-primary-400 text-primary-600 dark:text-primary-400'
+                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
             }`}
           >
             Marketing
@@ -341,23 +341,23 @@ export default function Settings() {
       </div>
 
       {/* Tab Content */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6">
         {/* Profile Settings */}
         {activeTab === 'profile' && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl font-semibold mb-2 flex items-center gap-2">
-                <User className="w-5 h-5 text-primary-600" />
+              <h2 className="text-xl font-semibold mb-2 flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                <User className="w-5 h-5 text-primary-600 dark:text-primary-400" />
                 Meu Perfil
               </h2>
-              <p className="text-gray-600 text-sm mb-6">
+              <p className="text-gray-600 dark:text-gray-400 text-sm mb-6">
                 Gerencie suas informações pessoais e de contato
               </p>
               
               <div className="space-y-4 max-w-2xl">
                 {/* Nome */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Nome Completo *
                   </label>
                   <div className="relative">
@@ -366,19 +366,19 @@ export default function Settings() {
                       type="text"
                       value={profileData.name}
                       onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       placeholder="Seu nome completo"
                       required
                     />
                   </div>
-                  <p className="mt-1 text-sm text-gray-500">
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                     Este nome será exibido no sistema
                   </p>
                 </div>
 
                 {/* Email */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Email *
                   </label>
                   <div className="relative">
@@ -387,19 +387,19 @@ export default function Settings() {
                       type="email"
                       value={profileData.email}
                       onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       placeholder="seu@email.com"
                       required
                     />
                   </div>
-                  <p className="mt-1 text-sm text-gray-500">
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                     Usado para login e notificações
                   </p>
                 </div>
 
                 {/* Telefone */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Telefone
                   </label>
                   <div className="relative">
@@ -408,39 +408,39 @@ export default function Settings() {
                       type="tel"
                       value={profileData.phone}
                       onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       placeholder="(00) 00000-0000"
                     />
                   </div>
-                  <p className="mt-1 text-sm text-gray-500">
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                     Número de contato (opcional)
                   </p>
                 </div>
 
                 {/* Função/Cargo */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Função no Sistema
                   </label>
-                  <div className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-800 capitalize">
+                  <div className="px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 dark:bg-primary-500 text-primary-800 dark:text-black capitalize">
                       {profileData.role === 'owner' && '👑 Proprietário'}
                       {profileData.role === 'manager' && '👔 Gerente'}
                       {profileData.role === 'employee' && '👤 Funcionário'}
                       {!profileData.role && '👤 Usuário'}
                     </span>
                   </div>
-                  <p className="mt-1 text-sm text-gray-500">
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                     Seu nível de acesso no sistema
                   </p>
                 </div>
 
                 {/* Informações adicionais */}
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h3 className="text-sm font-semibold text-blue-900 mb-2">
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                  <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-2">
                     ℹ️ Informações
                   </h3>
-                  <ul className="text-sm text-blue-800 space-y-1">
+                  <ul className="text-sm text-blue-800 dark:text-blue-300 space-y-1">
                     <li>• O email é usado para fazer login no sistema</li>
                     <li>• Apenas proprietários podem alterar configurações do estabelecimento</li>
                     <li>• Para alterar sua função, contate o proprietário</li>
@@ -452,7 +452,7 @@ export default function Settings() {
                   <button
                     onClick={handleSaveProfile}
                     disabled={saving}
-                    className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-lg font-semibold hover:from-primary-700 hover:to-primary-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-primary-500/50"
+                    className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 dark:from-primary-500 dark:to-primary-600 text-white dark:text-black rounded-lg font-semibold hover:from-primary-700 hover:to-primary-800 dark:hover:from-primary-600 dark:hover:to-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-primary-500/50"
                   >
                     {saving ? (
                       <>
@@ -467,7 +467,7 @@ export default function Settings() {
                     )}
                   </button>
                   
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
                     * Campos obrigatórios
                   </p>
                 </div>
@@ -480,50 +480,50 @@ export default function Settings() {
         {activeTab === 'general' && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl font-semibold mb-4">Informações Gerais</h2>
+              <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Informações Gerais</h2>
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Nome do Estabelecimento
                   </label>
                   <input
                     type="text"
                     value={settings.name}
                     onChange={(e) => setSettings({ ...settings, name: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Email
                   </label>
                   <input
                     type="email"
                     value={settings.email}
                     disabled
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed"
                   />
-                  <p className="mt-1 text-sm text-gray-500">Email não pode ser alterado</p>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Email não pode ser alterado</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Telefone
                   </label>
                   <input
                     type="tel"
                     value={settings.phone}
                     onChange={(e) => setSettings({ ...settings, phone: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
 
                 <button
                   onClick={() => handleSave('general')}
                   disabled={saving}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-2 bg-blue-600 dark:bg-blue-500 text-white dark:text-black rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {saving ? 'Salvando...' : 'Salvar Alterações'}
                 </button>
@@ -654,7 +654,7 @@ export default function Settings() {
                 {settings.cashback_expires && (
                   <div className="ml-8 space-y-4 bg-gray-50 rounded-lg p-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Prazo de Validade (em dias)
                       </label>
                       <input
@@ -736,7 +736,7 @@ export default function Settings() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     <Globe className="w-4 h-4 inline mr-1" />
                     Domínio Personalizado (opcional)
                   </label>
@@ -754,7 +754,7 @@ export default function Settings() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Slug do Link (identificador único)
                   </label>
                   <input
