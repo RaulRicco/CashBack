@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import {
@@ -13,15 +13,40 @@ import {
   UserPlus,
   QrCode,
   Mail,
-  Palette
+  Palette,
+  Moon,
+  Sun,
+  Store
 } from 'lucide-react';
 import { BRAND_CONFIG, getLogo, getBrandName } from '../config/branding';
 
 export default function DashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
   const { merchant, employee, logout } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Load dark mode preference
+  useEffect(() => {
+    const savedMode = localStorage.getItem('darkMode');
+    if (savedMode === 'true') {
+      setDarkMode(true);
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
+
+  // Toggle dark mode
+  const toggleDarkMode = () => {
+    const newMode = !darkMode;
+    setDarkMode(newMode);
+    localStorage.setItem('darkMode', newMode.toString());
+    if (newMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -153,9 +178,42 @@ export default function DashboardLayout({ children }) {
               </div>
             </div>
             
-            <div className="flex-1 lg:flex-none"></div>
+            {/* Merchant Logo and Name - Desktop */}
+            <div className="hidden lg:flex items-center gap-3 flex-1 justify-center">
+              {merchant?.logo_url ? (
+                <div className="w-10 h-10 rounded-full overflow-hidden bg-white shadow-md ring-2 ring-primary-100">
+                  <img 
+                    src={merchant.logo_url} 
+                    alt={merchant.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                  <Store className="w-6 h-6 text-primary-700" />
+                </div>
+              )}
+              <div className="text-center">
+                <p className="text-sm font-semibold text-gray-900">{merchant?.name}</p>
+                <p className="text-xs text-gray-500">Estabelecimento</p>
+              </div>
+            </div>
             
             <div className="flex items-center gap-4">
+              {/* Dark Mode Toggle */}
+              <button
+                onClick={toggleDarkMode}
+                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                title={darkMode ? 'Modo Claro' : 'Modo Escuro'}
+              >
+                {darkMode ? (
+                  <Sun className="w-5 h-5" />
+                ) : (
+                  <Moon className="w-5 h-5" />
+                )}
+              </button>
+              
+              {/* Employee Info */}
               <div className="text-right hidden sm:block">
                 <p className="text-sm font-medium text-gray-900">{employee?.name}</p>
                 <p className="text-xs text-gray-500 capitalize">{employee?.role}</p>
