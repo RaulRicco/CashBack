@@ -42,12 +42,15 @@ export default function CustomerDashboard() {
     try {
       console.log('🔍 Buscando cliente com telefone:', phone);
       
-      // Buscar cliente apenas para pegar merchant_id
-      const { data: customerData, error: customerError } = await supabase
+      // Buscar cliente apenas para pegar merchant_id (usando limit(1) ao invés de single())
+      const { data: customerList, error: customerError } = await supabase
         .from('customers')
         .select('referred_by_merchant_id')
         .eq('phone', phone)
-        .single();
+        .order('created_at', { ascending: false })  // Pegar o mais recente
+        .limit(1);
+
+      const customerData = customerList && customerList.length > 0 ? customerList[0] : null;
 
       console.log('📞 Resposta da busca do cliente:', { customerData, customerError });
 
@@ -94,12 +97,15 @@ export default function CustomerDashboard() {
     try {
       console.log('🔐 Tentando fazer login com telefone:', phone);
       
-      // Buscar cliente e verificar senha
-      const { data: customerData, error: customerError } = await supabase
+      // Buscar cliente e verificar senha (usando limit(1) ao invés de single())
+      const { data: customerList, error: customerError } = await supabase
         .from('customers')
         .select('id, password_hash')
         .eq('phone', phone)
-        .single();
+        .order('created_at', { ascending: false })  // Pegar o mais recente
+        .limit(1);
+
+      const customerData = customerList && customerList.length > 0 ? customerList[0] : null;
 
       console.log('🔐 Resposta do login:', { customerData, customerError });
 
@@ -177,14 +183,21 @@ export default function CustomerDashboard() {
     try {
       setLoading(true);
 
-      // Buscar cliente
-      const { data: customerData, error: customerError } = await supabase
+      // Buscar cliente (usando limit(1) ao invés de single())
+      const { data: customerList, error: customerError } = await supabase
         .from('customers')
         .select('*')
         .eq('phone', phone)
-        .single();
+        .order('created_at', { ascending: false })  // Pegar o mais recente
+        .limit(1);
 
       if (customerError) throw customerError;
+
+      const customerData = customerList && customerList.length > 0 ? customerList[0] : null;
+      
+      if (!customerData) {
+        throw new Error('Cliente não encontrado');
+      }
 
       setCustomer(customerData);
 
