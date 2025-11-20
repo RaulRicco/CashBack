@@ -103,20 +103,20 @@ export default function CACLTVCalculator({ merchantId, dateRange }) {
   return (
     <div className="card">
       <div className="flex items-center gap-2 mb-6">
-        <Calculator className="w-6 h-6 text-primary-600" />
-        <h2 className="text-xl font-bold text-gray-900">
+        <Calculator className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
           Calculadora de CAC e LTV
         </h2>
       </div>
 
       {/* Campo dinâmico de investimento */}
-      <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+      <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Adicionar Investimento em Tráfego
         </label>
         <div className="flex gap-2">
           <div className="relative flex-1">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">R$</span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">R$</span>
             <input
               type="number"
               step="0.01"
@@ -128,7 +128,7 @@ export default function CACLTVCalculator({ merchantId, dateRange }) {
                 setTimeout(() => handleUpdateSpend(), 300);
               }}
               placeholder="0,00"
-              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+              className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-primary-500"
             />
           </div>
           <button
@@ -139,7 +139,7 @@ export default function CACLTVCalculator({ merchantId, dateRange }) {
             Calcular
           </button>
         </div>
-        <p className="text-xs text-gray-500 mt-2">
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
           💡 Valor dinâmico - será zerado ao atualizar a página ou trocar o período
         </p>
       </div>
@@ -147,65 +147,65 @@ export default function CACLTVCalculator({ merchantId, dateRange }) {
       {/* Métricas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Total Investido */}
-        <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
+        <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800">
           <div className="flex items-center gap-2 mb-2">
-            <DollarSign className="w-5 h-5 text-blue-600" />
-            <span className="text-sm font-medium text-blue-900">Total Investido</span>
+            <DollarSign className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            <span className="text-sm font-medium text-blue-900 dark:text-blue-300">Total Investido</span>
           </div>
-          <p className="text-2xl font-bold text-blue-700">
+          <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">
             R$ {metrics.totalSpend.toFixed(2)}
           </p>
         </div>
 
         {/* Novos Clientes */}
-        <div className="p-4 bg-green-50 rounded-lg border border-green-100">
+        <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-100 dark:border-green-800">
           <div className="flex items-center gap-2 mb-2">
-            <Users className="w-5 h-5 text-green-600" />
-            <span className="text-sm font-medium text-green-900">Novos Clientes</span>
+            <Users className="w-5 h-5 text-green-600 dark:text-green-400" />
+            <span className="text-sm font-medium text-green-900 dark:text-green-300">Novos Clientes</span>
           </div>
-          <p className="text-2xl font-bold text-green-700">
+          <p className="text-2xl font-bold text-green-700 dark:text-green-400">
             {metrics.newCustomers}
           </p>
         </div>
 
         {/* CAC */}
-        <div className="p-4 bg-purple-50 rounded-lg border border-purple-100">
+        <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-100 dark:border-purple-800">
           <div className="flex items-center gap-2 mb-2">
-            <Calculator className="w-5 h-5 text-purple-600" />
-            <span className="text-sm font-medium text-purple-900">CAC (Custo por Cliente)</span>
+            <Calculator className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+            <span className="text-sm font-medium text-purple-900 dark:text-purple-300">CAC (Custo por Cliente)</span>
           </div>
-          <p className="text-2xl font-bold text-purple-700">
+          <p className="text-2xl font-bold text-purple-700 dark:text-purple-400">
             R$ {metrics.cac.toFixed(2)}
           </p>
-          <p className="text-xs text-purple-600 mt-1">
+          <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">
             Investimento / Novos Clientes
           </p>
         </div>
 
         {/* LTV */}
-        <div className="p-4 bg-orange-50 rounded-lg border border-orange-100">
+        <div className="p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-100 dark:border-orange-800">
           <div className="flex items-center gap-2 mb-2">
-            <TrendingUp className="w-5 h-5 text-orange-600" />
-            <span className="text-sm font-medium text-orange-900">LTV (Lifetime Value)</span>
+            <TrendingUp className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+            <span className="text-sm font-medium text-orange-900 dark:text-orange-300">LTV (Lifetime Value)</span>
           </div>
-          <p className="text-2xl font-bold text-orange-700">
+          <p className="text-2xl font-bold text-orange-700 dark:text-orange-400">
             R$ {metrics.ltv.toFixed(2)}
           </p>
-          <p className="text-xs text-orange-600 mt-1">
+          <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
             Receita média por cliente
           </p>
         </div>
 
         {/* Receita Total */}
-        <div className="p-4 bg-indigo-50 rounded-lg border border-indigo-100">
+        <div className="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg border border-indigo-100 dark:border-indigo-800">
           <div className="flex items-center gap-2 mb-2">
-            <DollarSign className="w-5 h-5 text-indigo-600" />
-            <span className="text-sm font-medium text-indigo-900">Receita Total</span>
+            <DollarSign className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+            <span className="text-sm font-medium text-indigo-900 dark:text-indigo-300">Receita Total</span>
           </div>
-          <p className="text-2xl font-bold text-indigo-700">
+          <p className="text-2xl font-bold text-indigo-700 dark:text-indigo-400">
             R$ {metrics.totalRevenue.toFixed(2)}
           </p>
-          <p className="text-xs text-indigo-600 mt-1">
+          <p className="text-xs text-indigo-600 dark:text-indigo-400 mt-1">
             Soma de todas as transações
           </p>
         </div>
@@ -213,19 +213,19 @@ export default function CACLTVCalculator({ merchantId, dateRange }) {
         {/* ROI */}
         <div className={`p-4 rounded-lg border ${
           metrics.roi > 0 
-            ? 'bg-green-50 border-green-100' 
-            : 'bg-red-50 border-red-100'
+            ? 'bg-green-50 dark:bg-green-900/20 border-green-100 dark:border-green-800' 
+            : 'bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800'
         }`}>
           <div className="flex items-center gap-2 mb-2">
-            <TrendingUp className={`w-5 h-5 ${metrics.roi > 0 ? 'text-green-600' : 'text-red-600'}`} />
-            <span className={`text-sm font-medium ${metrics.roi > 0 ? 'text-green-900' : 'text-red-900'}`}>
+            <TrendingUp className={`w-5 h-5 ${metrics.roi > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`} />
+            <span className={`text-sm font-medium ${metrics.roi > 0 ? 'text-green-900 dark:text-green-300' : 'text-red-900 dark:text-red-300'}`}>
               ROI (Retorno)
             </span>
           </div>
-          <p className={`text-2xl font-bold ${metrics.roi > 0 ? 'text-green-700' : 'text-red-700'}`}>
+          <p className={`text-2xl font-bold ${metrics.roi > 0 ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>
             {metrics.roi > 0 ? '+' : ''}{(metrics.roi * 100).toFixed(1)}%
           </p>
-          <p className={`text-xs mt-1 ${metrics.roi > 0 ? 'text-green-600' : 'text-red-600'}`}>
+          <p className={`text-xs mt-1 ${metrics.roi > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
             (Receita - Custo) / Custo
           </p>
         </div>
@@ -233,21 +233,21 @@ export default function CACLTVCalculator({ merchantId, dateRange }) {
 
       {/* Análise LTV/CAC */}
       {metrics.cac > 0 && (
-        <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-          <p className="text-sm font-medium text-gray-700 mb-2">
+        <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             📊 Análise LTV/CAC Ratio
           </p>
           <div className="flex items-center gap-4">
-            <div className="text-3xl font-bold text-primary-700">
+            <div className="text-3xl font-bold text-primary-700 dark:text-primary-400">
               {(metrics.ltv / metrics.cac).toFixed(2)}x
             </div>
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-gray-600 dark:text-gray-400">
               {metrics.ltv / metrics.cac >= 3 ? (
-                <span className="text-green-600 font-medium">✅ Excelente! Ratio acima de 3:1</span>
+                <span className="text-green-600 dark:text-green-400 font-medium">✅ Excelente! Ratio acima de 3:1</span>
               ) : metrics.ltv / metrics.cac >= 1 ? (
-                <span className="text-yellow-600 font-medium">⚠️ Bom, mas pode melhorar</span>
+                <span className="text-yellow-600 dark:text-yellow-400 font-medium">⚠️ Bom, mas pode melhorar</span>
               ) : (
-                <span className="text-red-600 font-medium">❌ Atenção! LTV menor que CAC</span>
+                <span className="text-red-600 dark:text-red-400 font-medium">❌ Atenção! LTV menor que CAC</span>
               )}
             </div>
           </div>

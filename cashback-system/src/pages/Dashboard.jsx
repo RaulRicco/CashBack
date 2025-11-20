@@ -190,15 +190,15 @@ export default function Dashboard() {
           {/* Cashback Pendente */}
           <div className="card">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 Cashback Ativo
               </h3>
-              <ArrowUpRight className="w-5 h-5 text-green-600" />
+              <ArrowUpRight className="w-5 h-5 text-green-600 dark:text-green-400" />
             </div>
-            <div className="text-3xl font-bold text-green-600 mb-2">
+            <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
               R$ {stats.totalCashbackGiven.toFixed(2)}
             </div>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Total distribuído no período
             </p>
           </div>
@@ -206,15 +206,15 @@ export default function Dashboard() {
           {/* Resgates */}
           <div className="card">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 Resgates Realizados
               </h3>
-              <ArrowDownRight className="w-5 h-5 text-red-600" />
+              <ArrowDownRight className="w-5 h-5 text-red-600 dark:text-red-400" />
             </div>
-            <div className="text-3xl font-bold text-red-600 mb-2">
+            <div className="text-3xl font-bold text-red-600 dark:text-red-400 mb-2">
               R$ {stats.totalRedemptions.toFixed(2)}
             </div>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Total resgatado no período
             </p>
           </div>
