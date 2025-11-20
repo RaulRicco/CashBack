@@ -1,0 +1,85 @@
+╔════════════════════════════════════════════════════════════════════╗
+║                                                                    ║
+║     🔧 CORRIGIR ERRO 406 NO CADASTRO DE CLIENTES - URGENTE       ║
+║                                                                    ║
+╚════════════════════════════════════════════════════════════════════╝
+
+🚨 PROBLEMA IDENTIFICADO:
+   - Erro 406 ao tentar cadastrar cliente
+   - Erro 401 ao inserir na tabela customers
+   - RLS (Row Level Security) bloqueando operações
+
+✅ SOLUÇÃO: Executar SQL no Supabase
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 PASSO A PASSO (COPIAR E COLAR):
+
+1️⃣ Acesse o Supabase:
+   https://supabase.com/dashboard/project/mtylboaluqswdkgljgsd
+
+2️⃣ Vá em: SQL Editor (ícone de raio ⚡ no menu lateral)
+
+3️⃣ Clique em "+ New Query"
+
+4️⃣ COPIE E COLE todo o conteúdo do arquivo abaixo:
+   FIX-CUSTOMERS-RLS.sql
+
+5️⃣ Clique em "RUN" (botão no canto inferior direito)
+
+6️⃣ Aguarde aparecer "Success. No rows returned"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 O QUE O SQL FAZ:
+
+✅ Remove políticas RLS antigas que estão causando conflito
+✅ Cria novas políticas permitindo:
+   - INSERT público (para signup de clientes)
+   - SELECT público (para buscar clientes)
+   - UPDATE público (para atualizar saldo)
+✅ Habilita RLS com as políticas corretas
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚡ ALTERNATIVA RÁPIDA (Se o SQL não resolver):
+
+Se preferir desabilitar RLS temporariamente para testar:
+
+1️⃣ No SQL Editor do Supabase, execute:
+
+   ALTER TABLE customers DISABLE ROW LEVEL SECURITY;
+
+2️⃣ Teste o cadastro
+
+3️⃣ Se funcionar, então o problema é RLS mesmo
+
+⚠️  ATENÇÃO: Desabilitar RLS remove a segurança da tabela.
+    Use apenas para TESTAR. Depois habilite novamente com o SQL correto.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔍 VERIFICAR SE FUNCIONOU:
+
+Após executar o SQL:
+
+1. Tente cadastrar um cliente novamente
+2. O erro 406 deve desaparecer
+3. O cadastro deve funcionar normalmente
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📝 ARQUIVOS:
+
+📄 FIX-CUSTOMERS-RLS.sql         ← Execute ESTE arquivo no Supabase
+📄 EXECUTAR-FIX-CUSTOMERS-AGORA.txt ← Você está lendo este arquivo
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💡 ME AVISE DEPOIS:
+
+Depois de executar, me diga:
+✅ "Funcionou! Cliente cadastrou com sucesso"
+❌ "Ainda dá erro 406" (e me envie o novo erro do console)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

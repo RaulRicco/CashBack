@@ -7,6 +7,7 @@ import { initGTM, initMetaPixel } from './lib/tracking';
 // Pages
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import EmailVerification from './pages/EmailVerification';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
@@ -22,8 +23,11 @@ import CustomerCashback from './pages/CustomerCashback';
 import CustomerRedemption from './pages/CustomerRedemption';
 import CustomerDashboard from './pages/CustomerDashboard';
 import CustomerSignup from './pages/CustomerSignup';
+import CustomerLogin from './pages/CustomerLogin';
+import CustomerForgotPassword from './pages/CustomerForgotPassword';
+import CustomerResendVerification from './pages/CustomerResendVerification';
 import ForceUpdate from './pages/ForceUpdate';
-import AdminNotifications from './pages/AdminNotifications';
+import LandingPage from './pages/LandingPage';
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
@@ -84,10 +88,17 @@ function App() {
       
       <Routes>
         {/* Public Routes */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/landing" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/verify-email" element={<EmailVerification />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/customer/signup/:slug" element={<CustomerSignup />} />
+        <Route path="/customer/login/:slug" element={<CustomerLogin />} />
+        <Route path="/customer/forgot-password/:slug" element={<CustomerForgotPassword />} />
+        <Route path="/customer/resend-verification/:slug" element={<CustomerResendVerification />} />
         <Route path="/signup/:slug" element={<CustomerSignup />} />
         <Route path="/force-update" element={<ForceUpdate />} />
         
@@ -159,14 +170,6 @@ function App() {
           element={
             <ProtectedRoute>
               <Settings />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/notifications" 
-          element={
-            <ProtectedRoute>
-              <AdminNotifications />
             </ProtectedRoute>
           } 
         />

@@ -1,0 +1,259 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║              🚀 COMANDOS PARA EXECUTAR NO SERVIDOR VPS                       ║
+║                                                                              ║
+║         Sistema de Recuperação de Senha com Código de 6 Dígitos             ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 PASSO 1: CONECTAR NO SERVIDOR VIA SSH
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ssh usuario@seu-servidor.com
+
+(Substitua com suas credenciais reais)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 PASSO 2: EXECUTAR SCRIPT DE DEPLOY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Copie e cole este comando COMPLETO no terminal:
+
+
+cd /var/www/cashback && \
+git fetch origin genspark_ai_developer && \
+git reset --hard origin/genspark_ai_developer && \
+bash DEPLOY-RECUPERACAO-SENHA.sh
+
+
+⏱️  TEMPO ESTIMADO: 3-5 minutos
+
+O script vai:
+✅ Fazer backup do build anterior
+✅ Baixar código atualizado do GitHub
+✅ Verificar variáveis de ambiente (.env)
+✅ Instalar dependências
+✅ Limpar cache
+✅ Fazer build novo
+✅ Recarregar Nginx
+✅ Reiniciar integration-proxy
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 PASSO 3: CRIAR TABELA NO SUPABASE (⚠️ OBRIGATÓRIO)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Acesse: https://supabase.com
+2. Faça login
+3. Selecione seu projeto (cashback)
+4. Vá em "SQL Editor" (no menu lateral)
+5. Clique em "New Query"
+6. Copie e cole o SQL abaixo:
+
+
+-- ============================================
+-- 🔒 TABELA PARA RECUPERAÇÃO DE SENHA
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  email TEXT NOT NULL,
+  token TEXT NOT NULL UNIQUE,
+  user_type TEXT NOT NULL CHECK (user_type IN ('merchant', 'customer')),
+  user_id UUID,
+  expires_at TIMESTAMP NOT NULL,
+  used BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_password_reset_token ON password_reset_tokens(token);
+CREATE INDEX IF NOT EXISTS idx_password_reset_email ON password_reset_tokens(email);
+CREATE INDEX IF NOT EXISTS idx_password_reset_expires ON password_reset_tokens(expires_at);
+CREATE INDEX IF NOT EXISTS idx_password_reset_used ON password_reset_tokens(used);
+
+ALTER TABLE password_reset_tokens ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Permitir criar tokens de reset"
+ON password_reset_tokens FOR INSERT
+TO anon, authenticated
+WITH CHECK (true);
+
+CREATE POLICY "Permitir ler tokens válidos"
+ON password_reset_tokens FOR SELECT
+TO anon, authenticated
+USING (used = false AND expires_at > NOW());
+
+CREATE POLICY "Permitir marcar token como usado"
+ON password_reset_tokens FOR UPDATE
+TO anon, authenticated
+USING (used = false AND expires_at > NOW())
+WITH CHECK (used = true);
+
+CREATE POLICY "Permitir deletar tokens expirados"
+ON password_reset_tokens FOR DELETE
+TO authenticated
+USING (expires_at < NOW() OR used = true);
+
+
+7. Clique em "RUN" (ou pressione Ctrl+Enter)
+8. Aguarde mensagem de sucesso ✅
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 PASSO 4: TESTAR O SISTEMA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1️⃣  Limpar Cache do Navegador:
+   - Chrome: Ctrl+Shift+Del → Limpar cache
+   - Ou abra aba anônima: Ctrl+Shift+N
+
+2️⃣  Acessar Página de Recuperação:
+   - URL: https://seu-dominio.com/forgot-password
+
+3️⃣  Solicitar Código:
+   - Digite um email cadastrado
+   - Selecione "Estabelecimento" ou "Cliente"
+   - Clique em "Enviar Código de Verificação"
+   - Você será redirecionado automaticamente
+
+4️⃣  Verificar Email:
+   - Abra seu email
+   - ⚠️ Verifique também SPAM/Lixo Eletrônico
+   - Procure email com assunto: "Código de Recuperação de Senha"
+   - Copie o código de 6 dígitos
+
+5️⃣  Redefinir Senha:
+   - Cole o código no campo
+   - Digite nova senha (mínimo 6 caracteres)
+   - Confirme a senha
+   - Clique em "Alterar Senha"
+
+6️⃣  Fazer Login:
+   - Você será redirecionado para /login
+   - Digite seu email
+   - Digite a NOVA senha
+   - Clique em "Entrar"
+   - ✅ Sucesso!
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🐛 SOLUÇÃO DE PROBLEMAS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❌ Email não chega:
+   1. Verifique SPAM/Lixo Eletrônico
+   2. Aguarde até 5 minutos
+   3. Verifique se o email está correto
+   4. Abra console do navegador (F12) e veja os logs
+   5. Acesse: https://resend.com/emails e veja se foi enviado
+
+❌ Código inválido:
+   1. Verifique se digitou os 6 dígitos corretos
+   2. Código expira em 15 minutos - solicite novo se expirou
+   3. Código só pode ser usado uma vez
+   4. Verifique se selecionou o tipo correto (Estabelecimento/Cliente)
+
+❌ Tabela não existe:
+   1. Execute novamente o SQL no Supabase
+   2. Verifique se não houve erro ao executar
+   3. Aguarde alguns segundos e tente novamente
+
+❌ Build falhou:
+   1. Verifique se Node.js está instalado: node --version
+   2. Verifique se npm está instalado: npm --version
+   3. Execute novamente o script de deploy
+   4. Veja logs em: /var/www/cashback/cashback-system/
+
+❌ Nginx não reiniciou:
+   1. Verifique status: sudo systemctl status nginx
+   2. Teste config: sudo nginx -t
+   3. Reinicie manualmente: sudo systemctl restart nginx
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📁 ARQUIVOS IMPORTANTES NO SERVIDOR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📂 Projeto:
+   /var/www/cashback/
+
+📂 Aplicação:
+   /var/www/cashback/cashback-system/
+
+📄 Build:
+   /var/www/cashback/cashback-system/dist/
+
+📄 SQL para Supabase:
+   /var/www/cashback/CRIAR-TABELA-PASSWORD-RESET.sql
+
+📖 Documentação:
+   /var/www/cashback/CONFIGURAR-RECUPERACAO-SENHA.md
+
+🔧 Logs do proxy:
+   /var/www/cashback/integration-proxy.log
+
+📦 Backups:
+   /var/www/cashback/backup-dist-YYYYMMDD-HHMMSS/
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔍 COMANDOS ÚTEIS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Ver status do Nginx
+sudo systemctl status nginx
+
+# Ver logs do Nginx
+sudo tail -f /var/log/nginx/error.log
+
+# Ver logs do integration-proxy
+tail -f /var/www/cashback/integration-proxy.log
+
+# Verificar processos Node
+ps aux | grep node
+
+# Reiniciar Nginx
+sudo systemctl restart nginx
+
+# Verificar se porta 3001 está em uso (proxy)
+sudo netstat -tulpn | grep 3001
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ CHECKLIST FINAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Antes de testar:
+□ Script de deploy executado com sucesso
+□ Tabela password_reset_tokens criada no Supabase
+□ Cache do navegador limpo
+□ Email do Resend funcionando
+
+Testado:
+□ Página /forgot-password carrega
+□ Consegue solicitar código
+□ Email chega com código de 6 dígitos
+□ Página /reset-password aceita o código
+□ Senha é alterada com sucesso
+□ Login funciona com nova senha
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎉 PRONTO!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Depois de executar esses passos, o sistema de recuperação de senha estará
+100% funcional em produção!
+
+Se tiver algum problema, verifique os logs ou me avise! 🚀
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║                     Pull Request: #2 no GitHub                               ║
+║              https://github.com/RaulRicco/CashBack/pull/2                    ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝

@@ -7,4 +7,20 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Configuração com headers corretos para evitar erro 406
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  global: {
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    }
+  },
+  db: {
+    schema: 'public'
+  },
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true
+  }
+});

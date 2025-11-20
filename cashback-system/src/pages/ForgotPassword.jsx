@@ -1,70 +1,41 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
-import { Mail, ArrowLeft, Key } from 'lucide-react';
-import { getLogo, getBrandName } from '../config/branding';
+import { Mail, ArrowLeft, Send } from 'lucide-react';
+import { BRAND_CONFIG, getLogo, getBrandName } from '../config/branding';
+import { requestPasswordReset } from '../lib/passwordReset';
 
 export default function ForgotPassword() {
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
-  const [tokenSent, setTokenSent] = useState(false);
+  const [userType, setUserType] = useState('merchant'); // 'merchant' ou 'customer'
+  const [loading, setLoading] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!email) {
+      toast.error('Por favor, digite seu email');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      // Buscar employee pelo email
-      const { data: employee, error: findError } = await supabase
-        .from('employees')
-        .select('id, name, email')
-        .eq('email', email)
-        .single();
-
-      if (findError || !employee) {
-        toast.error('Email não encontrado');
-        setLoading(false);
-        return;
-      }
-
-      // Gerar token único (6 dígitos numéricos)
-      const token = Math.floor(100000 + Math.random() * 900000).toString();
+      const result = await requestPasswordReset(email, userType);
       
-      // Calcular expiração (30 minutos a partir de agora)
-      const expiresAt = new Date();
-      expiresAt.setMinutes(expiresAt.getMinutes() + 30);
-
-      // Criar registro de token no banco
-      const { error: tokenError } = await supabase
-        .from('password_recovery_tokens')
-        .insert({
-          employee_id: employee.id,
-          token: token,
-          expires_at: expiresAt.toISOString(),
-          used: false
-        });
-
-      if (tokenError) throw tokenError;
-
-      // Mostrar token na tela (em produção, enviar por email)
-      toast.success(
-        `Token de recuperação gerado! Código: ${token}`,
-        { duration: 10000 }
-      );
-
-      setTokenSent(true);
-
-      // Redirecionar para página de reset após 3 segundos
-      setTimeout(() => {
-        navigate(`/reset-password?token=${token}`);
-      }, 3000);
-
+      if (result.success) {
+        toast.success(result.message);
+        setEmailSent(true);
+        setLoading(false);
+      } else {
+        toast.error(result.error || 'Erro ao enviar email');
+        setLoading(false);
+      }
     } catch (error) {
-      console.error('Erro ao gerar token:', error);
-      toast.error('Erro ao processar solicitação. Tente novamente.');
-    } finally {
+      console.error('Erro ao solicitar reset:', error);
+      toast.error('Erro ao processar solicitação');
       setLoading(false);
     }
   };
@@ -72,7 +43,17 @@ export default function ForgotPassword() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-600 via-primary-700 to-primary-900 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
-        {/* Header */}
+        
+        {/* Botão Voltar */}
+        <button
+          onClick={() => navigate('/login')}
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span className="text-sm font-medium">Voltar para login</span>
+        </button>
+
+        {/* Logo e Título */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center mb-4">
             <img 
@@ -84,20 +65,92 @@ export default function ForgotPassword() {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Recuperar Senha
           </h1>
-          <p className="text-gray-600">
-            {tokenSent 
-              ? 'Token gerado com sucesso! Redirecionando...'
-              : 'Digite seu email para receber o código de recuperação'
-            }
+          <p className="text-gray-600 text-sm">
+            Digite seu email para receber o código de verificação
           </p>
         </div>
 
-        {!tokenSent ? (
+        {/* Mensagem de Sucesso */}
+        {emailSent ? (
+          <div className="space-y-6">
+            <div className="bg-green-50 border-2 border-green-200 rounded-lg p-6 text-center">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Mail className="w-8 h-8 text-green-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Email Enviado!
+              </h3>
+              <p className="text-gray-600 text-sm mb-4">
+                Enviamos um link de recuperação para:
+              </p>
+              <p className="text-primary-600 font-medium mb-4">
+                {email}
+              </p>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-left">
+                <p className="text-blue-900 text-xs leading-relaxed">
+                  <strong>📧 Próximos passos:</strong>
+                  <br />
+                  1. Verifique sua caixa de entrada (e spam)
+                  <br />
+                  2. Clique no link de recuperação no email
+                  <br />
+                  3. Defina sua nova senha
+                  <br /><br />
+                  <strong>⏱️ O link expira em 1 hora</strong>
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => {
+                setEmailSent(false);
+                setEmail('');
+              }}
+              className="w-full flex items-center justify-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Voltar
+            </button>
+          </div>
+        ) : (
+          /* Formulário */
           <form onSubmit={handleSubmit} className="space-y-6">
+            
+            {/* Tipo de Usuário */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Tipo de Conta
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setUserType('merchant')}
+                  className={`py-3 px-4 rounded-lg border-2 font-medium transition-all ${
+                    userType === 'merchant'
+                      ? 'border-primary-600 bg-primary-50 text-primary-700'
+                      : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                  }`}
+                >
+                  🏪 Estabelecimento
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setUserType('customer')}
+                  className={`py-3 px-4 rounded-lg border-2 font-medium transition-all ${
+                    userType === 'customer'
+                      ? 'border-primary-600 bg-primary-50 text-primary-700'
+                      : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                  }`}
+                >
+                  👤 Cliente
+                </button>
+              </div>
+            </div>
+
             {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email cadastrado
+                Email
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -105,75 +158,44 @@ export default function ForgotPassword() {
                 </div>
                 <input
                   id="email"
-                  name="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   placeholder="seu@email.com"
                 />
               </div>
             </div>
 
-            {/* Info */}
+            {/* Botão Submit */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+            >
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  Enviando...
+                </>
+              ) : (
+                <>
+                  <Send className="w-5 h-5" />
+                  Enviar Código de Verificação
+                </>
+              )}
+            </button>
+
+            {/* Informação de Segurança */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex items-start gap-3">
-                <Key className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                <div className="text-sm text-blue-800">
-                  <p className="font-medium mb-1">Como funciona:</p>
-                  <ol className="list-decimal list-inside space-y-1 text-xs">
-                    <li>Digite seu email cadastrado</li>
-                    <li>Você receberá um código de 6 dígitos</li>
-                    <li>Use o código para criar uma nova senha</li>
-                    <li>O código expira em 30 minutos</li>
-                  </ol>
-                </div>
-              </div>
-            </div>
-
-            {/* Botões */}
-            <div className="flex flex-col gap-3">
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
-              >
-                {loading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                    Processando...
-                  </>
-                ) : (
-                  <>
-                    <Key className="w-5 h-5" />
-                    Gerar Código de Recuperação
-                  </>
-                )}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => navigate('/login')}
-                className="w-full flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-lg transition-colors"
-              >
-                <ArrowLeft className="w-5 h-5" />
-                Voltar para Login
-              </button>
+              <p className="text-blue-800 text-xs leading-relaxed">
+                <strong>🔒 Segurança:</strong> Por motivos de segurança, não informaremos se o email existe em nosso sistema. Se o email estiver cadastrado, você receberá um código de 6 dígitos para recuperação.
+              </p>
             </div>
           </form>
-        ) : (
-          <div className="text-center space-y-4">
-            <div className="animate-pulse">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-                <Key className="w-8 h-8 text-green-600" />
-              </div>
-            </div>
-            <p className="text-gray-600">
-              Redirecionando para redefinição de senha...
-            </p>
-          </div>
         )}
+
       </div>
     </div>
   );

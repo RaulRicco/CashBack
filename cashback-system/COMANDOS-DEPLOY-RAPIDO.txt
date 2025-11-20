@@ -1,0 +1,202 @@
+################################################################################
+# COMANDOS PARA DEPLOY RÁPIDO - COPIAR E COLAR
+# Sistema de Cashback - Correção de Isolamento de Dados
+################################################################################
+
+================================================================================
+OPÇÃO 1: DEPLOY AUTOMATIZADO (MAIS RÁPIDO) ⚡
+================================================================================
+
+# Conectar ao servidor
+ssh usuario@seu-servidor.com
+
+# Navegar para o projeto
+cd /var/www/cashback
+
+# Atualizar código e baixar script
+git fetch origin genspark_ai_developer && \
+git reset --hard origin/genspark_ai_developer && \
+chmod +x DEPLOY-ISOLAMENTO-DADOS.sh && \
+bash DEPLOY-ISOLAMENTO-DADOS.sh
+
+
+================================================================================
+OPÇÃO 2: COMANDOS MANUAIS (SE O SCRIPT FALHAR) 🔧
+================================================================================
+
+# 1. Conectar ao servidor
+ssh usuario@seu-servidor.com
+
+# 2. Ir para o projeto
+cd /var/www/cashback
+
+# 3. Atualizar código
+git fetch origin genspark_ai_developer && \
+git reset --hard origin/genspark_ai_developer
+
+# 4. Limpar cache e build anterior
+rm -rf node_modules/.vite dist
+
+# 5. Instalar dependências
+npm ci
+
+# 6. Gerar build
+npm run build
+
+# 7. Recarregar Nginx
+sudo nginx -t && sudo systemctl reload nginx
+
+# 8. Reiniciar integration-proxy (se existir)
+pm2 restart integration-proxy
+
+
+================================================================================
+COMANDOS DE VERIFICAÇÃO ✅
+================================================================================
+
+# Verificar se build foi gerado
+ls -la dist/
+
+# Ver último commit aplicado
+git log -1 --oneline
+
+# Testar Nginx
+curl -I http://localhost
+
+# Ver logs do Nginx
+sudo tail -20 /var/log/nginx/error.log
+
+# Ver status do PM2
+pm2 status
+
+# Ver logs do integration-proxy
+pm2 logs integration-proxy --lines 20
+
+
+================================================================================
+COMANDOS DE EMERGÊNCIA (REVERTER) 🚨
+================================================================================
+
+# Ver backups disponíveis
+ls -la /var/www/backups/cashback/
+
+# Restaurar backup específico
+cd /var/www/cashback && \
+rm -rf dist && \
+tar -xzf /var/www/backups/cashback/backup_YYYYMMDD_HHMMSS.tar.gz && \
+sudo systemctl reload nginx
+
+# OU voltar commit anterior
+git log --oneline -5
+git reset --hard COMMIT_ANTERIOR
+npm run build
+sudo systemctl reload nginx
+
+
+================================================================================
+COMANDO ÚNICO (TUDO DE UMA VEZ) 🚀
+================================================================================
+
+# Este comando faz TUDO em uma única linha:
+ssh usuario@seu-servidor.com "cd /var/www/cashback && \
+git fetch origin genspark_ai_developer && \
+git reset --hard origin/genspark_ai_developer && \
+rm -rf node_modules/.vite dist && \
+npm ci && \
+npm run build && \
+sudo nginx -t && sudo systemctl reload nginx && \
+pm2 restart integration-proxy 2>/dev/null || true && \
+echo '✅ Deploy concluído!' && \
+git log -1 --oneline"
+
+
+================================================================================
+VERIFICAR ARQUIVO .ENV (IMPORTANTE!) 🔑
+================================================================================
+
+# Ver variáveis (sem mostrar valores completos)
+cat .env | grep "^VITE_" | sed 's/=.*/=***/'
+
+# Se .env não existir, criar:
+cat > .env << 'EOF'
+VITE_SUPABASE_URL=https://mtylboaluqswdkgljgsd.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10eWxib2FsdXFzd2RrZ2xqZ3NkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzAwNDMyMzIsImV4cCI6MjA0NTYxOTIzMn0.rOWvxiKNLu6kbdQ8PVPxYpzJLf0qKvSbJOB9VeFGn1I
+VITE_RESEND_API_KEY=re_gqFK8iHM_CS85k3Gj5Rvkx4VpfEC3b2GF
+VITE_RESEND_FROM_EMAIL=onboarding@resend.dev
+VITE_RESEND_FROM_NAME=Local CashBack
+VITE_ONESIGNAL_APP_ID=e2b2fb1d-4a56-470f-a33a-aeb35e99631d
+VITE_ONESIGNAL_REST_API_KEY=os_v2_app_a5p2iaxr4vb7rgzmfymtidtvmyztnkebpfglnc5qxrk4n3ptvtptclrxbsttqlxs
+EOF
+
+
+================================================================================
+TESTAR ISOLAMENTO DE DADOS (APÓS DEPLOY) 🧪
+================================================================================
+
+# 1. Acesse o dashboard
+# URL: https://seu-dominio.com
+
+# 2. Faça login em um estabelecimento existente
+# ✅ Deve mostrar apenas clientes daquele estabelecimento
+
+# 3. Crie um novo estabelecimento
+# ✅ Deve mostrar ZERO clientes
+# ✅ Deve mostrar ZERO transações
+
+# 4. Faça uma venda no novo estabelecimento
+# ✅ Contador deve ir para 1 cliente
+
+# 5. Volte para o estabelecimento anterior
+# ✅ NÃO deve mostrar o novo cliente
+
+
+================================================================================
+INFORMAÇÕES DO SERVIDOR 📊
+================================================================================
+
+# Versões instaladas
+node -v
+npm -v
+nginx -v
+
+# Espaço em disco
+df -h /var/www
+
+# Memória disponível
+free -h
+
+# Processos Node.js
+ps aux | grep node
+
+
+================================================================================
+NOTAS IMPORTANTES 📝
+================================================================================
+
+⚠️  Sempre execute 'git fetch' antes de fazer deploy
+⚠️  Verifique se o arquivo .env existe e tem todas as variáveis
+⚠️  Teste em um estabelecimento de teste antes de usar em produção
+⚠️  Mantenha backups antes de fazer deploy
+⚠️  Certifique-se de estar na branch 'genspark_ai_developer'
+
+✅  Este deploy corrige o problema de isolamento de dados
+✅  Novos estabelecimentos começarão com contadores zerados
+✅  Cada loja verá apenas seus próprios clientes
+✅  Estatísticas completamente isoladas por estabelecimento
+
+
+================================================================================
+CONTATO E SUPORTE 💬
+================================================================================
+
+Se tiver problemas:
+1. Verifique os logs: sudo tail -f /var/log/nginx/error.log
+2. Verifique status: sudo systemctl status nginx
+3. Verifique PM2: pm2 logs
+4. Revise o arquivo INSTRUCOES-DEPLOY.md para detalhes
+
+Pull Request: https://github.com/RaulRicco/CashBack/pull/2
+
+################################################################################
+# FIM DOS COMANDOS
+################################################################################

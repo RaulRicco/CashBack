@@ -4,50 +4,68 @@ import { DollarSign, TrendingUp, Users, Calculator } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function CACLTVCalculator({ merchantId, dateRange }) {
-  const [marketingSpend, setMarketingSpend] = useState('');
-  const [saving, setSaving] = useState(false);
+  const [marketingSpend, setMarketingSpend] = useState(0);
   const [metrics, setMetrics] = useState({
     totalSpend: 0,
     newCustomers: 0,
     cac: 0,
     avgRevenue: 0,
+    totalRevenue: 0,
     ltv: 0,
     roi: 0
   });
 
+  // Zerar investimento ao mudar período
+  useEffect(() => {
+    if (merchantId) {
+      setMarketingSpend(0);
+    }
+  }, [dateRange]);
+
+  // Recalcular métricas quando mudar investimento ou período
   useEffect(() => {
     if (merchantId) {
       loadMetrics();
     }
-  }, [merchantId, dateRange]);
+  }, [merchantId, dateRange, marketingSpend]);
 
   const loadMetrics = async () => {
     try {
-      // Total gasto em marketing no período
-      const { data: spendData } = await supabase
-        .from('marketing_spend')
-        .select('amount')
-        .eq('merchant_id', merchantId)
-        .gte('date', dateRange.start)
-        .lte('date', dateRange.end);
+      // NÃO busca mais do banco - usa apenas o valor digitado
+      // Total investido agora é dinâmico (apenas na memória)
+      const totalSpend = parseFloat(marketingSpend) || 0;
 
-      const totalSpend = spendData?.reduce((sum, s) => sum + parseFloat(s.amount), 0) || 0;
-
-      // Novos clientes no período
-      const { count: newCustomers } = await supabase
-        .from('customers')
-        .select('id', { count: 'exact', head: true })
-        .gte('created_at', dateRange.start)
-        .lte('created_at', dateRange.end + 'T23:59:59');
-
-      // Receita total (soma das transações)
+      // Receita total (soma das transações) - BUSCAR PRIMEIRO
       const { data: transactions } = await supabase
         .from('transactions')
-        .select('amount, customer_id')
+        .select('amount, customer_id, created_at')
         .eq('merchant_id', merchantId)
         .eq('status', 'completed')
         .gte('created_at', dateRange.start)
         .lte('created_at', dateRange.end + 'T23:59:59');
+
+      // Novos clientes no período - através das transações deste merchant
+      const { data: allTransactions } = await supabase
+        .from('transactions')
+        .select('customer_id, created_at')
+        .eq('merchant_id', merchantId)
+        .eq('status', 'completed')
+        .order('created_at', { ascending: true });
+
+      // Identificar novos clientes (primeira transação no período)
+      const uniqueCustomerIds = [...new Set(allTransactions?.map(t => t.customer_id) || [])];
+      const newCustomersInPeriod = uniqueCustomerIds.filter(customerId => {
+        const firstTransaction = allTransactions.find(t => t.customer_id === customerId);
+        if (firstTransaction) {
+          const firstDate = new Date(firstTransaction.created_at);
+          const startDate = new Date(dateRange.start);
+          const endDate = new Date(dateRange.end + 'T23:59:59');
+          return firstDate >= startDate && firstDate <= endDate;
+        }
+        return false;
+      });
+      
+      const newCustomers = newCustomersInPeriod.length;
 
       const totalRevenue = transactions?.reduce((sum, t) => sum + parseFloat(t.amount), 0) || 0;
       const uniqueCustomers = new Set(transactions?.map(t => t.customer_id)).size || 1;
@@ -56,17 +74,18 @@ export default function CACLTVCalculator({ merchantId, dateRange }) {
       const cac = newCustomers > 0 ? totalSpend / newCustomers : 0;
       const avgRevenue = uniqueCustomers > 0 ? totalRevenue / uniqueCustomers : 0;
       
-      // LTV simplificado: Receita média por cliente (pode ser refinado com mais dados)
-      const ltv = avgRevenue;
+      // LTV: Receita total dividida por novos clientes (não por clientes únicos)
+      const ltv = newCustomers > 0 ? totalRevenue / newCustomers : 0;
       
-      // ROI: (Receita - Custo) / Custo * 100
-      const roi = totalSpend > 0 ? ((totalRevenue - totalSpend) / totalSpend) * 100 : 0;
+      // ROI: (Receita - Custo) / Custo (SEM multiplicar por 100, já mostramos com %)
+      const roi = totalSpend > 0 ? ((totalRevenue - totalSpend) / totalSpend) : 0;
 
       setMetrics({
         totalSpend,
         newCustomers: newCustomers || 0,
         cac,
         avgRevenue,
+        totalRevenue,
         ltv,
         roi
       });
@@ -75,66 +94,10 @@ export default function CACLTVCalculator({ merchantId, dateRange }) {
     }
   };
 
-  const handleAddSpend = async (e) => {
-    e.preventDefault();
-    
-    if (!merchantId) {
-      toast.error('Erro: Merchant não identificado. Faça login novamente.');
-      return;
-    }
-
-    if (!marketingSpend || parseFloat(marketingSpend) <= 0) {
-      toast.error('Insira um valor válido');
-      return;
-    }
-
-    setSaving(true);
-    try {
-      // Dados mínimos obrigatórios
-      const spendData = {
-        merchant_id: merchantId,
-        amount: parseFloat(marketingSpend),
-        date: new Date().toISOString().split('T')[0]
-      };
-
-      // Tentar adicionar campos opcionais se existirem na tabela
-      // Isso evita erro se a tabela ainda não foi atualizada
-      try {
-        spendData.platform = 'manual';
-      } catch (e) {
-        console.warn('Campo platform não disponível:', e);
-      }
-
-      console.log('Salvando gasto em marketing:', spendData);
-
-      const { data, error } = await supabase
-        .from('marketing_spend')
-        .insert(spendData)
-        .select();
-
-      if (error) {
-        console.error('Erro do Supabase:', error);
-        
-        // Se o erro for sobre coluna faltando, dar mensagem mais clara
-        if (error.message?.includes('column') || error.message?.includes('schema cache')) {
-          toast.error('⚠️ Banco de dados precisa ser atualizado. Execute o script SQL fornecido.');
-          console.error('AÇÃO NECESSÁRIA: Execute supabase-verify-and-fix-marketing-spend.sql no Supabase');
-        } else {
-          toast.error(error.message || 'Erro ao adicionar investimento');
-        }
-        throw error;
-      }
-
-      console.log('Gasto salvo com sucesso:', data);
-      toast.success('Investimento adicionado com sucesso!');
-      setMarketingSpend('');
-      await loadMetrics();
-    } catch (error) {
-      console.error('Erro ao salvar gasto em marketing:', error);
-      // Erro já foi tratado acima, não duplicar toast
-    } finally {
-      setSaving(false);
-    }
+  const handleUpdateSpend = () => {
+    // Apenas recalcula as métricas com o novo valor
+    // Não salva no banco, é apenas dinâmico
+    loadMetrics();
   };
 
   return (
@@ -146,8 +109,8 @@ export default function CACLTVCalculator({ merchantId, dateRange }) {
         </h2>
       </div>
 
-      {/* Formulário para adicionar gasto */}
-      <form onSubmit={handleAddSpend} className="mb-6 p-4 bg-gray-50 rounded-lg">
+      {/* Campo dinâmico de investimento */}
+      <div className="mb-6 p-4 bg-gray-50 rounded-lg">
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Adicionar Investimento em Tráfego
         </label>
@@ -158,21 +121,28 @@ export default function CACLTVCalculator({ merchantId, dateRange }) {
               type="number"
               step="0.01"
               min="0"
-              value={marketingSpend}
-              onChange={(e) => setMarketingSpend(e.target.value)}
+              value={marketingSpend || ''}
+              onChange={(e) => {
+                setMarketingSpend(parseFloat(e.target.value) || 0);
+                // Recalcula automaticamente ao digitar
+                setTimeout(() => handleUpdateSpend(), 300);
+              }}
               placeholder="0,00"
               className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
             />
           </div>
           <button
-            type="submit"
-            disabled={saving}
+            type="button"
+            onClick={handleUpdateSpend}
             className="btn-primary whitespace-nowrap"
           >
-            {saving ? 'Salvando...' : 'Adicionar'}
+            Calcular
           </button>
         </div>
-      </form>
+        <p className="text-xs text-gray-500 mt-2">
+          💡 Valor dinâmico - será zerado ao atualizar a página ou trocar o período
+        </p>
+      </div>
 
       {/* Métricas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -226,14 +196,17 @@ export default function CACLTVCalculator({ merchantId, dateRange }) {
           </p>
         </div>
 
-        {/* Receita Média */}
+        {/* Receita Total */}
         <div className="p-4 bg-indigo-50 rounded-lg border border-indigo-100">
           <div className="flex items-center gap-2 mb-2">
             <DollarSign className="w-5 h-5 text-indigo-600" />
-            <span className="text-sm font-medium text-indigo-900">Receita Média</span>
+            <span className="text-sm font-medium text-indigo-900">Receita Total</span>
           </div>
           <p className="text-2xl font-bold text-indigo-700">
-            R$ {metrics.avgRevenue.toFixed(2)}
+            R$ {metrics.totalRevenue.toFixed(2)}
+          </p>
+          <p className="text-xs text-indigo-600 mt-1">
+            Soma de todas as transações
           </p>
         </div>
 
@@ -250,7 +223,7 @@ export default function CACLTVCalculator({ merchantId, dateRange }) {
             </span>
           </div>
           <p className={`text-2xl font-bold ${metrics.roi > 0 ? 'text-green-700' : 'text-red-700'}`}>
-            {metrics.roi > 0 ? '+' : ''}{metrics.roi.toFixed(1)}%
+            {metrics.roi > 0 ? '+' : ''}{(metrics.roi * 100).toFixed(1)}%
           </p>
           <p className={`text-xs mt-1 ${metrics.roi > 0 ? 'text-green-600' : 'text-red-600'}`}>
             (Receita - Custo) / Custo

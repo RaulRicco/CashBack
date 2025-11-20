@@ -41,14 +41,14 @@ export const BRAND_CONFIG = {
   // ==========================================
   
   /**
-   * Logo principal (PNG ou SVG)
+   * Logo principal (PNG com transparência)
    * Caminho relativo a /public/
    */
   logo: {
-    main: '/logo-light.png',        // Logo completa com texto (fundo claro)
-    icon: '/logo-icon.png',         // Apenas ícone circular (para favicons)
-    light: '/logo-light.png',       // Versão clara (fundos claros)
-    dark: '/logo-dark.png',         // Versão escura (fundos escuros)
+    main: '/logo-localcashback.png',        // Logo completa horizontal (fundo transparente)
+    icon: '/logo-icon.png',                 // Apenas ícone circular (fundo transparente)
+    light: '/logo-localcashback.png',       // Versão clara (fundos claros)
+    dark: '/logo-localcashback.png',        // Versão escura (fundos escuros)
   },
   
   /**
