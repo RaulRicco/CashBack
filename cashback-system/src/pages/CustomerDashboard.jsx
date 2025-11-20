@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Wallet, Gift, History, TrendingUp, Loader, ArrowUpCircle, ArrowDownCircle, Filter, Lock, Store, Mail } from 'lucide-react';
+import { Wallet, Gift, History, TrendingUp, Loader, ArrowUpCircle, ArrowDownCircle, Filter, Lock, Store, Mail, Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -10,9 +10,11 @@ import MerchantSEO from '../components/MerchantSEO';
 
 export default function CustomerDashboard() {
   const { phone } = useParams();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [customer, setCustomer] = useState(null);
   const [merchant, setMerchant] = useState(null);
   const [transactions, setTransactions] = useState([]);
@@ -29,10 +31,38 @@ export default function CustomerDashboard() {
         setAuthenticated(true);
         loadCustomerData();
       } else {
+        // Carregar merchant mesmo sem estar autenticado (para mostrar logo)
+        loadMerchantOnly();
         setLoading(false);
       }
     }
   }, [phone]);
+
+  const loadMerchantOnly = async () => {
+    try {
+      // Buscar cliente apenas para pegar merchant_id
+      const { data: customerData } = await supabase
+        .from('customers')
+        .select('referred_by_merchant_id')
+        .eq('phone', phone)
+        .single();
+
+      if (customerData?.referred_by_merchant_id) {
+        const { data: merchantData } = await supabase
+          .from('merchants')
+          .select('id, name, cashback_program_name, primary_color, secondary_color, accent_color, logo_url, cashback_percentage')
+          .eq('id', customerData.referred_by_merchant_id)
+          .single();
+        
+        if (merchantData) {
+          setMerchant(merchantData);
+          applyMerchantColors(merchantData);
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao carregar merchant:', error);
+    }
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -192,15 +222,28 @@ export default function CustomerDashboard() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Lock className="w-8 h-8 text-white" />
+          {/* Logo do Merchant (se disponível) */}
+          {merchant?.logo_url && (
+            <div className="text-center mb-6">
+              <img 
+                src={merchant.logo_url} 
+                alt={merchant.name}
+                className="h-20 w-auto mx-auto"
+              />
             </div>
+          )}
+          
+          <div className="text-center mb-8">
+            {!merchant?.logo_url && (
+              <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Lock className="w-8 h-8 text-white" />
+              </div>
+            )}
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
               Acesso ao Perfil
             </h1>
             <p className="text-gray-600">
-              Digite sua senha para acessar
+              {merchant?.name ? `Digite sua senha para acessar ${merchant.name}` : 'Digite sua senha para acessar'}
             </p>
           </div>
 
@@ -224,14 +267,26 @@ export default function CustomerDashboard() {
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   placeholder="Digite sua senha"
                   required
                   autoFocus
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                  tabIndex={-1}
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </button>
               </div>
             </div>
 
@@ -247,7 +302,7 @@ export default function CustomerDashboard() {
           <div className="mt-6 text-center">
             <button
               type="button"
-              onClick={() => navigate('/customer/forgot-password')}
+              onClick={() => navigate(`/customer/forgot-password/${phone}`)}
               className="text-sm text-primary-600 hover:text-primary-700 font-medium hover:underline"
             >
               Esqueceu sua senha?
