@@ -700,35 +700,35 @@ export default function Settings() {
         {activeTab === 'signup' && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl font-semibold mb-2 flex items-center gap-2">
-                <Share2 className="w-5 h-5 text-blue-600" />
+              <h2 className="text-xl font-semibold mb-2 flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                <Share2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 Link de Cadastro de Clientes
               </h2>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
                 Compartilhe este link para que novos clientes se cadastrem no seu programa de cashback
               </p>
 
               {/* Link de Cadastro Atual */}
               {signupUrl && (
-                <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 mb-6">
-                  <p className="text-sm font-medium text-gray-700 mb-3">Seu Link de Cadastro:</p>
-                  <div className="flex items-center gap-2 bg-white rounded-lg p-3 border-2 border-green-200">
-                    <code className="flex-1 text-sm text-green-700 font-mono break-all">
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-6 mb-6">
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Seu Link de Cadastro:</p>
+                  <div className="flex items-center gap-2 bg-white dark:bg-gray-800 rounded-lg p-3 border-2 border-green-200 dark:border-green-700">
+                    <code className="flex-1 text-sm text-green-700 dark:text-green-400 font-mono break-all">
                       {signupUrl}
                     </code>
                     <button
                       onClick={() => copyToClipboard(signupUrl)}
-                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
+                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors flex-shrink-0"
                       title="Copiar link"
                     >
                       {copied ? (
-                        <Check className="w-5 h-5 text-green-600" />
+                        <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
                       ) : (
-                        <Copy className="w-5 h-5 text-gray-600" />
+                        <Copy className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                       )}
                     </button>
                   </div>
-                  <p className="text-sm text-gray-600 mt-3">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-3">
                     💡 Compartilhe nas redes sociais, WhatsApp ou coloque no seu site
                   </p>
                 </div>
@@ -744,10 +744,10 @@ export default function Settings() {
                     type="text"
                     value={settings.custom_domain}
                     onChange={(e) => setSettings({ ...settings, custom_domain: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="cashback.minhaloja.com.br"
                   />
-                  <p className="mt-2 text-sm text-gray-500">
+                  <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                     Configure um domínio personalizado para usar nos links de cashback. 
                     Ex: cashback.seusite.com.br
                   </p>
@@ -764,10 +764,10 @@ export default function Settings() {
                       ...settings, 
                       signup_link_slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-')
                     })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
                     placeholder="minha-loja"
                   />
-                  <p className="mt-2 text-sm text-gray-500">
+                  <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                     Use apenas letras minúsculas, números e hífens. 
                     Gerado automaticamente se deixado em branco.
                   </p>
@@ -776,7 +776,7 @@ export default function Settings() {
                 <button
                   onClick={() => handleSave('domain')}
                   disabled={saving}
-                  className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                  className="w-full px-6 py-3 bg-blue-600 dark:bg-blue-500 text-white dark:text-black rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                 >
                   {saving ? 'Salvando...' : 'Salvar Configurações'}
                 </button>
@@ -868,24 +868,24 @@ export default function Settings() {
         {activeTab === 'marketing' && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl font-semibold mb-2 flex items-center gap-2">
-                <Code className="w-5 h-5 text-blue-600" />
+              <h2 className="text-xl font-semibold mb-2 flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                <Code className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 Configurações de Marketing
               </h2>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
                 Configure o Google Tag Manager e Meta Pixel para rastrear conversões e comportamento dos clientes
               </p>
 
               <div className="space-y-6">
                 {/* Google Tag Manager */}
-                <div className="border border-gray-200 rounded-lg p-4">
+                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                   <div className="flex items-start gap-3 mb-4">
-                    <div className="p-2 bg-yellow-100 rounded-lg flex-shrink-0">
-                      <Code className="w-5 h-5 text-yellow-600" />
+                    <div className="p-2 bg-yellow-100 dark:bg-yellow-500 rounded-lg flex-shrink-0">
+                      <Code className="w-5 h-5 text-yellow-600 dark:text-black" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 mb-1">Google Tag Manager</h3>
-                      <p className="text-sm text-gray-600">
+                      <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Google Tag Manager</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
                         ID do container GTM (ex: GTM-XXXXXXX)
                       </p>
                     </div>
@@ -896,20 +896,20 @@ export default function Settings() {
                       type={showGTM ? "text" : "password"}
                       value={settings.gtm_id}
                       onChange={(e) => setSettings({ ...settings, gtm_id: e.target.value })}
-                      className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                      className="w-full px-4 py-2 pr-10 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
                       placeholder="GTM-XXXXXXX"
                     />
                     <button
                       type="button"
                       onClick={() => setShowGTM(!showGTM)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                     >
                       {showGTM ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                   
-                  <div className="mt-3 bg-blue-50 rounded-lg p-3">
-                    <p className="text-xs text-blue-800">
+                  <div className="mt-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
+                    <p className="text-xs text-blue-800 dark:text-blue-400">
                       <strong>Eventos rastreados:</strong> PageView, CashbackGenerated, CashbackScanned, 
                       Purchase, RedemptionGenerated, RedemptionCompleted
                     </p>
@@ -917,14 +917,14 @@ export default function Settings() {
                 </div>
 
                 {/* Meta Pixel */}
-                <div className="border border-gray-200 rounded-lg p-4">
+                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                   <div className="flex items-start gap-3 mb-4">
-                    <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0">
-                      <Code className="w-5 h-5 text-blue-600" />
+                    <div className="p-2 bg-blue-100 dark:bg-blue-500 rounded-lg flex-shrink-0">
+                      <Code className="w-5 h-5 text-blue-600 dark:text-black" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 mb-1">Meta Pixel (Facebook)</h3>
-                      <p className="text-sm text-gray-600">
+                      <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Meta Pixel (Facebook)</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
                         ID do Meta Pixel (somente números)
                       </p>
                     </div>
@@ -935,13 +935,13 @@ export default function Settings() {
                       type={showPixel ? "text" : "password"}
                       value={settings.meta_pixel_id}
                       onChange={(e) => setSettings({ ...settings, meta_pixel_id: e.target.value })}
-                      className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                      className="w-full px-4 py-2 pr-10 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
                       placeholder="123456789012345"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPixel(!showPixel)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                     >
                       {showPixel ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
