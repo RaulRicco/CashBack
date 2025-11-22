@@ -1,0 +1,106 @@
+2025-11-20 20:48:01 +00:00: 🚀 Mailchimp Proxy Server rodando na porta 3001
+2025-11-20 20:48:01 +00:00: 📍 Endpoints disponíveis:
+2025-11-20 20:48:01 +00:00:    - POST http://localhost:3001/api/mailchimp/sync
+2025-11-20 20:48:01 +00:00:    - POST http://localhost:3001/api/mailchimp/test
+2025-11-20 20:48:01 +00:00:    - GET  http://localhost:3001/health
+2025-11-20 20:48:18 +00:00: [2025-11-20T20:48:18.766Z] GET /health
+2025-11-20 20:50:32 +00:00: [2025-11-20T20:50:32.605Z] GET /api/health
+2025-11-20 20:51:48 +00:00: 🚀 Mailchimp Proxy Server rodando na porta 3002
+2025-11-20 20:51:48 +00:00: 📍 Endpoints disponíveis:
+2025-11-20 20:51:48 +00:00:    - POST http://localhost:3002/api/mailchimp/sync
+2025-11-20 20:51:48 +00:00:    - POST http://localhost:3002/api/mailchimp/test
+2025-11-20 20:51:48 +00:00:    - GET  http://localhost:3002/health
+2025-11-20 20:51:50 +00:00: [2025-11-20T20:51:50.299Z] GET /health
+2025-11-20 20:52:41 +00:00: [2025-11-20T20:52:41.515Z] GET /health
+2025-11-20 20:52:41 +00:00: [2025-11-20T20:52:41.525Z] GET /api/health
+2025-11-20 20:53:10 +00:00: [2025-11-20T20:53:10.043Z] GET /health
+2025-11-20 21:00:17 +00:00: [2025-11-20T21:00:17.337Z] POST /api/mailchimp/sync
+2025-11-20 21:00:28 +00:00: [2025-11-20T21:00:28.381Z] POST /mailchimp/sync
+2025-11-20 21:00:37 +00:00: [2025-11-20T21:00:37.441Z] POST /mailchimp/sync
+2025-11-20 21:01:13 +00:00: 🚀 Mailchimp Proxy Server rodando na porta 3002
+2025-11-20 21:01:13 +00:00: 📍 Endpoints disponíveis:
+2025-11-20 21:01:13 +00:00:    - POST http://localhost:3002/api/mailchimp/sync
+2025-11-20 21:01:13 +00:00:    - POST http://localhost:3002/api/mailchimp/test
+2025-11-20 21:01:13 +00:00:    - GET  http://localhost:3002/health
+2025-11-20 21:01:25 +00:00: [2025-11-20T21:01:25.078Z] POST /mailchimp/sync
+2025-11-20 21:08:46 +00:00: [2025-11-20T21:08:46.198Z] GET /health
+2025-11-20 21:08:46 +00:00: [2025-11-20T21:08:46.207Z] GET /health
+2025-11-20 21:16:36 +00:00: [2025-11-20T21:16:36.650Z] POST /mailchimp/sync
+2025-11-21 18:14:49 +00:00: [2025-11-21T18:14:49.621Z] GET /v1/check-version
+2025-11-21 18:14:51 +00:00: [2025-11-21T18:14:51.652Z] GET /version
+2025-11-21 18:14:53 +00:00: [2025-11-21T18:14:53.785Z] GET /server/version
+2025-11-21 18:14:53 +00:00: [2025-11-21T18:14:53.937Z] GET /vip/i18n/api/v2/translation/products/vRNIUI/versions/1
+2025-11-21 18:14:55 +00:00: [2025-11-21T18:14:55.125Z] GET /v1.0/environment
+2025-11-21 18:14:57 +00:00: [2025-11-21T18:14:57.304Z] GET /v3/meta
+2025-11-21 18:15:00 +00:00: [2025-11-21T18:15:00.492Z] GET /v1/info
+2025-11-21 18:15:02 +00:00: [2025-11-21T18:15:02.346Z] GET /status
+2025-11-22 00:35:25 +00:00: [2025-11-22T00:35:25.753Z] POST /mailchimp/sync
+2025-11-22 00:43:30 +00:00: 🚀 Mailchimp Proxy Server rodando na porta 3002
+2025-11-22 00:43:30 +00:00: 📍 Endpoints disponíveis:
+2025-11-22 00:43:30 +00:00:    - POST http://localhost:3002/api/mailchimp/sync
+2025-11-22 00:43:30 +00:00:    - POST http://localhost:3002/api/mailchimp/test
+2025-11-22 00:43:30 +00:00:    - GET  http://localhost:3002/health
+2025-11-22 00:44:40 +00:00: 🚀 Mailchimp Proxy Server rodando na porta 3002
+2025-11-22 00:44:40 +00:00: 📍 Endpoints disponíveis:
+2025-11-22 00:44:40 +00:00:    - POST http://localhost:3002/api/mailchimp/sync
+2025-11-22 00:44:40 +00:00:    - POST http://localhost:3002/api/mailchimp/test
+2025-11-22 00:44:40 +00:00:    - GET  http://localhost:3002/health
+2025-11-22 00:50:56 +00:00: [2025-11-22T00:50:56.781Z] POST /mailchimp/sync
+2025-11-22 00:50:56 +00:00: 📤 Enviando merge_fields: {
+  "FNAME": "Raul",
+  "PHONE": "6111111111",
+  "BIRTHDAY": "07/16"
+}
+2025-11-22 00:50:56 +00:00: ⚠️ Pulando validação de merge fields (skip_merge_validation=true)
+2025-11-22 00:50:57 +00:00: ✅ Contato sincronizado: raulriccoads@gmail.com
+2025-11-22 00:59:06 +00:00: [2025-11-22T00:59:06.102Z] GET /health
+2025-11-22 01:00:31 +00:00: [2025-11-22T01:00:31.703Z] GET /health
+2025-11-22 01:12:36 +00:00: [2025-11-22T01:12:36.030Z] POST /mailchimp/sync
+2025-11-22 01:12:36 +00:00: 📤 Enviando merge_fields: {
+  "FNAME": "Raul",
+  "PHONE": "6111111111",
+  "BIRTHDAY": "07/16"
+}
+2025-11-22 01:12:36 +00:00: ⚠️ Pulando validação de merge fields (skip_merge_validation=true)
+2025-11-22 01:12:36 +00:00: ✅ Contato sincronizado: raulriccoads@gmail.com
+2025-11-22 01:19:58 +00:00: [2025-11-22T01:19:58.915Z] POST /mailchimp/sync
+2025-11-22 01:19:58 +00:00: 📤 Enviando merge_fields: {
+  "FNAME": "Teste",
+  "PHONE": "6178937893",
+  "BIRTHDAY": "07/16"
+}
+2025-11-22 01:19:58 +00:00: ⚠️ Pulando validação de merge fields (skip_merge_validation=true)
+2025-11-22 01:19:59 +00:00: ✅ Contato sincronizado: ricco@gmail.com
+2025-11-22 01:21:51 +00:00: [2025-11-22T01:21:51.977Z] POST /mailchimp/sync
+2025-11-22 01:21:51 +00:00: 📤 Enviando merge_fields: {
+  "FNAME": "Raul",
+  "PHONE": "6111111111",
+  "BIRTHDAY": "07/16"
+}
+2025-11-22 01:21:51 +00:00: ⚠️ Pulando validação de merge fields (skip_merge_validation=true)
+2025-11-22 01:21:52 +00:00: ✅ Contato sincronizado: raulriccoads@gmail.com
+2025-11-22 02:31:37 +00:00: [2025-11-22T02:31:37.283Z] POST /mailchimp/sync
+2025-11-22 02:31:37 +00:00: 📤 Enviando merge_fields: {
+  "FNAME": "Raul",
+  "PHONE": "61992082577",
+  "BIRTHDAY": "07/16"
+}
+2025-11-22 02:31:37 +00:00: ⚠️ Pulando validação de merge fields (skip_merge_validation=true)
+2025-11-22 02:31:38 +00:00: ✅ Contato sincronizado: raulriccoads@gmail.com
+2025-11-22 02:33:56 +00:00: [2025-11-22T02:33:56.430Z] POST /mailchimp/sync
+2025-11-22 02:33:56 +00:00: 📤 Enviando merge_fields: {
+  "FNAME": "Raul Teste",
+  "PHONE": "6111111111",
+  "BIRTHDAY": "07/16"
+}
+2025-11-22 02:33:56 +00:00: ⚠️ Pulando validação de merge fields (skip_merge_validation=true)
+2025-11-22 02:33:57 +00:00: ✅ Contato sincronizado: raul.vendasbsb@gmail.com
+2025-11-22 02:38:07 +00:00: [2025-11-22T02:38:07.678Z] POST /mailchimp/sync
+2025-11-22 02:38:07 +00:00: 📤 Enviando merge_fields: {
+  "FNAME": "Priscila teste",
+  "PHONE": "61981076685",
+  "BIRTHDAY": "08/22"
+}
+2025-11-22 02:38:07 +00:00: ⚠️ Pulando validação de merge fields (skip_merge_validation=true)
+2025-11-22 02:38:08 +00:00: ✅ Contato sincronizado: pprih.24@gmail.com
+2025-11-22 05:35:20 +00:00: [2025-11-22T05:35:20.188Z] POST /index.html
