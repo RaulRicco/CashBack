@@ -5,6 +5,7 @@ import { useAuthStore } from './store/authStore';
 import { initGTM, initMetaPixel } from './lib/tracking';
 
 // Pages
+import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import ForgotPassword from './pages/ForgotPassword';
@@ -86,6 +87,10 @@ function App() {
       />
       
       <Routes>
+        {/* Landing Page - Must be first */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/landing" element={<LandingPage />} />
+        
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
@@ -187,8 +192,7 @@ function App() {
           } 
         />
         
-        {/* Default redirect */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        {/* Catch-all redirect */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>

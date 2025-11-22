@@ -45,10 +45,10 @@ export default function LandingPage() {
       </head>
 
       {/* HERO SECTION - Personagem + Problema */}
-      <section className="relative bg-white text-gray-900 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+      <section className="relative bg-gradient-to-br from-green-50 to-green-100 text-gray-900 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Logo */}
-          <div className="mb-8 inline-block">
+          <div className="mb-4 inline-block">
             <img 
               src="/logo-localcashback.png" 
               alt="LocalCashback - Sistema de Fidelidade" 
