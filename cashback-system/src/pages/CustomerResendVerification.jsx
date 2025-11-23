@@ -27,7 +27,7 @@ export default function CustomerResendVerification() {
         .from('merchants')
         .select('*')
         .eq('signup_link_slug', slug)
-        .eq('is_active', true)
+        .eq('active', true)
         .single();
 
       if (merchantError) throw merchantError;
