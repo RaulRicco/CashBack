@@ -62,6 +62,7 @@ export default function DashboardLayout({ children }) {
     { name: 'Relatórios', href: '/reports', icon: TrendingUp },
     { name: 'Integrações', href: '/integrations', icon: Mail },
     { name: 'Meu CashBack', href: '/whitelabel', icon: Palette },
+    { name: 'Assinatura', href: '/dashboard/assinatura', icon: Store },
     { name: 'Configurações', href: '/settings', icon: Settings },
   ];
 

@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
+import { Link } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
-import { Upload, Palette, Save, RefreshCw } from 'lucide-react';
+import { Upload, Palette, Save, RefreshCw, Lock, TrendingUp } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useSubscription } from '../hooks/useSubscription';
 
 export default function WhiteLabelSettings() {
   const { merchant: authMerchant } = useAuthStore();
+  const { checkFeature, currentPlan } = useSubscription();
   const [merchant, setMerchant] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -183,11 +186,94 @@ export default function WhiteLabelSettings() {
     }
   }
 
+  // Verificar acesso à funcionalidade
+  const hasWhitelabelAccess = checkFeature('whitelabel');
+
   if (loading) {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-64">
           <RefreshCw className="h-8 w-8 animate-spin text-primary-600" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Se não tem acesso, mostrar tela de upgrade
+  if (!hasWhitelabelAccess) {
+    return (
+      <DashboardLayout>
+        <div className="max-w-4xl mx-auto">
+          <div className="relative bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl border-2 border-purple-200 p-12 overflow-hidden">
+            <div className="absolute inset-0 backdrop-blur-sm bg-white/40"></div>
+            
+            <div className="relative z-10 text-center">
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full mb-6">
+                <Lock className="w-10 h-10 text-white" />
+              </div>
+              
+              <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                Whitelabel & Domínio Próprio
+              </h1>
+              
+              <p className="text-xl text-gray-700 mb-2 max-w-2xl mx-auto leading-relaxed">
+                Personalize completamente o sistema com sua marca e tenha seu próprio domínio.
+              </p>
+              
+              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 mb-8 max-w-xl mx-auto">
+                <h3 className="font-semibold text-gray-900 mb-4">Com Whitelabel você pode:</h3>
+                <div className="space-y-2 text-left">
+                  <div className="flex items-center gap-2">
+                    <Palette className="w-5 h-5 text-purple-500 flex-shrink-0" />
+                    <span className="text-gray-700">Personalizar cores da sua marca</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Upload className="w-5 h-5 text-purple-500 flex-shrink-0" />
+                    <span className="text-gray-700">Adicionar sua logo</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-purple-500 flex-shrink-0" />
+                    <span className="text-gray-700">Usar seu próprio domínio</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Palette className="w-5 h-5 text-purple-500 flex-shrink-0" />
+                    <span className="text-gray-700">Sistema totalmente sob sua marca</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-center gap-3 text-lg text-gray-600 mb-8">
+                <span className="font-semibold">Seu plano atual:</span>
+                <span className="px-4 py-2 bg-white rounded-full border-2 border-gray-300 font-bold">
+                  {currentPlan?.name || 'Starter'}
+                </span>
+              </div>
+              
+              <div className="mb-6">
+                <p className="text-gray-700 mb-2">
+                  <strong>Disponível a partir do plano Business</strong>
+                </p>
+                <p className="text-sm text-gray-600">
+                  Tenha seu sistema completamente personalizado com sua marca
+                </p>
+              </div>
+              
+              <Link
+                to="/dashboard/planos"
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold text-lg px-8 py-4 rounded-xl transition-all shadow-xl hover:shadow-2xl"
+              >
+                <TrendingUp className="w-6 h-6" />
+                Fazer Upgrade Agora
+              </Link>
+              
+              <p className="text-sm text-gray-500 mt-6">
+                Plano Business: <strong>R$ 297/mês</strong> | Plano Premium: <strong>R$ 497/mês</strong>
+              </p>
+            </div>
+            
+            <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-purple-400/20 to-pink-400/20 rounded-full blur-3xl"></div>
+          </div>
         </div>
       </DashboardLayout>
     );
