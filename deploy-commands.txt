@@ -1,0 +1,50 @@
+# ========================================
+# 🚀 DEPLOY PRODUÇÃO - LocalCashback v1.5.0
+# ========================================
+# Execute estes comandos no servidor: 31.92.167.88
+
+# 1. Conectar ao servidor
+ssh root@31.92.167.88
+
+# 2. Navegar para o diretório
+cd /var/www/cashback/cashback-system
+
+# 3. Fazer backup
+cp -r dist dist.backup.$(date +%Y%m%d_%H%M%S)
+
+# 4. Atualizar código para v1.5.0
+git fetch origin --tags
+git checkout main
+git reset --hard f924c9e
+
+# 5. Verificar versão
+git log --oneline -1
+git describe --tags
+
+# 6. Instalar dependências
+npm install
+
+# 7. Build de produção
+npm run build
+
+# 8. Verificar build
+ls -lh dist/
+
+# 9. Recarregar nginx
+systemctl reload nginx
+
+# 10. Verificar status
+systemctl status nginx
+
+# 11. Testar site
+curl -I https://cashback.churrascariaboidourado.com.br
+
+# ========================================
+# ✅ PRONTO! Deploy concluído
+# ========================================
+
+# 🔄 Para reverter (se necessário):
+# ls -ldt dist.backup.* | head -1  # Ver backup mais recente
+# rm -rf dist
+# cp -r dist.backup.YYYYMMDD_HHMMSS dist  # Usar o backup
+# systemctl reload nginx

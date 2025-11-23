@@ -1,9 +1,10 @@
 import { supabase } from '../supabase';
 import { syncCustomerToMailchimp } from './mailchimp';
 import { syncCustomerToRDStation } from './rdstation';
+import { syncCustomerToOneSignal } from './onesignal';
 
 /**
- * Serviço unificado de integrações de email marketing
+ * Serviço unificado de integrações (email marketing e push notifications)
  */
 
 /**
@@ -47,6 +48,8 @@ export async function syncCustomerToIntegrations(customer, merchantId, eventType
             result = await syncCustomerToMailchimp(customer, config, eventType);
           } else if (config.provider === 'rdstation') {
             result = await syncCustomerToRDStation(customer, config, eventType);
+          } else if (config.provider === 'onesignal') {
+            result = await syncCustomerToOneSignal(customer, config, eventType);
           }
 
           // Registrar log de sincronização
@@ -139,6 +142,24 @@ export async function testIntegration(provider, credentials) {
         success: true,
         message: '✅ Token validado! Salve a configuração e teste sincronizando um cliente.'
       };
+    } else if (provider === 'onesignal') {
+      if (!credentials.app_id || credentials.app_id.length < 30) {
+        return {
+          success: false,
+          error: 'App ID inválido. Deve ter pelo menos 30 caracteres.'
+        };
+      }
+      if (!credentials.api_key || credentials.api_key.length < 30) {
+        return {
+          success: false,
+          error: 'REST API Key inválida. Deve ter pelo menos 30 caracteres.'
+        };
+      }
+      
+      return {
+        success: true,
+        message: '✅ Credenciais OneSignal validadas! Salve a configuração e teste sincronizando um cliente.'
+      };
     }
 
     return {
@@ -202,9 +223,10 @@ export async function saveIntegrationConfig(merchantId, provider, config) {
       api_key: config.api_key || null,
       api_token: config.api_token || null,
       audience_id: config.audience_id || null,
+      app_id: config.app_id || null, // OneSignal App ID
       sync_on_signup: config.sync_on_signup !== undefined ? config.sync_on_signup : true,
       sync_on_purchase: config.sync_on_purchase !== undefined ? config.sync_on_purchase : true,
-      sync_on_redemption: config.sync_on_redemption !== undefined ? config.sync_on_redemption : false,
+      sync_on_redemption: config.sync_on_redemption !== undefined ? config.sync_on_redemption : true,
       default_tags: config.default_tags || []
     };
 

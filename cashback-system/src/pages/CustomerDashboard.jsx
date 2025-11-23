@@ -1,16 +1,19 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Wallet, Gift, History, TrendingUp, Loader, ArrowUpCircle, ArrowDownCircle, Filter, Lock, Store, Mail, Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import NotificationPermission from '../components/NotificationPermission';
+import OneSignalPrompt from '../components/OneSignalPrompt';
 import MerchantSEO from '../components/MerchantSEO';
 
 export default function CustomerDashboard() {
   const { phone } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const merchantIdFromUrl = searchParams.get('merchant'); // Pega merchant da URL
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
@@ -40,19 +43,27 @@ export default function CustomerDashboard() {
 
   const loadMerchantOnly = async () => {
     try {
-      console.log('🔍 Buscando cliente com telefone:', phone);
+      console.log('🔍 Buscando cliente com telefone:', phone, 'e merchant_id:', merchantIdFromUrl);
       
-      // Buscar cliente apenas para pegar merchant_id (usando limit(1) ao invés de single())
-      const { data: customerList, error: customerError } = await supabase
+      // Buscar cliente filtrado por merchant_id da URL
+      let query = supabase
         .from('customers')
         .select('referred_by_merchant_id')
-        .eq('phone', phone)
-        .order('created_at', { ascending: false })  // Pegar o mais recente
-        .limit(1);
+        .eq('phone', phone);
+      
+      // Se tem merchant na URL, filtrar por ele
+      if (merchantIdFromUrl) {
+        query = query.eq('referred_by_merchant_id', merchantIdFromUrl);
+      } else {
+        // Caso não tenha merchant na URL, pegar o mais recente
+        query = query.order('created_at', { ascending: false }).limit(1);
+      }
+      
+      const { data: customerList, error: customerError } = await query;
 
       const customerData = customerList && customerList.length > 0 ? customerList[0] : null;
 
-      console.log('📞 Resposta da busca do cliente:', { customerData, customerError });
+      console.log('📞 Resposta da busca do cliente:', { customerData, customerError, merchantFilter: merchantIdFromUrl });
 
       if (customerError) {
         console.error('❌ Erro ao buscar cliente:', customerError);
@@ -95,19 +106,27 @@ export default function CustomerDashboard() {
     setLoading(true);
 
     try {
-      console.log('🔐 Tentando fazer login com telefone:', phone);
+      console.log('🔐 Tentando fazer login com telefone:', phone, 'e merchant_id:', merchantIdFromUrl);
       
-      // Buscar cliente e verificar senha (usando limit(1) ao invés de single())
-      const { data: customerList, error: customerError } = await supabase
+      // Buscar cliente filtrado por merchant_id da URL
+      let query = supabase
         .from('customers')
-        .select('id, password_hash')
-        .eq('phone', phone)
-        .order('created_at', { ascending: false })  // Pegar o mais recente
-        .limit(1);
+        .select('id, password_hash, referred_by_merchant_id')
+        .eq('phone', phone);
+      
+      // Se tem merchant na URL, filtrar por ele
+      if (merchantIdFromUrl) {
+        query = query.eq('referred_by_merchant_id', merchantIdFromUrl);
+      } else {
+        // Caso não tenha merchant na URL, pegar o mais recente
+        query = query.order('created_at', { ascending: false }).limit(1);
+      }
+      
+      const { data: customerList, error: customerError } = await query;
 
       const customerData = customerList && customerList.length > 0 ? customerList[0] : null;
 
-      console.log('🔐 Resposta do login:', { customerData, customerError });
+      console.log('🔐 Resposta do login:', { customerData, customerError, merchantFilter: merchantIdFromUrl });
 
       if (customerError) {
         console.error('❌ Erro no login:', customerError);
@@ -183,17 +202,29 @@ export default function CustomerDashboard() {
     try {
       setLoading(true);
 
-      // Buscar cliente (usando limit(1) ao invés de single())
-      const { data: customerList, error: customerError } = await supabase
+      console.log('📂 Carregando dados do cliente com telefone:', phone, 'e merchant_id:', merchantIdFromUrl);
+
+      // Buscar cliente filtrado por merchant_id da URL
+      let query = supabase
         .from('customers')
         .select('*')
-        .eq('phone', phone)
-        .order('created_at', { ascending: false })  // Pegar o mais recente
-        .limit(1);
+        .eq('phone', phone);
+      
+      // Se tem merchant na URL, filtrar por ele
+      if (merchantIdFromUrl) {
+        query = query.eq('referred_by_merchant_id', merchantIdFromUrl);
+      } else {
+        // Caso não tenha merchant na URL, pegar o mais recente
+        query = query.order('created_at', { ascending: false }).limit(1);
+      }
+      
+      const { data: customerList, error: customerError } = await query;
 
       if (customerError) throw customerError;
 
       const customerData = customerList && customerList.length > 0 ? customerList[0] : null;
+      
+      console.log('📂 Cliente carregado:', { found: !!customerData, merchant_id: customerData?.referred_by_merchant_id });
       
       if (!customerData) {
         throw new Error('Cliente não encontrado');
@@ -716,8 +747,11 @@ export default function CustomerDashboard() {
         </div>
       </div>
 
-      {/* Solicitação de Permissão de Notificação */}
-      <NotificationPermission customerPhone={phone} />
+      {/* Solicitação de Permissão de Notificação - OneSignal */}
+      {merchant?.id && <OneSignalPrompt merchantId={merchant.id} customerPhone={phone} />}
+      
+      {/* Fallback: Notificações Locais (se OneSignal não configurado) */}
+      {/* <NotificationPermission customerPhone={phone} /> */}
       </div>
     </>
   );

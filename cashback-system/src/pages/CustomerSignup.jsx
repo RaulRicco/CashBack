@@ -32,7 +32,7 @@ export default function CustomerSignup() {
         .from('merchants')
         .select('*')
         .eq('signup_link_slug', slug)
-        .eq('is_active', true)
+        .eq('active', true)
         .single();
 
       if (error) throw error;
@@ -100,6 +100,37 @@ export default function CustomerSignup() {
     setSubmitting(true);
 
     try {
+      // 🔒 VERIFICAR LIMITE DE CLIENTES DO PLANO
+      // Buscar dados de assinatura do merchant
+      const { data: merchantData } = await supabase
+        .from('merchants')
+        .select('subscription_plan, customer_limit')
+        .eq('id', merchant.id)
+        .single();
+
+      // Se existe limite, verificar se foi atingido
+      if (merchantData?.customer_limit) {
+        // Contar clientes únicos atuais (baseado em transações)
+        const { data: transactions } = await supabase
+          .from('transactions')
+          .select('customer_id')
+          .eq('merchant_id', merchant.id)
+          .eq('status', 'completed');
+
+        const uniqueCustomers = [...new Set(transactions?.map(t => t.customer_id) || [])];
+        const currentCustomerCount = uniqueCustomers.length;
+
+        // Verificar se atingiu o limite
+        if (currentCustomerCount >= merchantData.customer_limit) {
+          toast.error(
+            `Limite de clientes atingido (${merchantData.customer_limit}). O estabelecimento precisa fazer upgrade do plano.`,
+            { duration: 6000 }
+          );
+          setSubmitting(false);
+          return;
+        }
+      }
+
       // Verificar se o cliente já existe NESTE estabelecimento específico
       const { data: existingCustomer } = await supabase
         .from('customers')
@@ -265,7 +296,7 @@ export default function CustomerSignup() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Email <span className="text-gray-500 text-xs">(opcional)</span>
+              Email
             </label>
             <div className="relative">
               <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -401,20 +432,6 @@ export default function CustomerSignup() {
             </p>
           </div>
         </form>
-
-        {/* Link para Login */}
-        <div className="mt-4 text-center">
-          <p className="text-sm text-gray-600">
-            Já tem cadastro?{' '}
-            <Link
-              to={`/customer/login/${slug}`}
-              className="font-semibold text-primary-600 hover:text-primary-700 inline-flex items-center gap-1 transition-colors"
-            >
-              <LogIn className="w-4 h-4" />
-              Fazer Login
-            </Link>
-          </p>
-        </div>
 
         {/* Benefícios */}
         <div className="mt-8 pt-8 border-t border-gray-200">

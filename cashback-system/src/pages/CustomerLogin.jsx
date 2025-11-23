@@ -30,7 +30,7 @@ export default function CustomerLogin() {
         .from('merchants')
         .select('*')
         .eq('signup_link_slug', slug)
-        .eq('is_active', true)
+        .eq('active', true)
         .single();
 
       if (error) throw error;
@@ -60,11 +60,33 @@ export default function CustomerLogin() {
     try {
       const currentHost = window.location.hostname;
       
-      // Se está em localhost ou domínio principal, não há merchant específico
+      console.log('🌐 Detectando merchant por domínio:', currentHost);
+      
+      // Se está em localhost ou IP de desenvolvimento, carregar primeiro merchant ativo
       if (currentHost.includes('localhost') || 
           currentHost.includes('127.0.0.1') ||
+          currentHost.match(/^\d+\.\d+\.\d+\.\d+$/) || // IP address
           currentHost.includes('localcashback.com')) {
-        toast.error('Acesse através do link do estabelecimento');
+        
+        console.log('🔧 Ambiente DEV detectado - carregando primeiro merchant ativo');
+        
+        // Buscar primeiro merchant ativo para DEV
+        const { data: devMerchant, error: devError } = await supabase
+          .from('merchants')
+          .select('*')
+          .eq('active', true)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+        
+        if (devError || !devMerchant) {
+          toast.error('Nenhum estabelecimento ativo encontrado. Configure um merchant primeiro.');
+          setMerchantLoading(false);
+          return;
+        }
+        
+        console.log('✅ Merchant DEV carregado:', devMerchant.name);
+        setMerchant(devMerchant);
         setMerchantLoading(false);
         return;
       }
@@ -74,15 +96,28 @@ export default function CustomerLogin() {
         .from('merchants')
         .select('*')
         .eq('custom_domain', currentHost)
-        .eq('is_active', true)
+        .eq('active', true)
         .single();
 
+      console.log('📊 Resultado da busca por domínio:', {
+        domain: currentHost,
+        found: !!data,
+        merchant: data,
+        error: error
+      });
+
       if (error || !data) {
-        console.error('Merchant não encontrado para domínio:', currentHost);
+        console.error('❌ Merchant não encontrado para domínio:', currentHost);
         toast.error('Estabelecimento não encontrado para este domínio');
         setMerchantLoading(false);
         return;
       }
+
+      console.log('✅ Merchant detectado:', {
+        id: data.id,
+        name: data.name,
+        custom_domain: data.custom_domain
+      });
 
       setMerchant(data);
       
@@ -93,7 +128,7 @@ export default function CustomerLogin() {
         if (data.meta_pixel_id) initMetaPixel(data.meta_pixel_id);
       }
     } catch (error) {
-      console.error('Erro ao detectar estabelecimento:', error);
+      console.error('❌ Erro ao detectar estabelecimento:', error);
       toast.error('Erro ao carregar informações do estabelecimento');
     } finally {
       setMerchantLoading(false);
@@ -128,18 +163,38 @@ export default function CustomerLogin() {
       return;
     }
 
+    // Verificar se merchant foi identificado
+    if (!merchant || !merchant.id) {
+      toast.error('Estabelecimento não identificado. Por favor, acesse através do link correto.');
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
 
     try {
-      // Verificar se o cliente existe
+      console.log('🔍 Buscando cliente:', {
+        phone: phoneClean,
+        merchant_id: merchant.id,
+        merchant_name: merchant.name
+      });
+
+      // Verificar se o cliente existe NESTE estabelecimento específico
       const { data: existingCustomer, error } = await supabase
         .from('customers')
-        .select('id, phone')
+        .select('id, phone, name, referred_by_merchant_id')
         .eq('phone', phoneClean)
+        .eq('referred_by_merchant_id', merchant.id)
         .single();
 
+      console.log('📊 Resultado da busca:', {
+        found: !!existingCustomer,
+        customer: existingCustomer,
+        error: error
+      });
+
       if (error || !existingCustomer) {
-        toast.error('Cliente não encontrado. Por favor, cadastre-se primeiro.');
+        toast.error(`Você não tem cadastro em ${merchant.name}. Por favor, cadastre-se primeiro.`);
         setLoading(false);
         
         // Redirecionar para página de cadastro se merchant foi identificado
@@ -151,10 +206,13 @@ export default function CustomerLogin() {
         return;
       }
 
-      // Cliente existe, redirecionar para dashboard (página de senha)
-      navigate(`/customer/dashboard/${phoneClean}`);
+      console.log('✅ Cliente encontrado, redirecionando para dashboard');
+
+      // Cliente existe neste estabelecimento, redirecionar para dashboard (página de senha)
+      // Passar o merchant_id na URL para garantir contexto correto
+      navigate(`/customer/dashboard/${phoneClean}?merchant=${merchant.id}`);
     } catch (error) {
-      console.error('Erro ao verificar cliente:', error);
+      console.error('❌ Erro ao verificar cliente:', error);
       toast.error('Erro ao verificar cliente. Tente novamente.');
       setLoading(false);
     }
