@@ -43,7 +43,7 @@ export class MailchimpService {
           tags,
           skipMergeValidation: true // Pular validação de campos obrigatórios que não temos
         },
-        { timeout: 15000 }
+        { timeout: 5000 }
       );
 
       return response.data;
@@ -153,7 +153,7 @@ export class MailchimpService {
           audienceId: this.audienceId,
           serverPrefix: this.serverPrefix
         },
-        { timeout: 15000 }
+        { timeout: 5000 }
       );
 
       return response.data;
