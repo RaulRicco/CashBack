@@ -103,8 +103,13 @@ export function useOneSignal(merchantId, customerPhone) {
           try {
             // Definir External User ID (telefone do cliente)
             if (customerPhone) {
-              await OneSignal.login(customerPhone);
-              console.log('✅ [OneSignal] External User ID definido:', customerPhone);
+              try {
+                await OneSignal.login(customerPhone);
+                console.log('✅ [OneSignal] External User ID definido:', customerPhone);
+              } catch (loginError) {
+                // Erro 409 (conflito) é esperado se usuário já existe - pode ignorar
+                console.log('ℹ️ [OneSignal] Login: usuário pode já existir (normal)');
+              }
             }
 
             // Solicitar permissão de notificações
@@ -140,9 +145,10 @@ export function useOneSignal(merchantId, customerPhone) {
             }
           } catch (error) {
             console.error('❌ [OneSignal] Erro ao inscrever:', error);
+            const errorMessage = error?.message || error?.toString() || 'Erro desconhecido';
             resolve({ 
               success: false, 
-              error: error.message 
+              error: errorMessage
             });
           }
         });
@@ -150,7 +156,8 @@ export function useOneSignal(merchantId, customerPhone) {
 
     } catch (error) {
       console.error('❌ [OneSignal] Erro geral:', error);
-      return { success: false, error: error.message };
+      const errorMessage = error?.message || error?.toString() || 'Erro desconhecido';
+      return { success: false, error: errorMessage };
     }
   };
 
