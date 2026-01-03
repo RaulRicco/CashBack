@@ -55,6 +55,7 @@ const allowedOrigins = [
   'http://localhost:8080', // DEV server
   'https://localcashback.com.br', // Produção
   'https://www.localcashback.com.br', // Produção www
+  'https://cashback.raulricco.com.br', // Produção alternativa
 ];
 
 app.use(cors({
@@ -525,14 +526,23 @@ app.post('/api/mailchimp/sync', async (req, res) => {
     }
 
     // Usar credenciais do request ou do ambiente
+    const finalApiKey = apiKey || process.env.MAILCHIMP_API_KEY;
     const finalAudienceId = audienceId || process.env.MAILCHIMP_AUDIENCE_ID;
+    const finalServerPrefix = serverPrefix || process.env.MAILCHIMP_SERVER_PREFIX;
 
-    if (!finalAudienceId) {
+    if (!finalApiKey || !finalAudienceId || !finalServerPrefix) {
       return res.status(500).json({
         success: false,
-        error: 'Mailchimp não configurado'
+        error: 'Mailchimp não configurado. Credenciais ausentes.'
       });
     }
+
+    // Criar cliente Mailchimp com as credenciais fornecidas
+    const mailchimpClient = mailchimp;
+    mailchimpClient.setConfig({
+      apiKey: finalApiKey,
+      server: finalServerPrefix,
+    });
 
     // Preparar merge_fields
     const mergeFields = {
@@ -547,7 +557,7 @@ app.post('/api/mailchimp/sync', async (req, res) => {
     }
 
     // Adicionar/atualizar contato no Mailchimp
-    const response = await mailchimp.lists.addListMember(
+    const response = await mailchimpClient.lists.addListMember(
       finalAudienceId,
       {
         email_address: customer.email,
@@ -569,6 +579,12 @@ app.post('/api/mailchimp/sync', async (req, res) => {
 
   } catch (error) {
     console.error('[Mailchimp Sync Error]', error.response?.body || error.message);
+    console.error('[Mailchimp Sync Error - Full]', {
+      status: error.status,
+      statusCode: error.response?.status,
+      body: error.response?.body,
+      message: error.message
+    });
     
     // Se o email já existe, considerar como sucesso
     if (error.status === 400 && error.response?.body?.title === 'Member Exists') {
@@ -579,9 +595,13 @@ app.post('/api/mailchimp/sync', async (req, res) => {
       });
     }
 
-    res.status(error.status || 500).json({
+    // Usar o status correto do erro
+    const statusCode = error.status || error.response?.status || 500;
+    
+    res.status(statusCode).json({
       success: false,
-      error: error.response?.body?.detail || error.message
+      error: error.response?.body?.detail || error.message,
+      mailchimpError: error.response?.body
     });
   }
 });
