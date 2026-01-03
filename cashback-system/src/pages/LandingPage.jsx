@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   TrendingUp, 
   Users, 
@@ -21,6 +22,7 @@ import {
 } from 'lucide-react';
 
 export default function LandingPage() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
     business: '',
@@ -45,10 +47,10 @@ export default function LandingPage() {
       </head>
 
       {/* HERO SECTION - Personagem + Problema */}
-      <section className="relative bg-white text-gray-900 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+      <section className="relative bg-gradient-to-br from-green-50 to-green-100 text-gray-900 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Logo */}
-          <div className="mb-8 inline-block">
+          <div className="mb-4 inline-block">
             <img 
               src="/logo-localcashback.png" 
               alt="LocalCashback - Sistema de Fidelidade" 
@@ -90,13 +92,13 @@ export default function LandingPage() {
 
               {/* CTA Principal */}
               <div className="flex flex-col sm:flex-row gap-4">
-                <a 
-                  href="#planos" 
+                <button 
+                  onClick={() => navigate('/signup')}
                   className="inline-flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-8 py-4 rounded-xl text-lg font-bold shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all"
                 >
                   Começar Agora
                   <ArrowRight className="w-5 h-5" />
-                </a>
+                </button>
                 <a 
                   href="#como-funciona" 
                   className="inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-primary-600 px-8 py-4 rounded-xl text-lg font-semibold border-2 border-primary-600 transition-all"
@@ -365,13 +367,13 @@ export default function LandingPage() {
 
           {/* CTA Secundário */}
           <div className="text-center mt-12">
-            <a 
-              href="#planos" 
+            <button 
+              onClick={() => navigate('/signup')}
               className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-8 py-4 rounded-xl text-lg font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
             >
               Começar Meu Teste Grátis
               <ArrowRight className="w-5 h-5" />
-            </a>
+            </button>
           </div>
         </div>
       </section>
@@ -702,10 +704,9 @@ export default function LandingPage() {
                   <td className="px-6 py-4 font-semibold text-gray-900">Dashboard CAC/LTV</td>
                   <td className="px-6 py-4 text-center">
                     <Check className="w-6 h-6 text-green-600 mx-auto" />
-                    <span className="text-xs text-green-600 font-bold">EXCLUSIVO</span>
                   </td>
                   <td className="px-6 py-4 text-center">
-                    <X className="w-6 h-6 text-red-500 mx-auto" />
+                    <Check className="w-6 h-6 text-green-600 mx-auto" />
                   </td>
                   <td className="px-6 py-4 text-center">
                     <X className="w-6 h-6 text-red-500 mx-auto" />
@@ -716,9 +717,11 @@ export default function LandingPage() {
                   <td className="px-6 py-4 font-semibold text-gray-900">Domínio Próprio Automatizado</td>
                   <td className="px-6 py-4 text-center">
                     <Check className="w-6 h-6 text-green-600 mx-auto" />
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <Check className="w-6 h-6 text-green-600 mx-auto" />
                     <span className="text-xs text-green-600 font-bold">INCLUSO</span>
                   </td>
-                  <td className="px-6 py-4 text-center text-orange-600 text-sm">Manual</td>
                   <td className="px-6 py-4 text-center text-orange-600 text-sm">Pago extra</td>
                 </tr>
 
@@ -792,13 +795,13 @@ export default function LandingPage() {
             <p className="text-gray-600 mb-6 text-lg">
               💡 <strong>Resumo:</strong> Melhor tecnologia + preço justo + recursos exclusivos
             </p>
-            <a 
-              href="#planos" 
+            <button 
+              onClick={() => navigate('/signup')}
               className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-8 py-4 rounded-xl text-lg font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
             >
               Ver Planos e Preços
               <ArrowRight className="w-5 h-5" />
-            </a>
+            </button>
           </div>
         </div>
       </section>
@@ -862,7 +865,10 @@ export default function LandingPage() {
                 </li>
               </ul>
 
-              <button className="w-full bg-gray-900 hover:bg-gray-800 text-white py-3 rounded-lg font-bold transition-colors">
+              <button 
+                onClick={() => navigate('/signup')}
+                className="w-full bg-gray-900 hover:bg-gray-800 text-white py-3 rounded-lg font-bold transition-colors"
+              >
                 Começar Teste Grátis
               </button>
             </div>
@@ -894,7 +900,7 @@ export default function LandingPage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="w-5 h-5 text-yellow-300 flex-shrink-0 mt-0.5" />
-                  <span><strong>Dashboard CAC/LTV</strong> (exclusivo!)</span>
+                  <span><strong>Dashboard CAC/LTV</strong></span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="w-5 h-5 text-yellow-300 flex-shrink-0 mt-0.5" />
@@ -906,7 +912,7 @@ export default function LandingPage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="w-5 h-5 text-yellow-300 flex-shrink-0 mt-0.5" />
-                  <span>Relatórios Avançados</span>
+                  <span><strong>Domínio Próprio</strong></span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="w-5 h-5 text-yellow-300 flex-shrink-0 mt-0.5" />
@@ -922,7 +928,10 @@ export default function LandingPage() {
                 </li>
               </ul>
 
-              <button className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 py-3 rounded-lg font-bold transition-colors">
+              <button 
+                onClick={() => navigate('/signup')}
+                className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 py-3 rounded-lg font-bold transition-colors"
+              >
                 Começar Teste Grátis
               </button>
             </div>
@@ -950,19 +959,23 @@ export default function LandingPage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                  <span><strong>Domínio Próprio</strong> (exclusivo!)</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                  <span>Múltiplas lojas/unidades</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                  <span>Integração personalizada</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                   <span>Funcionários ilimitados</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                  <span><strong>Múltiplas lojas/unidades</strong></span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                  <span><strong>Atendimento VIP</strong></span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                  <span><strong>Integrações personalizadas</strong></span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                  <span>Suporte prioritário 24/7</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
@@ -978,7 +991,10 @@ export default function LandingPage() {
                 </li>
               </ul>
 
-              <button className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 rounded-lg font-bold transition-colors">
+              <button 
+                onClick={() => navigate('/signup')}
+                className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 rounded-lg font-bold transition-colors"
+              >
                 Começar Teste Grátis
               </button>
             </div>
@@ -1223,13 +1239,13 @@ export default function LandingPage() {
             O que você vai escolher?
           </p>
 
-          <a 
-            href="#planos" 
+          <button 
+            onClick={() => navigate('/signup')}
             className="inline-flex items-center gap-3 bg-yellow-400 hover:bg-yellow-500 text-gray-900 px-12 py-5 rounded-xl text-xl font-bold shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all"
           >
             Sim! Quero Fazer Meus Clientes Voltarem 3x Mais
             <ArrowRight className="w-6 h-6" />
-          </a>
+          </button>
 
           <p className="text-sm text-gray-200 mt-6">
             ✅ 14 dias grátis • ✅ Sem cartão de crédito • ✅ Cancele quando quiser
