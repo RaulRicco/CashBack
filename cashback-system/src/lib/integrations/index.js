@@ -8,6 +8,76 @@ import { syncCustomerToOneSignal } from './onesignal';
  */
 
 /**
+ * Enviar notificação push para cliente
+ * @param {Object} customer - Dados do cliente
+ * @param {String} merchantId - ID do merchant
+ * @param {String} eventType - Tipo de evento (signup, cashback, redemption)
+ * @param {Object} data - Dados adicionais (amount, etc)
+ */
+export async function sendPushNotification(customer, merchantId, eventType, data = {}) {
+  try {
+    // Buscar configuração OneSignal ativa
+    const { data: config, error } = await supabase
+      .from('integration_configs')
+      .select('*')
+      .eq('merchant_id', merchantId)
+      .eq('provider', 'onesignal')
+      .eq('is_active', true)
+      .single();
+
+    if (error || !config) {
+      console.log('OneSignal não configurado ou inativo');
+      return { success: false, error: 'OneSignal não configurado' };
+    }
+
+    // Determinar qual endpoint chamar
+    let endpoint;
+    switch (eventType) {
+      case 'signup':
+        endpoint = '/api/onesignal/notify-signup';
+        break;
+      case 'cashback':
+        endpoint = '/api/onesignal/notify-cashback';
+        break;
+      case 'redemption':
+        endpoint = '/api/onesignal/notify-redemption';
+        break;
+      default:
+        return { success: false, error: 'Tipo de evento inválido' };
+    }
+
+    // Chamar endpoint do backend (usa proxy NGINX)
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        merchantId,
+        customerId: customer.id,
+        customerName: customer.name,
+        customerPhone: customer.phone,
+        ...data
+      })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      console.error('Erro ao enviar notificação:', result);
+      return { success: false, error: result.error || 'Erro ao enviar notificação' };
+    }
+
+    console.log('✅ Notificação push enviada:', result);
+    return { success: true, data: result };
+
+  } catch (error) {
+    console.error('Erro ao enviar notificação push:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
  * Sincronizar cliente com todas as integrações ativas
  */
 export async function syncCustomerToIntegrations(customer, merchantId, eventType = 'purchase') {
@@ -50,6 +120,13 @@ export async function syncCustomerToIntegrations(customer, merchantId, eventType
             result = await syncCustomerToRDStation(customer, config, eventType);
           } else if (config.provider === 'onesignal') {
             result = await syncCustomerToOneSignal(customer, config, eventType);
+            
+            // Enviar notificação push automática
+            if (result?.success && eventType !== 'purchase') {
+              // Apenas enviar push para signup, cashback e redemption
+              // (purchase já sincroniza, mas não envia push automático)
+              await sendPushNotification(customer, merchantId, eventType === 'signup' ? 'signup' : eventType);
+            }
           }
 
           // Registrar log de sincronização

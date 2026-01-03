@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { CheckCircle, Gift, ArrowRight, Loader } from 'lucide-react';
 import { trackCashbackScanned, trackCashbackCompleted, initGTM, initMetaPixel, trackPageView } from '../lib/tracking';
-import { syncCustomerToIntegrations } from '../lib/integrations';
+import { syncCustomerToIntegrations, sendPushNotification } from '../lib/integrations';
 import { useNotification } from '../hooks/useNotification';
 import NotificationContainer from '../components/NotificationContainer';
 import { notifyCashbackReceived } from '../lib/pushNotifications';
@@ -205,6 +205,17 @@ export default function CustomerCashback() {
 
       // Sincronizar com integrações de email marketing
       syncCustomerToIntegrations(updatedTx.customer, updatedTx.merchant_id, 'purchase');
+
+      // Enviar notificação push de cashback recebido
+      sendPushNotification(
+        updatedTx.customer,
+        updatedTx.merchant_id,
+        'cashback',
+        { 
+          amount: updatedTx.cashback_amount,
+          merchantName: updatedTx.merchant.name
+        }
+      );
 
       // Mostrar notificação de cashback recebido
       setTimeout(() => {
