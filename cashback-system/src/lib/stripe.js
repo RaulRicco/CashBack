@@ -142,7 +142,7 @@ export async function createCheckoutSession(priceId, merchantId, merchantEmail) 
       throw new Error(data.error || 'Erro ao criar sessão de pagamento');
     }
 
-    return { success: true, sessionId: data.sessionId };
+    return { success: true, sessionId: data.sessionId, url: data.url };
   } catch (error) {
     console.error('Erro ao criar checkout session:', error);
     return { success: false, error: error.message };
@@ -154,12 +154,6 @@ export async function createCheckoutSession(priceId, merchantId, merchantEmail) 
  */
 export async function redirectToCheckout(priceId, merchantId, merchantEmail) {
   try {
-    const stripe = await stripePromise;
-    
-    if (!stripe) {
-      throw new Error('Stripe não carregado');
-    }
-
     // Criar sessão de checkout
     const result = await createCheckoutSession(priceId, merchantId, merchantEmail);
 
@@ -167,16 +161,13 @@ export async function redirectToCheckout(priceId, merchantId, merchantEmail) {
       throw new Error(result.error);
     }
 
-    // Redirecionar para checkout
-    const { error } = await stripe.redirectToCheckout({
-      sessionId: result.sessionId,
-    });
-
-    if (error) {
-      throw error;
+    // Redirecionar diretamente para a URL do checkout (método moderno)
+    if (result.url) {
+      window.location.href = result.url;
+      return { success: true };
+    } else {
+      throw new Error('URL do checkout não encontrada');
     }
-
-    return { success: true };
   } catch (error) {
     console.error('Erro ao redirecionar para checkout:', error);
     return { success: false, error: error.message };
