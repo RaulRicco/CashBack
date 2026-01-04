@@ -122,10 +122,17 @@ export async function syncCustomerToIntegrations(customer, merchantId, eventType
             result = await syncCustomerToOneSignal(customer, config, eventType);
             
             // Enviar notificação push automática
-            if (result?.success && eventType !== 'purchase') {
-              // Apenas enviar push para signup, cashback e redemption
-              // (purchase já sincroniza, mas não envia push automático)
-              await sendPushNotification(customer, merchantId, eventType === 'signup' ? 'signup' : eventType);
+            if (result?.success) {
+              // Determinar tipo de notificação
+              let notificationType = eventType;
+              
+              // 'purchase' = recebimento de cashback → enviar push de 'cashback'
+              if (eventType === 'purchase') {
+                notificationType = 'cashback';
+              }
+              
+              console.log(`🔔 Enviando push notification: ${notificationType}`);
+              await sendPushNotification(customer, merchantId, notificationType);
             }
           }
 
