@@ -40,12 +40,12 @@ export default function SubscriptionPlans() {
     icon: Sparkles,
     color: 'purple',
     popular: true,
-    customerLimit: null, // Ilimitado
-    employeeLimit: null, // Ilimitado
+    customerLimit: 5000, // Limite de 5 mil clientes
+    employeeLimit: 10, // Limite de 10 funcionários
     benefits: [
       '🎉 Oferta de Lançamento',
-      '✅ Clientes ILIMITADOS',
-      '✅ Funcionários ilimitados',
+      '✅ Até 5.000 clientes',
+      '✅ Até 10 funcionários',
       '✅ Sistema de Cashback completo',
       '✅ Portal do Cliente',
       '✅ QR Code para Resgate',
@@ -58,6 +58,7 @@ export default function SubscriptionPlans() {
       '✅ Múltiplas lojas/unidades',
       '✅ Suporte WhatsApp prioritário',
       '🎁 14 dias de teste GRÁTIS',
+      '💬 Renegociação após 5.000 clientes',
     ],
   };
 
