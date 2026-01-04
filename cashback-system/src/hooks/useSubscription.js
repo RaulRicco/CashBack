@@ -99,8 +99,8 @@ export function useSubscription() {
 
   // Obter configuração do plano atual
   const currentPlan = subscriptionData 
-    ? SUBSCRIPTION_PLANS[subscriptionData.subscription_plan]
-    : null;
+    ? SUBSCRIPTION_PLANS[subscriptionData.subscription_plan] || SUBSCRIPTION_PLANS.launch
+    : SUBSCRIPTION_PLANS.launch; // Usar "launch" como padrão
 
   return {
     // Estado
