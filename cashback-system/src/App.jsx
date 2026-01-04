@@ -5,7 +5,6 @@ import { useAuthStore } from './store/authStore';
 import { initGTM, initMetaPixel } from './lib/tracking';
 
 // Pages
-import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import ForgotPassword from './pages/ForgotPassword';
@@ -89,9 +88,8 @@ function App() {
       />
       
       <Routes>
-        {/* Landing Page - Must be first */}
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/landing" element={<LandingPage />} />
+        {/* Home = Signup direto (Trial de 14 dias) */}
+        <Route path="/" element={<Signup />} />
         
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />
