@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Check, Sparkles, Zap, Crown, Loader2 } from 'lucide-react';
+import { Check, Sparkles, Loader2 } from 'lucide-react';
 import DashboardLayout from '../components/DashboardLayout';
 import { useAuthStore } from '../store/authStore';
-import { redirectToCheckout, SUBSCRIPTION_PLANS } from '../lib/stripe';
+import { redirectToCheckout } from '../lib/stripe';
 import toast from 'react-hot-toast';
 
 export default function SubscriptionPlans() {
@@ -30,26 +30,36 @@ export default function SubscriptionPlans() {
     }
   };
 
-  const plans = [
-    {
-      ...SUBSCRIPTION_PLANS.starter,
-      icon: Zap,
-      color: 'blue',
-      popular: false,
-    },
-    {
-      ...SUBSCRIPTION_PLANS.business,
-      icon: Sparkles,
-      color: 'purple',
-      popular: true,
-    },
-    {
-      ...SUBSCRIPTION_PLANS.premium,
-      icon: Crown,
-      color: 'amber',
-      popular: false,
-    },
-  ];
+  // Plano único de lançamento
+  const plan = {
+    id: 'launch',
+    name: 'Assinatura de Lançamento',
+    price: 147,
+    priceId: 'price_1SluhgAev6mInEFVzGTKjPoV',
+    description: 'Oferta especial de lançamento',
+    icon: Sparkles,
+    color: 'purple',
+    popular: true,
+    customerLimit: null, // Ilimitado
+    employeeLimit: null, // Ilimitado
+    benefits: [
+      '🎉 Oferta de Lançamento',
+      '✅ Clientes ILIMITADOS',
+      '✅ Funcionários ilimitados',
+      '✅ Sistema de Cashback completo',
+      '✅ Portal do Cliente',
+      '✅ QR Code para Resgate',
+      '✅ Dashboard Avançado',
+      '✅ Relatórios CAC/LTV',
+      '✅ Integrações (Mailchimp, RD Station)',
+      '✅ Push Notifications',
+      '✅ Domínio Próprio',
+      '✅ Whitelabel (sua marca)',
+      '✅ Múltiplas lojas/unidades',
+      '✅ Suporte WhatsApp prioritário',
+      '🎁 14 dias de teste GRÁTIS',
+    ],
+  };
 
   return (
     <DashboardLayout>
@@ -57,78 +67,56 @@ export default function SubscriptionPlans() {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Escolha seu Plano
+            🎉 Oferta de Lançamento
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Selecione o plano ideal para o seu negócio e comece a crescer hoje mesmo
+            Aproveite nossa oferta especial de lançamento com <strong>14 dias GRÁTIS</strong> e todos os recursos incluídos!
           </p>
         </div>
 
-        {/* Plans Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {plans.map((plan) => {
+        {/* Single Plan Card - Centered */}
+        <div className="max-w-lg mx-auto">
+          {(() => {
             const Icon = plan.icon;
             const isLoading = loading === plan.id;
 
             return (
-              <div
-                key={plan.id}
-                className={`
-                  relative bg-white rounded-2xl shadow-lg overflow-hidden
-                  ${plan.popular ? 'ring-4 ring-purple-500 scale-105' : 'hover:shadow-xl'}
-                  transition-all duration-300
-                `}
-              >
+              <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden ring-4 ring-purple-500">
                 {/* Popular Badge */}
-                {plan.popular && (
-                  <div className="absolute top-0 right-0 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-1 rounded-bl-lg text-sm font-semibold">
-                    MAIS POPULAR
-                  </div>
-                )}
+                <div className="absolute top-0 right-0 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-2 rounded-bl-lg text-base font-bold">
+                  🔥 OFERTA DE LANÇAMENTO
+                </div>
 
-                <div className="p-8">
+                <div className="p-10">
                   {/* Icon */}
-                  <div className={`inline-flex p-3 rounded-xl bg-${plan.color}-100 mb-4`}>
-                    <Icon className={`w-8 h-8 text-${plan.color}-600`} />
+                  <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-br from-purple-100 to-pink-100 mb-6`}>
+                    <Icon className="w-12 h-12 text-purple-600" />
                   </div>
 
                   {/* Plan Name */}
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                  <h3 className="text-3xl font-bold text-gray-900 mb-3">
                     {plan.name}
                   </h3>
 
                   {/* Price */}
-                  <div className="mb-6">
+                  <div className="mb-8">
                     <div className="flex items-baseline">
-                      <span className="text-5xl font-bold text-gray-900">
+                      <span className="text-6xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                         R$ {plan.price}
                       </span>
-                      <span className="text-gray-600 ml-2">/mês</span>
+                      <span className="text-gray-600 text-xl ml-3">/mês</span>
                     </div>
-                  </div>
-
-                  {/* Limits */}
-                  <div className="space-y-2 mb-6 pb-6 border-b border-gray-200">
-                    <div className="flex items-center text-sm">
-                      <Check className="w-5 h-5 text-green-500 mr-2 flex-shrink-0" />
-                      <span className="font-semibold text-gray-900">
-                        {plan.customerLimit ? `Até ${plan.customerLimit.toLocaleString('pt-BR')} clientes` : 'Clientes ilimitados'}
-                      </span>
-                    </div>
-                    <div className="flex items-center text-sm">
-                      <Check className="w-5 h-5 text-green-500 mr-2 flex-shrink-0" />
-                      <span className="font-semibold text-gray-900">
-                        {plan.employeeLimit ? `Até ${plan.employeeLimit} funcionário${plan.employeeLimit > 1 ? 's' : ''}` : 'Funcionários ilimitados'}
-                      </span>
-                    </div>
+                    <p className="text-lg text-green-600 font-semibold mt-2">
+                      🎁 Primeiros 14 dias GRÁTIS
+                    </p>
                   </div>
 
                   {/* Features */}
-                  <div className="space-y-3 mb-8">
+                  <div className="space-y-4 mb-10">
                     {plan.benefits.map((benefit, index) => (
                       <div key={index} className="flex items-start">
-                        <Check className="w-5 h-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
-                        <span className="text-gray-700 text-sm">{benefit}</span>
+                        <Check className="w-6 h-6 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-700 text-base">{benefit}</span>
                       </div>
                     ))}
                   </div>
@@ -137,30 +125,36 @@ export default function SubscriptionPlans() {
                   <button
                     onClick={() => handleSubscribe(plan)}
                     disabled={isLoading}
-                    className={`
-                      w-full py-4 px-6 rounded-xl font-semibold text-lg
-                      transition-all duration-200
-                      ${plan.popular
-                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl'
-                        : 'bg-gray-900 hover:bg-gray-800 text-white'
-                      }
+                    className="
+                      w-full py-5 px-8 rounded-xl font-bold text-xl
+                      bg-gradient-to-r from-purple-600 to-pink-600 
+                      hover:from-purple-700 hover:to-pink-700 
+                      text-white shadow-2xl hover:shadow-3xl
+                      transform hover:scale-105
+                      transition-all duration-300
                       disabled:opacity-50 disabled:cursor-not-allowed
                       flex items-center justify-center
-                    `}
+                    "
                   >
                     {isLoading ? (
                       <>
-                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        <Loader2 className="w-6 h-6 mr-2 animate-spin" />
                         Processando...
                       </>
                     ) : (
-                      'Assinar Agora'
+                      <>
+                        🚀 Começar Teste Grátis de 14 Dias
+                      </>
                     )}
                   </button>
+
+                  <p className="text-center text-sm text-gray-500 mt-4">
+                    Sem cartão de crédito necessário • Cancele quando quiser
+                  </p>
                 </div>
               </div>
             );
-          })}
+          })()}
         </div>
 
         {/* Trust Badges */}
@@ -168,15 +162,19 @@ export default function SubscriptionPlans() {
           <div className="inline-flex items-center space-x-6 text-sm text-gray-600">
             <div className="flex items-center">
               <Check className="w-5 h-5 text-green-500 mr-2" />
+              14 dias grátis
+            </div>
+            <div className="flex items-center">
+              <Check className="w-5 h-5 text-green-500 mr-2" />
+              Sem cartão necessário
+            </div>
+            <div className="flex items-center">
+              <Check className="w-5 h-5 text-green-500 mr-2" />
               Cancele quando quiser
             </div>
             <div className="flex items-center">
               <Check className="w-5 h-5 text-green-500 mr-2" />
-              Pagamento seguro com Stripe
-            </div>
-            <div className="flex items-center">
-              <Check className="w-5 h-5 text-green-500 mr-2" />
-              Suporte em português
+              Pagamento seguro
             </div>
           </div>
         </div>
@@ -189,11 +187,20 @@ export default function SubscriptionPlans() {
           <div className="space-y-6">
             <div className="bg-gray-50 rounded-lg p-6">
               <h3 className="font-semibold text-gray-900 mb-2">
-                Posso mudar de plano depois?
+                Como funciona o teste grátis de 14 dias?
               </h3>
               <p className="text-gray-600">
-                Sim! Você pode fazer upgrade ou downgrade do seu plano a qualquer momento.
-                As mudanças são aplicadas imediatamente.
+                Você cria sua conta e tem 14 dias para usar TODOS os recursos da plataforma sem pagar nada.
+                Não precisa cadastrar cartão de crédito. Após os 14 dias, se quiser continuar, basta assinar.
+              </p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-6">
+              <h3 className="font-semibold text-gray-900 mb-2">
+                O que está incluído na assinatura?
+              </h3>
+              <p className="text-gray-600">
+                Tudo! Clientes ilimitados, funcionários ilimitados, sistema completo de cashback,
+                integrações, relatórios avançados, domínio próprio, whitelabel e suporte prioritário.
               </p>
             </div>
             <div className="bg-gray-50 rounded-lg p-6">
@@ -202,7 +209,7 @@ export default function SubscriptionPlans() {
               </h3>
               <p className="text-gray-600">
                 O pagamento é processado mensalmente de forma automática através do Stripe,
-                uma das plataformas de pagamento mais seguras do mundo.
+                uma das plataformas de pagamento mais seguras do mundo. Você pode cancelar a qualquer momento.
               </p>
             </div>
             <div className="bg-gray-50 rounded-lg p-6">
@@ -210,8 +217,18 @@ export default function SubscriptionPlans() {
                 O que acontece se eu cancelar?
               </h3>
               <p className="text-gray-600">
-                Você pode cancelar a qualquer momento. Seu plano continuará ativo até o
-                final do período já pago, depois voltará para o plano Starter gratuito.
+                Você pode cancelar a qualquer momento. Seu acesso continuará ativo até o
+                final do período já pago. Sem taxas de cancelamento ou multas.
+              </p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-6">
+              <h3 className="font-semibold text-gray-900 mb-2">
+                Por que esta oferta de lançamento?
+              </h3>
+              <p className="text-gray-600">
+                Estamos em fase de lançamento e queremos dar a oportunidade para empresas
+                crescerem conosco. Este preço especial garante TODOS os recursos premium pelo
+                melhor custo-benefício. Aproveite enquanto está disponível!
               </p>
             </div>
           </div>
