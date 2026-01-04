@@ -5,6 +5,48 @@ export const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_
 
 // Definição dos planos
 export const SUBSCRIPTION_PLANS = {
+  launch: {
+    id: 'launch',
+    name: 'Plano Mensal',
+    price: 97,
+    priceId: 'price_1Slw77Aev6mInEFVI6INDD3B', // TEST mode
+    description: 'Plano completo com todos os recursos',
+    customerLimit: null, // Ilimitado
+    employeeLimit: null, // Ilimitado
+    features: {
+      dashboard_basic: true,
+      cashback_system: true,
+      customer_portal: true,
+      qr_code: true,
+      email_support: true,
+      dashboard_cac_ltv: true,
+      integrations: true,
+      push_notifications: true,
+      advanced_reports: true,
+      whitelabel: true,
+      custom_domain: true,
+      multiple_stores: true,
+      whatsapp_support: true,
+      dedicated_manager: true,
+    },
+    benefits: [
+      '🎉 Oferta de Lançamento',
+      '✅ Clientes ILIMITADOS',
+      '✅ Funcionários ilimitados',
+      '✅ Sistema de Cashback completo',
+      '✅ Portal do Cliente',
+      '✅ QR Code para Resgate',
+      '✅ Dashboard Avançado',
+      '✅ Relatórios CAC/LTV',
+      '✅ Integrações (Mailchimp, RD Station)',
+      '✅ Push Notifications',
+      '✅ Domínio Próprio',
+      '✅ Whitelabel (sua marca)',
+      '✅ Múltiplas lojas/unidades',
+      '✅ Suporte WhatsApp prioritário',
+      '🎁 14 dias de teste GRÁTIS',
+    ],
+  },
   starter: {
     id: 'starter',
     name: 'Starter',
