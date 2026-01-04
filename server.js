@@ -15,6 +15,7 @@ import axios from 'axios';
 import mailchimp from '@mailchimp/mailchimp_marketing';
 import OneSignal from 'onesignal-node';
 import https from 'https';
+import cron from 'node-cron';
 
 // Carregar variáveis de ambiente
 dotenv.config();
@@ -1165,6 +1166,257 @@ app.get('/api/merchants/:merchantId/subscription-status', async (req, res) => {
   }
 });
 
+// ====================================
+// AUTOMAÇÃO: MENSAGENS DE ANIVERSÁRIO
+// ====================================
+
+/**
+ * Busca clientes com aniversário nos próximos X dias
+ * @param {number} daysAhead - Quantos dias de antecedência (ex: 30 dias)
+ * @returns {Array} Lista de clientes com aniversário próximo
+ */
+async function getUpcomingBirthdays(daysAhead = 30) {
+  try {
+    // Buscar todos os clientes com birthdate definido
+    const { data: customers, error } = await supabase
+      .from('customers')
+      .select('id, name, phone, email, birthdate, merchant_id')
+      .not('birthdate', 'is', null)
+      .order('birthdate', { ascending: true });
+
+    if (error) {
+      console.error('Erro ao buscar clientes:', error);
+      return [];
+    }
+
+    // Filtrar clientes com aniversário nos próximos X dias
+    const now = new Date();
+    const upcomingBirthdays = [];
+
+    for (const customer of customers) {
+      const birthdate = new Date(customer.birthdate);
+      
+      // Calcular próximo aniversário (ano atual)
+      const thisYearBirthday = new Date(
+        now.getFullYear(),
+        birthdate.getMonth(),
+        birthdate.getDate()
+      );
+
+      // Se já passou este ano, considerar ano que vem
+      if (thisYearBirthday < now) {
+        thisYearBirthday.setFullYear(now.getFullYear() + 1);
+      }
+
+      // Calcular diferença em dias
+      const diffTime = thisYearBirthday - now;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      // Se o aniversário está nos próximos X dias
+      if (diffDays >= 0 && diffDays <= daysAhead) {
+        upcomingBirthdays.push({
+          ...customer,
+          daysUntilBirthday: diffDays,
+          nextBirthday: thisYearBirthday
+        });
+      }
+    }
+
+    return upcomingBirthdays;
+  } catch (error) {
+    console.error('Erro ao buscar aniversários:', error);
+    return [];
+  }
+}
+
+/**
+ * Enviar mensagem de aniversário via WhatsApp (simulação)
+ * TODO: Integrar com API real do WhatsApp (Twilio, Evolution API, etc)
+ */
+async function sendBirthdayWhatsAppMessage(customer, merchant) {
+  try {
+    console.log(`🎉 ANIVERSÁRIO - Enviando mensagem para: ${customer.name}`);
+    console.log(`   Telefone: ${customer.phone}`);
+    console.log(`   Dias até aniversário: ${customer.daysUntilBirthday}`);
+    console.log(`   Merchant: ${merchant?.name || 'N/A'}`);
+
+    // Mensagem personalizada
+    const message = `🎉 Olá ${customer.name}!\n\nO seu aniversário está chegando em ${customer.daysUntilBirthday} dias! 🎂\n\nPara comemorar, preparamos uma surpresa especial pra você! 🎁\n\nAguardamos sua visita! ❤️\n\n- Equipe ${merchant?.name || 'LocalCashback'}`;
+
+    // TODO: Integrar com API de WhatsApp
+    // Exemplo com Evolution API:
+    /*
+    const evolutionApiUrl = process.env.EVOLUTION_API_URL;
+    const evolutionApiKey = process.env.EVOLUTION_API_KEY;
+    
+    const response = await axios.post(`${evolutionApiUrl}/message/sendText/${instanceName}`, {
+      number: customer.phone,
+      text: message
+    }, {
+      headers: {
+        'apikey': evolutionApiKey
+      }
+    });
+    */
+
+    // Por enquanto, apenas log
+    console.log(`📱 Mensagem: ${message}`);
+    console.log('✅ Mensagem registrada (integração WhatsApp pendente)');
+    
+    return { success: true, message: 'Mensagem agendada' };
+  } catch (error) {
+    console.error('Erro ao enviar mensagem de aniversário:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Processar envio de mensagens de aniversário
+ */
+async function processBirthdayMessages() {
+  console.log('');
+  console.log('🎂 ========================================');
+  console.log('🎂 Processando Mensagens de Aniversário');
+  console.log('🎂 ========================================');
+  console.log(`📅 Data: ${new Date().toLocaleString('pt-BR')}`);
+
+  try {
+    // Buscar aniversários dos próximos 30 dias
+    const daysAhead = parseInt(process.env.BIRTHDAY_DAYS_AHEAD || '30');
+    const customers = await getUpcomingBirthdays(daysAhead);
+
+    console.log(`📊 Encontrados: ${customers.length} aniversariantes`);
+
+    if (customers.length === 0) {
+      console.log('ℹ️  Nenhum aniversário nos próximos dias');
+      return;
+    }
+
+    // Agrupar por merchant para enviar em lote
+    const merchantGroups = {};
+    for (const customer of customers) {
+      if (!merchantGroups[customer.merchant_id]) {
+        merchantGroups[customer.merchant_id] = [];
+      }
+      merchantGroups[customer.merchant_id].push(customer);
+    }
+
+    // Processar cada merchant
+    for (const [merchantId, merchantCustomers] of Object.entries(merchantGroups)) {
+      // Buscar dados do merchant
+      const { data: merchant, error } = await supabase
+        .from('merchants')
+        .select('id, name, email')
+        .eq('id', merchantId)
+        .single();
+
+      if (error) {
+        console.error(`❌ Erro ao buscar merchant ${merchantId}:`, error);
+        continue;
+      }
+
+      console.log(`\n📍 Merchant: ${merchant.name}`);
+      console.log(`   Aniversariantes: ${merchantCustomers.length}`);
+
+      // Enviar mensagens
+      for (const customer of merchantCustomers) {
+        await sendBirthdayWhatsAppMessage(customer, merchant);
+        
+        // Delay de 1s entre mensagens para não sobrecarregar
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+
+    console.log('\n✅ Processamento concluído!');
+    console.log('🎂 ========================================');
+    console.log('');
+  } catch (error) {
+    console.error('❌ Erro ao processar mensagens de aniversário:', error);
+  }
+}
+
+// ====================================
+// ENDPOINT: TESTE MANUAL DE ANIVERSÁRIOS
+// ====================================
+
+app.get('/api/birthday/upcoming', async (req, res) => {
+  try {
+    const daysAhead = parseInt(req.query.days || '30');
+    const customers = await getUpcomingBirthdays(daysAhead);
+    
+    res.json({
+      success: true,
+      count: customers.length,
+      daysAhead,
+      customers: customers.map(c => ({
+        name: c.name,
+        phone: c.phone,
+        birthdate: c.birthdate,
+        daysUntilBirthday: c.daysUntilBirthday,
+        nextBirthday: c.nextBirthday,
+        merchant_id: c.merchant_id
+      }))
+    });
+  } catch (error) {
+    console.error('Erro ao buscar aniversários:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/birthday/send-test', async (req, res) => {
+  try {
+    const { customerId } = req.body;
+    
+    if (!customerId) {
+      return res.status(400).json({ error: 'customerId é obrigatório' });
+    }
+
+    // Buscar cliente
+    const { data: customer, error } = await supabase
+      .from('customers')
+      .select('*')
+      .eq('id', customerId)
+      .single();
+
+    if (error || !customer) {
+      return res.status(404).json({ error: 'Cliente não encontrado' });
+    }
+
+    // Buscar merchant
+    const { data: merchant } = await supabase
+      .from('merchants')
+      .select('*')
+      .eq('id', customer.merchant_id)
+      .single();
+
+    // Enviar mensagem de teste
+    const result = await sendBirthdayWhatsAppMessage({
+      ...customer,
+      daysUntilBirthday: 0
+    }, merchant);
+
+    res.json({
+      success: true,
+      result
+    });
+  } catch (error) {
+    console.error('Erro ao enviar mensagem de teste:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ====================================
+// CRON: EXECUTAR DIARIAMENTE ÀS 9:00
+// ====================================
+
+// Executar todo dia às 9:00 AM
+cron.schedule('0 9 * * *', () => {
+  console.log('⏰ Cron job ativado: Mensagens de Aniversário');
+  processBirthdayMessages();
+}, {
+  timezone: "America/Sao_Paulo"
+});
+
 // Iniciar servidor
 app.listen(PORT, () => {
   console.log('');
@@ -1189,8 +1441,11 @@ app.listen(PORT, () => {
   console.log(`   POST /api/onesignal/notify-cashback`);
   console.log(`   POST /api/onesignal/notify-redemption`);
   console.log(`   POST /api/onesignal/notify-signup`);
+  console.log(`   GET  /api/birthday/upcoming?days=30 (🎂 Aniversários)`);
+  console.log(`   POST /api/birthday/send-test (🎂 Teste de Mensagem)`);
   console.log('');
   console.log('✅ Pronto para receber requisições!');
+  console.log('⏰ Cron: Mensagens de Aniversário (Diariamente às 9:00 AM)');
   console.log('🚀 ========================================');
   console.log('');
 });

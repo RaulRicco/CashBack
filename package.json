@@ -15,6 +15,7 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^4.21.2",
+    "node-cron": "^4.2.1",
     "onesignal-node": "^3.4.0",
     "resend": "^4.0.1",
     "stripe": "^17.5.0"
