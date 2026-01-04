@@ -30,10 +30,10 @@ export default function SubscriptionPlans() {
     }
   };
 
-  // Plano único de lançamento
+  // Plano único
   const plan = {
     id: 'launch',
-    name: 'Assinatura de Lançamento',
+    name: 'Plano Mensal',
     price: 97,
     priceId: 'price_1SluhgAev6mInEFVzGTKjPoV', // LIVE mode
     description: 'Oferta especial de lançamento',
@@ -67,10 +67,10 @@ export default function SubscriptionPlans() {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            🎉 Oferta de Lançamento
+            Assinatura LocalCashback
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Aproveite nossa oferta especial de lançamento com <strong>14 dias GRÁTIS</strong> e todos os recursos incluídos!
+            Plano único com <strong>14 dias GRÁTIS</strong> e todos os recursos incluídos
           </p>
         </div>
 
@@ -82,9 +82,9 @@ export default function SubscriptionPlans() {
 
             return (
               <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden ring-4 ring-purple-500">
-                {/* Popular Badge */}
+                {/* Badge */}
                 <div className="absolute top-0 right-0 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-2 rounded-bl-lg text-base font-bold">
-                  🔥 OFERTA DE LANÇAMENTO
+                  Plano Único
                 </div>
 
                 <div className="p-10">
