@@ -1,5 +1,25 @@
 {
+  "name": "cashback-backend",
+  "version": "1.0.0",
+  "description": "Backend API para sistema de cashback",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
   "dependencies": {
-    "@supabase/supabase-js": "^2.84.0"
+    "@mailchimp/mailchimp_marketing": "^3.0.80",
+    "@supabase/supabase-js": "^2.84.0",
+    "axios": "^1.13.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^4.21.2",
+    "onesignal-node": "^3.4.0",
+    "resend": "^4.0.1",
+    "stripe": "^17.5.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
   }
 }

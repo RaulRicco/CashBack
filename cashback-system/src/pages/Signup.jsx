@@ -49,13 +49,21 @@ export default function Signup() {
       }
 
       // 1. Criar o estabelecimento (merchant)
-      // Usando apenas campos que SABEMOS que existem no schema
+      // ✅ NOVO: Adicionar trial de 14 dias automaticamente
+      const trialStartDate = new Date();
+      const trialEndDate = new Date();
+      trialEndDate.setDate(trialEndDate.getDate() + 14); // ✅ 14 dias de trial
+
       const { data: merchantData, error: merchantError } = await supabase
         .from('merchants')
         .insert({
           name: formData.merchantName,
           phone: formData.merchantPhone,
           cashback_percentage: 5, // Padrão 5%
+          // ✅ Trial de 14 dias
+          trial_start_date: trialStartDate.toISOString(),
+          trial_end_date: trialEndDate.toISOString(),
+          subscription_status: 'trial',
         })
         .select()
         .single();
@@ -86,7 +94,7 @@ export default function Signup() {
       });
 
       if (verificationResult.success) {
-        toast.success('Conta criada! Verifique seu email para ativar.');
+        toast.success('🎉 Conta criada! Você tem 14 dias de teste grátis. Verifique seu email.');
         
         // Redirecionar para página de verificação
         setTimeout(() => {
@@ -126,10 +134,13 @@ export default function Signup() {
             />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Criar Conta
+            Criar Conta - 14 Dias Grátis
           </h1>
           <p className="text-gray-600">
-            Cadastre seu estabelecimento e comece a fidelizar clientes
+            Cadastre seu estabelecimento e ganhe 14 dias de teste gratuito!
+          </p>
+          <p className="text-sm text-primary-600 font-semibold mt-2">
+            ✅ Sem cartão de crédito • ✅ Cancele quando quiser
           </p>
         </div>
 

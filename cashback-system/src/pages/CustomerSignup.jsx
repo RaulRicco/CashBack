@@ -186,6 +186,35 @@ export default function CustomerSignup() {
         // Não bloquear o cadastro por erro de integração
       }
 
+      // 🔔 Solicitar permissão de notificações push após cadastro
+      // Aguardar um pouco para garantir que o OneSignal foi inicializado
+      setTimeout(async () => {
+        try {
+          console.log('🔔 Solicitando permissão de notificações...');
+          
+          // Usar subscribe do hook diretamente (ele já tem o customerPhone)
+          if (window.OneSignalDeferred) {
+            window.OneSignalDeferred.push(async function(OneSignal) {
+              try {
+                // Definir External User ID (telefone)
+                await OneSignal.login(phoneClean);
+                console.log('✅ [OneSignal] External User ID definido:', phoneClean);
+                
+                // Solicitar permissão
+                const permission = await OneSignal.Notifications.requestPermission();
+                console.log('🔔 Permissão de notificações:', permission ? 'Concedida' : 'Negada');
+              } catch (error) {
+                console.error('❌ Erro ao configurar notificações:', error);
+                // Não bloquear o cadastro
+              }
+            });
+          }
+        } catch (notifError) {
+          console.error('❌ Erro ao solicitar permissão:', notifError);
+          // Não bloquear o cadastro se usuário negar permissão
+        }
+      }, 2000); // Aguardar 2 segundos após o cadastro
+
       toast.success('Cadastro realizado com sucesso!');
       navigate(`/customer/dashboard/${phoneClean}`);
     } catch (error) {
