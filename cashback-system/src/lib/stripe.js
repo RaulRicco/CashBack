@@ -11,8 +11,8 @@ export const SUBSCRIPTION_PLANS = {
     price: 97,
     priceId: 'price_1Slw77Aev6mInEFVI6INDD3B', // TEST mode
     description: 'Plano completo com todos os recursos',
-    customerLimit: null, // Ilimitado
-    employeeLimit: null, // Ilimitado
+    customerLimit: 5000, // Limite de 5 mil clientes
+    employeeLimit: 10, // Limite de 10 funcionários
     features: {
       dashboard_basic: true,
       cashback_system: true,
@@ -31,8 +31,8 @@ export const SUBSCRIPTION_PLANS = {
     },
     benefits: [
       '🎉 Oferta de Lançamento',
-      '✅ Clientes ILIMITADOS',
-      '✅ Funcionários ilimitados',
+      '✅ Até 5.000 clientes',
+      '✅ Até 10 funcionários',
       '✅ Sistema de Cashback completo',
       '✅ Portal do Cliente',
       '✅ QR Code para Resgate',
@@ -45,6 +45,7 @@ export const SUBSCRIPTION_PLANS = {
       '✅ Múltiplas lojas/unidades',
       '✅ Suporte WhatsApp prioritário',
       '🎁 14 dias de teste GRÁTIS',
+      '💬 Renegociação após 5.000 clientes',
     ],
   },
   starter: {

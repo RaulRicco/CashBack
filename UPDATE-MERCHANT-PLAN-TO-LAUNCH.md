@@ -2,7 +2,10 @@
 
 ## 🎯 OBJETIVO
 
-Atualizar todos os merchants do banco de dados para usar o novo plano "launch" (R$ 97/mês) com clientes e funcionários ilimitados.
+Atualizar todos os merchants do banco de dados para usar o novo plano "launch" (R$ 97/mês) com:
+- **5.000 clientes** (limite)
+- **10 funcionários** (limite)
+- Renegociação após atingir 5.000 clientes
 
 ---
 
@@ -26,8 +29,8 @@ Cole o seguinte SQL e execute (`Ctrl + Enter` ou botão **RUN**):
 UPDATE merchants 
 SET 
   subscription_plan = 'launch',
-  customer_limit = NULL,  -- Ilimitado
-  employee_limit = NULL   -- Ilimitado
+  customer_limit = 5000,  -- Limite de 5 mil clientes
+  employee_limit = 10     -- Limite de 10 funcionários
 WHERE subscription_plan IS NULL 
    OR subscription_plan IN ('starter', 'business', 'premium');
 
@@ -44,8 +47,8 @@ Você verá uma tabela com os merchants atualizados:
 
 ```
 subscription_plan: 'launch'
-customer_limit: NULL (significa ilimitado)
-employee_limit: NULL (significa ilimitado)
+customer_limit: 5000 (máximo de 5 mil clientes)
+employee_limit: 10 (máximo de 10 funcionários)
 ```
 
 ---
@@ -59,8 +62,8 @@ employee_limit: NULL (significa ilimitado)
 3. Deve aparecer:
    - ✅ **Plano Mensal** (não mais "Plano Business")
    - ✅ **R$ 97** /mês (não mais R$ 297)
-   - ✅ Clientes: **5 / ILIMITADO** (não mais "5 / 10.000")
-   - ✅ Funcionários: **1 / ILIMITADO** (não mais "1 / 5")
+   - ✅ Clientes: **5 de 5.000** (limite de 5 mil clientes)
+   - ✅ Funcionários: **1 de 10** (limite de 10 funcionários)
 
 ### Opção 2: Via SQL (Verificação técnica)
 
@@ -83,8 +86,8 @@ WHERE email = 'seu-email@exemplo.com';
 Resultado esperado:
 ```
 subscription_plan: 'launch'
-customer_limit: null
-employee_limit: null
+customer_limit: 5000
+employee_limit: 10
 ```
 
 ---
@@ -103,11 +106,11 @@ employee_limit: 5              ❌
 ### Depois da atualização:
 ```sql
 subscription_plan: 'launch'    ✅
-customer_limit: NULL           ✅ (ilimitado)
-employee_limit: NULL           ✅ (ilimitado)
+customer_limit: 5000           ✅ (limite de 5 mil clientes)
+employee_limit: 10             ✅ (limite de 10 funcionários)
 ```
 
-**Resultado:** Página mostra "Plano Mensal - R$ 97/mês"
+**Resultado:** Página mostra "Plano Mensal - R$ 97/mês" com limites visíveis
 
 ---
 
@@ -133,9 +136,10 @@ employee_limit: NULL           ✅ (ilimitado)
 │                               /mês  │
 ├─────────────────────────────────────┤
 │ Clientes        Funcionários        │
-│ 5               1                   │
-│ (Ilimitado)     (Ilimitado)        │
+│ 5 de 5.000      1 de 10            │
 └─────────────────────────────────────┘
+Limite: 5.000 clientes / 10 funcionários
+Renegociação após atingir o limite
 ```
 
 ---
@@ -152,8 +156,8 @@ Se você tem múltiplos merchants e quer atualizar apenas o seu:
 UPDATE merchants 
 SET 
   subscription_plan = 'launch',
-  customer_limit = NULL,
-  employee_limit = NULL
+  customer_limit = 5000,
+  employee_limit = 10
 WHERE email = 'seu-email@exemplo.com';  -- Substitua pelo seu email
 ```
 
