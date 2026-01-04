@@ -1,14 +1,16 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from './store/authStore';
 import { initGTM, initMetaPixel } from './lib/tracking';
+import React from 'react';
 
 // Pages
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import SubscriptionRequired from './pages/SubscriptionRequired';
 import Dashboard from './pages/Dashboard';
 import Cashback from './pages/Cashback';
 import Redemption from './pages/Redemption';
@@ -30,16 +32,64 @@ import AdminNotifications from './pages/AdminNotifications';
 import SubscriptionPlans from './pages/SubscriptionPlans';
 import SubscriptionManagement from './pages/SubscriptionManagement';
 
-// Protected Route Component
+// Protected Route Component with Trial Check
 function ProtectedRoute({ children }) {
   const isAuthenticated = useAuthStore(state => state.isAuthenticated);
+  const merchant = useAuthStore(state => state.merchant);
+  const [checking, setChecking] = React.useState(true);
+  const [blocked, setBlocked] = React.useState(false);
+  
+  useEffect(() => {
+    async function checkSubscription() {
+      if (!merchant?.id) {
+        setChecking(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(`http://localhost:3001/api/merchants/${merchant.id}/subscription-status`);
+        const data = await response.json();
+        
+        // Se expirado ou cancelado, bloquear
+        if (data.status === 'expired' || data.status === 'cancelled' || data.status === 'past_due') {
+          setBlocked(true);
+        }
+      } catch (error) {
+        console.error('Erro ao verificar subscription:', error);
+      } finally {
+        setChecking(false);
+      }
+    }
+
+    if (isAuthenticated && merchant) {
+      checkSubscription();
+    } else {
+      setChecking(false);
+    }
+  }, [merchant, isAuthenticated]);
   
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
+
+  if (checking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Verificando acesso...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (blocked) {
+    return <Navigate to="/subscription-required" replace />;
+  }
   
   return children;
 }
+
 
 function App() {
   useEffect(() => {
@@ -96,6 +146,7 @@ function App() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/subscription-required" element={<SubscriptionRequired />} />
         <Route path="/signup/:slug" element={<CustomerSignup />} />
         <Route path="/force-update" element={<ForceUpdate />} />
         

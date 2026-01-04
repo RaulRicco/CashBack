@@ -17,6 +17,7 @@ import { Link } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
 import StatsCard from '../components/StatsCard';
 import CACLTVCalculator from '../components/CACLTVCalculator';
+import TrialBanner from '../components/TrialBanner';
 import { useSubscription } from '../hooks/useSubscription';
 
 export default function Dashboard() {
@@ -123,6 +124,9 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
+        {/* Trial Banner */}
+        {merchant?.id && <TrialBanner merchantId={merchant.id} />}
+        
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
