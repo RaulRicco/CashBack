@@ -35,8 +35,8 @@ export default function SubscriptionPlans() {
     id: 'launch',
     name: 'Plano Mensal',
     price: 97,
-    priceId: 'price_1SluhgAev6mInEFVzGTKjPoV', // LIVE mode
-    description: 'Oferta especial de lançamento',
+    priceId: 'price_1Slw77Aev6mInEFVI6INDD3B', // TEST mode
+    description: 'Plano completo com todos os recursos',
     icon: Sparkles,
     color: 'purple',
     popular: true,
