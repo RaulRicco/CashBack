@@ -35,7 +35,7 @@ export default function SubscriptionPlans() {
     id: 'launch',
     name: 'Assinatura de Lançamento',
     price: 97,
-    priceId: 'price_1SluhgAev6mInEFVzGTKjPoV',
+    priceId: 'price_1Slw77Aev6mInEFVI6INDD3B',
     description: 'Oferta especial de lançamento',
     icon: Sparkles,
     color: 'purple',
