@@ -16,7 +16,8 @@ export default function TrialBanner({ merchantId }) {
 
   async function loadTrialInfo() {
     try {
-      const response = await fetch(`http://localhost:3001/api/merchants/${merchantId}/subscription-status`);
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${apiUrl}/api/merchants/${merchantId}/subscription-status`);
       const data = await response.json();
       
       setTrialInfo(data);
@@ -30,7 +31,8 @@ export default function TrialBanner({ merchantId }) {
   async function handleSubscribe() {
     setCheckingOut(true);
     try {
-      const response = await fetch('http://localhost:3001/api/stripe/create-checkout', {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${apiUrl}/api/stripe/create-checkout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ merchantId })

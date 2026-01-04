@@ -34,7 +34,7 @@ export default function SubscriptionPlans() {
   const plan = {
     id: 'launch',
     name: 'Assinatura de Lançamento',
-    price: 147,
+    price: 97,
     priceId: 'price_1SluhgAev6mInEFVzGTKjPoV',
     description: 'Oferta especial de lançamento',
     icon: Sparkles,

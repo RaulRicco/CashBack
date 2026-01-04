@@ -123,7 +123,8 @@ export const SUBSCRIPTION_PLANS = {
  */
 export async function createCheckoutSession(priceId, merchantId, merchantEmail) {
   try {
-    const response = await fetch('http://localhost:3001/api/stripe/create-checkout-session', {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+    const response = await fetch(`${apiUrl}/api/stripe/create-checkout-session`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -232,7 +233,8 @@ export function getUpgradePlan(currentPlan) {
  */
 export async function createPortalSession(merchantId) {
   try {
-    const response = await fetch('http://localhost:3001/api/stripe/create-portal-session', {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+    const response = await fetch(`${apiUrl}/api/stripe/create-portal-session`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
