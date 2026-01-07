@@ -11,6 +11,30 @@
 import { supabase } from '../lib/supabase';
 
 /**
+ * Valida e retorna URL de logo ou fallback
+ */
+function getValidLogoUrl(logoUrl) {
+  // Se não tiver logo_url, usar fallback
+  if (!logoUrl) {
+    return '/logo-192x192.png';
+  }
+  
+  // Se for uma URL válida (http/https)
+  if (logoUrl.startsWith('http://') || logoUrl.startsWith('https://')) {
+    return logoUrl;
+  }
+  
+  // Se for um caminho relativo válido (começa com /)
+  if (logoUrl.startsWith('/')) {
+    return logoUrl;
+  }
+  
+  // Se for apenas um nome/texto inválido, usar fallback
+  console.warn(`Invalid logo URL: "${logoUrl}", using fallback`);
+  return '/logo-192x192.png';
+}
+
+/**
  * Gera manifest.json dinâmico baseado no merchant_id
  * @param {string} merchantId - ID do estabelecimento
  * @returns {Promise<Object>} - Objeto manifest.json
@@ -29,6 +53,9 @@ export async function generateDynamicManifest(merchantId) {
       return getDefaultManifest();
     }
 
+    // Validar logo URL
+    const validLogoUrl = getValidLogoUrl(merchant.logo_url);
+
     // Gerar manifest personalizado
     return {
       name: merchant.business_name || 'Meu Cashback',
@@ -43,13 +70,13 @@ export async function generateDynamicManifest(merchantId) {
       
       icons: [
         {
-          src: merchant.logo_url || '/logo-192x192.png',
+          src: validLogoUrl,
           sizes: '192x192',
           type: 'image/png',
           purpose: 'any maskable'
         },
         {
-          src: merchant.logo_url || '/logo-512x512.png',
+          src: validLogoUrl,
           sizes: '512x512',
           type: 'image/png',
           purpose: 'any maskable'
@@ -65,7 +92,7 @@ export async function generateDynamicManifest(merchantId) {
           description: 'Ver saldo de cashback',
           url: `/customer/${merchantId}/cashback`,
           icons: [{ 
-            src: merchant.logo_url || '/logo-icon.png', 
+            src: validLogoUrl, 
             sizes: '96x96' 
           }]
         },
@@ -75,7 +102,7 @@ export async function generateDynamicManifest(merchantId) {
           description: 'Resgatar cashback',
           url: `/customer/${merchantId}/redemption`,
           icons: [{ 
-            src: merchant.logo_url || '/logo-icon.png', 
+            src: validLogoUrl, 
             sizes: '96x96' 
           }]
         }
