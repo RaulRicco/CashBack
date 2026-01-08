@@ -58,12 +58,16 @@ export default function Signup() {
         .from('merchants')
         .insert({
           name: formData.merchantName,
+          email: formData.ownerEmail, // ✅ Email obrigatório
           phone: formData.merchantPhone,
           cashback_percentage: 5, // Padrão 5%
           // ✅ Trial de 14 dias
           trial_start_date: trialStartDate.toISOString(),
           trial_end_date: trialEndDate.toISOString(),
           subscription_status: 'trial',
+          subscription_plan: 'launch', // ✅ Plano launch (R$ 97)
+          customer_limit: 5000, // ✅ Limite de 5 mil clientes
+          employee_limit: 10, // ✅ Limite de 10 funcionários
         })
         .select()
         .single();
