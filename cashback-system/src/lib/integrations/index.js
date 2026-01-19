@@ -1,10 +1,81 @@
 import { supabase } from '../supabase';
 import { syncCustomerToMailchimp } from './mailchimp';
 import { syncCustomerToRDStation } from './rdstation';
+import { syncCustomerToOneSignal } from './onesignal';
 
 /**
- * Serviço unificado de integrações de email marketing
+ * Serviço unificado de integrações (email marketing e push notifications)
  */
+
+/**
+ * Enviar notificação push para cliente
+ * @param {Object} customer - Dados do cliente
+ * @param {String} merchantId - ID do merchant
+ * @param {String} eventType - Tipo de evento (signup, cashback, redemption)
+ * @param {Object} data - Dados adicionais (amount, etc)
+ */
+export async function sendPushNotification(customer, merchantId, eventType, data = {}) {
+  try {
+    // Buscar configuração OneSignal ativa
+    const { data: config, error } = await supabase
+      .from('integration_configs')
+      .select('*')
+      .eq('merchant_id', merchantId)
+      .eq('provider', 'onesignal')
+      .eq('is_active', true)
+      .single();
+
+    if (error || !config) {
+      console.log('OneSignal não configurado ou inativo');
+      return { success: false, error: 'OneSignal não configurado' };
+    }
+
+    // Determinar qual endpoint chamar
+    let endpoint;
+    switch (eventType) {
+      case 'signup':
+        endpoint = '/api/onesignal/notify-signup';
+        break;
+      case 'cashback':
+        endpoint = '/api/onesignal/notify-cashback';
+        break;
+      case 'redemption':
+        endpoint = '/api/onesignal/notify-redemption';
+        break;
+      default:
+        return { success: false, error: 'Tipo de evento inválido' };
+    }
+
+    // Chamar endpoint do backend (usa proxy NGINX)
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        merchantId,
+        customerId: customer.id,
+        customerName: customer.name,
+        customerPhone: customer.phone,
+        ...data
+      })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      console.error('Erro ao enviar notificação:', result);
+      return { success: false, error: result.error || 'Erro ao enviar notificação' };
+    }
+
+    console.log('✅ Notificação push enviada:', result);
+    return { success: true, data: result };
+
+  } catch (error) {
+    console.error('Erro ao enviar notificação push:', error);
+    return { success: false, error: error.message };
+  }
+}
 
 /**
  * Sincronizar cliente com todas as integrações ativas
@@ -47,6 +118,22 @@ export async function syncCustomerToIntegrations(customer, merchantId, eventType
             result = await syncCustomerToMailchimp(customer, config, eventType);
           } else if (config.provider === 'rdstation') {
             result = await syncCustomerToRDStation(customer, config, eventType);
+          } else if (config.provider === 'onesignal') {
+            result = await syncCustomerToOneSignal(customer, config, eventType);
+            
+            // Enviar notificação push automática
+            if (result?.success) {
+              // Determinar tipo de notificação
+              let notificationType = eventType;
+              
+              // 'purchase' = recebimento de cashback → enviar push de 'cashback'
+              if (eventType === 'purchase') {
+                notificationType = 'cashback';
+              }
+              
+              console.log(`🔔 Enviando push notification: ${notificationType}`);
+              await sendPushNotification(customer, merchantId, notificationType);
+            }
           }
 
           // Registrar log de sincronização
@@ -139,6 +226,24 @@ export async function testIntegration(provider, credentials) {
         success: true,
         message: '✅ Token validado! Salve a configuração e teste sincronizando um cliente.'
       };
+    } else if (provider === 'onesignal') {
+      if (!credentials.app_id || credentials.app_id.length < 30) {
+        return {
+          success: false,
+          error: 'App ID inválido. Deve ter pelo menos 30 caracteres.'
+        };
+      }
+      if (!credentials.api_key || credentials.api_key.length < 30) {
+        return {
+          success: false,
+          error: 'REST API Key inválida. Deve ter pelo menos 30 caracteres.'
+        };
+      }
+      
+      return {
+        success: true,
+        message: '✅ Credenciais OneSignal validadas! Salve a configuração e teste sincronizando um cliente.'
+      };
     }
 
     return {
@@ -202,9 +307,10 @@ export async function saveIntegrationConfig(merchantId, provider, config) {
       api_key: config.api_key || null,
       api_token: config.api_token || null,
       audience_id: config.audience_id || null,
+      app_id: config.app_id || null, // OneSignal App ID
       sync_on_signup: config.sync_on_signup !== undefined ? config.sync_on_signup : true,
       sync_on_purchase: config.sync_on_purchase !== undefined ? config.sync_on_purchase : true,
-      sync_on_redemption: config.sync_on_redemption !== undefined ? config.sync_on_redemption : false,
+      sync_on_redemption: config.sync_on_redemption !== undefined ? config.sync_on_redemption : true,
       default_tags: config.default_tags || []
     };
 

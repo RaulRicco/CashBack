@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - genspark_ai_developer
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Motivo do deploy manual"
+        required: false
+        default: "gatilho manual"
 
 concurrency:
   group: deploy-genspark-ai-developer
@@ -12,27 +18,33 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      SSH_HOST: ${{ secrets.SSH_HOST }}
+      SSH_USER: ${{ secrets.SSH_USER }}
+      SSH_PORT: ${{ secrets.SSH_PORT }}
+      SSH_KEY: ${{ secrets.SSH_KEY }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Configure SSH
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_KEY }}
-
-      - name: Add known hosts
+      - name: Verificar secrets necessários
         run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -p "${{ secrets.SSH_PORT }}" "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
+          set -e
+          [ -n "$SSH_HOST" ] || (echo "Falta secret SSH_HOST" && exit 1)
+          [ -n "$SSH_USER" ] || (echo "Falta secret SSH_USER" && exit 1)
+          [ -n "$SSH_KEY" ] || (echo "Falta secret SSH_KEY" && exit 1)
+          echo "Secrets ok: host=$SSH_HOST user=$SSH_USER port=${SSH_PORT:-22}"
 
       - name: Deploy via SSH (genspark_ai_developer)
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          port: ${{ secrets.SSH_PORT }}
-          key: ${{ secrets.SSH_KEY }}
+          host: ${{ env.SSH_HOST }}
+          username: ${{ env.SSH_USER }}
+          port: ${{ env.SSH_PORT }}
+          key: ${{ env.SSH_KEY }}
+          timeout: '15m'
           script: |
             set -e
             cd /var/www/cashback

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { CheckCircle, Gift, ArrowRight, Loader } from 'lucide-react';
 import { trackRedemptionCompleted } from '../lib/tracking';
-import { syncCustomerToIntegrations } from '../lib/integrations';
+import { syncCustomerToIntegrations, sendPushNotification } from '../lib/integrations';
 import { useNotification } from '../hooks/useNotification';
 import NotificationContainer from '../components/NotificationContainer';
 import { notifyRedemptionCompleted } from '../lib/pushNotifications';
@@ -82,6 +82,17 @@ export default function CustomerRedemption() {
 
       // Sincronizar com integrações de email marketing
       syncCustomerToIntegrations(updatedRedemption.customer, updatedRedemption.merchant_id, 'redemption');
+
+      // Enviar notificação push de resgate realizado
+      sendPushNotification(
+        updatedRedemption.customer,
+        updatedRedemption.merchant_id,
+        'redemption',
+        { 
+          amount: updatedRedemption.amount,
+          merchantName: updatedRedemption.merchant.name
+        }
+      );
 
       // Mostrar notificação de resgate
       setTimeout(() => {

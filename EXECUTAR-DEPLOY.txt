@@ -1,0 +1,104 @@
+═══════════════════════════════════════════════════════════════
+🚀 COMANDOS PARA EXECUTAR O DEPLOY AGORA
+═══════════════════════════════════════════════════════════════
+
+✅ O BUILD JÁ ESTÁ PRONTO!
+✅ "Meu CashBack" VERIFICADO no build!
+
+═══════════════════════════════════════════════════════════════
+📋 OPÇÃO 1: USAR O SCRIPT AUTOMATIZADO (MAIS FÁCIL)
+═══════════════════════════════════════════════════════════════
+
+Execute no terminal:
+
+cd /home/user/webapp/cashback-system
+./deploy.sh
+
+O script vai:
+1. ✅ Verificar tudo
+2. ✅ Criar novo build
+3. ✅ Perguntar qual plataforma (Vercel/Netlify/Manual)
+4. ✅ Fazer o deploy automaticamente
+
+═══════════════════════════════════════════════════════════════
+📋 OPÇÃO 2: DEPLOY VERCEL (MANUAL)
+═══════════════════════════════════════════════════════════════
+
+cd /home/user/webapp/cashback-system
+
+# Instalar Vercel CLI (se não tiver)
+npm install -g vercel
+
+# Login no Vercel
+vercel login
+
+# Deploy para produção
+vercel --prod
+
+⚠️ O Vercel vai fazer algumas perguntas:
+- Project name? → Digite: cashback-system
+- Link to existing project? → N (primeira vez) ou Y (se já existe)
+
+═══════════════════════════════════════════════════════════════
+📋 OPÇÃO 3: DEPLOY NETLIFY (MANUAL)
+═══════════════════════════════════════════════════════════════
+
+cd /home/user/webapp/cashback-system
+
+# Instalar Netlify CLI (se não tiver)
+npm install -g netlify-cli
+
+# Login no Netlify
+netlify login
+
+# Deploy para produção
+netlify deploy --prod
+
+⚠️ O Netlify vai fazer algumas perguntas:
+- Site name? → Digite: cashback-system (ou outro nome)
+- Build command? → npm run build
+- Publish directory? → dist
+
+═══════════════════════════════════════════════════════════════
+📋 OPÇÃO 4: VER LOCALMENTE (TESTAR ANTES)
+═══════════════════════════════════════════════════════════════
+
+cd /home/user/webapp/cashback-system
+npm run preview
+
+Acesse: http://localhost:4173
+
+═══════════════════════════════════════════════════════════════
+🔍 VERIFICAR APÓS DEPLOY
+═══════════════════════════════════════════════════════════════
+
+Depois do deploy, acesse a URL e verifique:
+
+1. ✅ Menu lateral → deve mostrar "Meu CashBack"
+2. ✅ NÃO deve mostrar "White Label"
+3. ✅ Rota /whitelabel → deve funcionar
+4. ✅ Título da página → "Meu CashBack"
+
+SE AINDA MOSTRAR "WHITE LABEL":
+→ Limpe cache: Ctrl + Shift + Delete
+→ Force reload: Ctrl + F5
+→ Ou abra janela anônima
+
+═══════════════════════════════════════════════════════════════
+🆘 PRECISA DE AJUDA?
+═══════════════════════════════════════════════════════════════
+
+1. Execute o script automatizado: ./deploy.sh
+2. Ou me diga qual comando deu erro
+3. Ou me diga qual plataforma você usa
+
+═══════════════════════════════════════════════════════════════
+📂 ARQUIVOS IMPORTANTES
+═══════════════════════════════════════════════════════════════
+
+✅ DEPLOY-COMMANDS.md → Guia completo detalhado
+✅ deploy.sh → Script automatizado
+✅ dist/ → Build de produção PRONTO
+✅ Este arquivo → Comandos rápidos
+
+═══════════════════════════════════════════════════════════════

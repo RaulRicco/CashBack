@@ -29,10 +29,9 @@ export class MailchimpService {
    */
   async addOrUpdateContact(customer, tags = []) {
     try {
-      // Usar proxy server para evitar CORS
-      const proxyUrl = window.location.hostname === 'localhost' 
-        ? 'http://localhost:3001'
-        : '';
+      // Usar proxy através do Nginx (vazio = mesma origem)
+      // Em DEV/Produção, o Nginx faz proxy de /api/* para o servidor na porta 3002
+      const proxyUrl = '';
 
       const response = await axios.post(
         `${proxyUrl}/api/mailchimp/sync`,
@@ -41,9 +40,10 @@ export class MailchimpService {
           audienceId: this.audienceId,
           serverPrefix: this.serverPrefix,
           customer,
-          tags
+          tags,
+          skipMergeValidation: true // Pular validação de campos obrigatórios que não temos
         },
-        { timeout: 15000 }
+        { timeout: 5000 }
       );
 
       return response.data;
@@ -142,10 +142,9 @@ export class MailchimpService {
         serverPrefix: this.serverPrefix
       });
 
-      // Usar proxy server para evitar CORS
-      const proxyUrl = window.location.hostname === 'localhost' 
-        ? 'http://localhost:3001'
-        : '';
+      // Usar proxy através do Nginx (vazio = mesma origem)
+      // Em DEV/Produção, o Nginx faz proxy de /api/* para o servidor na porta 3002
+      const proxyUrl = '';
 
       const response = await axios.post(
         `${proxyUrl}/api/mailchimp/test`,
@@ -154,7 +153,7 @@ export class MailchimpService {
           audienceId: this.audienceId,
           serverPrefix: this.serverPrefix
         },
-        { timeout: 15000 }
+        { timeout: 5000 }
       );
 
       return response.data;

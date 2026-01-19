@@ -1,0 +1,42 @@
+2025-11-20 21:00:17 +00:00: ❌ Erro Mailchimp Sync: {
+  type: 'https://mailchimp.com/developer/marketing/docs/errors/',
+  title: 'API Key Invalid',
+  status: 401,
+  detail: "Your API key may be invalid, or you've attempted to access the wrong datacenter.",
+  instance: '0ca0bd96-ae9b-d93d-a0d2-33b4bd690c24'
+}
+2025-11-20 21:01:25 +00:00: ❌ Erro Mailchimp Sync: {
+  type: 'https://mailchimp.com/developer/marketing/docs/errors/',
+  title: 'API Key Invalid',
+  status: 401,
+  detail: "Your API key may be invalid, or you've attempted to access the wrong datacenter.",
+  instance: '6692ab75-3a2e-a56a-a793-bab9bd9507de'
+}
+2025-11-20 21:16:37 +00:00: ❌ Erro Mailchimp Sync: {
+  type: 'https://mailchimp.com/developer/marketing/docs/errors/',
+  title: 'Invalid Resource',
+  status: 400,
+  detail: 'Your merge fields were invalid.',
+  instance: '009c68d7-8627-fb0b-0c91-28d88a8f40e7',
+  errors: [
+    { field: 'ADDRESS', message: 'Please enter a complete address' },
+    {
+      field: 'BIRTHDAY',
+      message: 'Please enter a month (01-12) and a day (01-31)'
+    }
+  ]
+}
+2025-11-22 00:35:27 +00:00: ❌ Erro Mailchimp Sync: {
+  type: 'https://mailchimp.com/developer/marketing/docs/errors/',
+  title: 'Invalid Resource',
+  status: 400,
+  detail: 'Your merge fields were invalid.',
+  instance: '2a97cb13-2a77-fb7f-42fe-40c6e615b4ee',
+  errors: [
+    { field: 'ADDRESS', message: 'Please enter a complete address' },
+    {
+      field: 'BIRTHDAY',
+      message: 'Please enter a month (01-12) and a day (01-31)'
+    }
+  ]
+}

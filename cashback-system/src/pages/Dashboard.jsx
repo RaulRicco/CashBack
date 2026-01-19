@@ -8,16 +8,21 @@ import {
   Gift,
   ArrowUpRight,
   ArrowDownRight,
-  Calendar
+  Calendar,
+  Lock
 } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Link } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
 import StatsCard from '../components/StatsCard';
 import CACLTVCalculator from '../components/CACLTVCalculator';
+import TrialBanner from '../components/TrialBanner';
+import { useSubscription } from '../hooks/useSubscription';
 
 export default function Dashboard() {
   const { merchant } = useAuthStore();
+  const { checkFeature, currentPlan } = useSubscription();
   const [stats, setStats] = useState({
     totalCustomers: 0,
     totalTransactions: 0,
@@ -119,6 +124,9 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
+        {/* Trial Banner */}
+        {merchant?.id && <TrialBanner merchantId={merchant.id} />}
+        
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
@@ -179,11 +187,58 @@ export default function Dashboard() {
           />
         </div>
 
-        {/* CAC & LTV Calculator */}
-        <CACLTVCalculator 
-          merchantId={merchant?.id}
-          dateRange={dateRange}
-        />
+        {/* CAC & LTV Calculator - Feature Premium */}
+        {checkFeature('dashboard_cac_ltv') ? (
+          <CACLTVCalculator 
+            merchantId={merchant?.id}
+            dateRange={dateRange}
+          />
+        ) : (
+          <div className="relative bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200 p-8 overflow-hidden">
+            {/* Blur Background */}
+            <div className="absolute inset-0 backdrop-blur-sm bg-white/40"></div>
+            
+            {/* Content */}
+            <div className="relative z-10 text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full mb-4">
+                <Lock className="w-8 h-8 text-white" />
+              </div>
+              
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                Dashboard CAC/LTV Exclusivo
+              </h3>
+              
+              <p className="text-gray-700 mb-1 max-w-2xl mx-auto">
+                Descubra quanto custa conquistar cada cliente (CAC) e quanto ele vale ao longo do tempo (LTV).
+                <br />
+                <strong>Disponível nos planos Business e Premium.</strong>
+              </p>
+              
+              <div className="flex items-center justify-center gap-2 text-sm text-gray-600 mb-6">
+                <span className="font-semibold">Seu plano atual:</span>
+                <span className="px-3 py-1 bg-white rounded-full border border-gray-300">
+                  {currentPlan?.name || 'Starter'}
+                </span>
+              </div>
+              
+              <Link
+                to="/dashboard/planos"
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold px-6 py-3 rounded-lg transition-all shadow-lg hover:shadow-xl"
+              >
+                <TrendingUp className="w-5 h-5" />
+                Fazer Upgrade Agora
+              </Link>
+              
+              <p className="text-xs text-gray-500 mt-4">
+                A partir de <strong>R$ 297/mês</strong> no plano Business
+              </p>
+            </div>
+            
+            {/* Decorative Elements */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-purple-400/20 to-pink-400/20 rounded-full blur-3xl"></div>
+          </div>
+        )}
 
         {/* Informações adicionais */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
