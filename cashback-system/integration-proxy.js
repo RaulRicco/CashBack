@@ -540,6 +540,21 @@ app.get('/health', (req, res) => {
 });
 
 // ========================================
+// ONE SIGNAL CONFIG CHECK
+// ========================================
+
+// Não expõe valores; apenas indica presença das variáveis
+app.get('/api/onesignal/config', (req, res) => {
+  const appIdPresent = !!ONESIGNAL_APP_ID;
+  const restKeyPresent = !!ONESIGNAL_REST_API_KEY;
+  res.json({
+    configured: appIdPresent && restKeyPresent,
+    appIdPresent,
+    restKeyPresent
+  });
+});
+
+// ========================================
 // START SERVER
 // ========================================
 
