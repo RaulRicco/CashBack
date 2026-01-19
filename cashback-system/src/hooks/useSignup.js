@@ -49,14 +49,25 @@ export function useSignup() {
         .single();
       if (merchantError) throw merchantError;
 
+      // 2. Criar usuário proprietário no Supabase Auth
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: formData.ownerEmail,
+        password: formData.ownerPassword,
+        options: {
+          data: { merchant_id: merchantData.id, name: formData.ownerName }
+        }
+      });
+      if (signUpError) throw signUpError;
+
+      // 3. Criar registro do employee (sem armazenar senha)
       const { data: employeeData, error: employeeError } = await supabase
         .from('employees')
         .insert({
           merchant_id: merchantData.id,
           name: formData.ownerName,
           email: formData.ownerEmail,
-          password: formData.ownerPassword,
           role: 'owner',
+          email_verified: false,
         })
         .select()
         .single();
@@ -70,7 +81,7 @@ export function useSignup() {
       });
 
       if (verificationResult.success) {
-        return { success: true, message: 'Conta criada! Verifique seu email para ativar.', next: { type: 'verify-email', email: formData.ownerEmail } };
+        return { success: true, message: 'Conta criada! Verifique seu email para ativar.', next: { type: 'verify-email' } };
       } else {
         return { success: true, message: 'Conta criada, mas houve erro ao enviar email de verificação.', next: { type: 'login' } };
       }
