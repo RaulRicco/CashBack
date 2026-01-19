@@ -3,6 +3,10 @@
  * 
  * Este servidor resolve o problema de CORS ao fazer as chamadas
  * às APIs do Mailchimp e RD Station do lado do servidor.
+
+// Leitura de variáveis de ambiente (não expor no cliente)
+const ONESIGNAL_APP_ID = process.env.ONESIGNAL_APP_ID || process.env.VITE_ONESIGNAL_APP_ID;
+const ONESIGNAL_REST_API_KEY = process.env.ONESIGNAL_REST_API_KEY || process.env.VITE_ONESIGNAL_REST_API_KEY;
  * 
  * Como usar:
  * 1. Instalar dependências: npm install express cors axios md5
@@ -13,32 +17,33 @@
 import express from 'express';
 import cors from 'cors';
 import axios from 'axios';
-import crypto from 'crypto';
+    const { notification } = req.body;
 
 const app = express();
-const PORT = 3001;
-
-// Middleware
 app.use(cors());
-app.use(express.json());
+    console.log('[OneSignal] Recebeu requisição de envio para todos');
+    console.log('[OneSignal] notification:', notification);
 
-// ========================================
-// MAILCHIMP ROUTES
-// ========================================
-
-/**
+    // Validar variantes no servidor
+    if (!ONESIGNAL_APP_ID || !ONESIGNAL_REST_API_KEY) {
+      console.error('[OneSignal] ERRO: Variáveis de ambiente não configuradas');
+      return res.json({
+        success: false,
+        error: 'ONESIGNAL_APP_ID/ONESIGNAL_REST_API_KEY não configuradas no servidor'
+      });
+    }
  * Testar conexão com Mailchimp
  */
-app.post('/api/mailchimp/test', async (req, res) => {
+    const authHeader = ONESIGNAL_REST_API_KEY.startsWith('os_v2_') 
   try {
-    const { apiKey, audienceId, serverPrefix } = req.body;
+      : `Basic ${ONESIGNAL_REST_API_KEY}`; // Formato antigo
 
     const response = await axios.get(
       `https://${serverPrefix}.api.mailchimp.com/3.0/lists/${audienceId}`,
       {
         headers: {
           'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
+        app_id: ONESIGNAL_APP_ID,
         },
         timeout: 30000
       }
@@ -110,16 +115,24 @@ app.post('/api/mailchimp/sync', async (req, res) => {
       success: true,
       data: response.data
     });
+
+      if (!ONESIGNAL_APP_ID || !ONESIGNAL_REST_API_KEY) {
+        console.error('[OneSignal] ERRO: Variáveis de ambiente não configuradas');
+        return res.json({
+          success: false,
+          error: 'ONESIGNAL_APP_ID/ONESIGNAL_REST_API_KEY não configuradas no servidor'
+        });
+      }
   } catch (error) {
     console.error('Mailchimp sync error:', error.response?.data || error.message);
-    res.json({
-      success: false,
-      error: error.response?.data?.detail || error.message
+      const authHeader = ONESIGNAL_REST_API_KEY.startsWith('os_v2_') 
+        ? `Key ${ONESIGNAL_REST_API_KEY}`  // Novo formato v2
+        : `Basic ${ONESIGNAL_REST_API_KEY}`; // Formato antigo
     });
   }
 });
 
-// ========================================
+          app_id: ONESIGNAL_APP_ID,
 // RD STATION ROUTES
 // ========================================
 
@@ -132,9 +145,8 @@ app.post('/api/rdstation/test', async (req, res) => {
     const { accessToken } = req.body;
 
     console.log('[RD Station Test] Recebeu requisição!');
-    console.log('[RD Station Test] Token recebido:', accessToken ? accessToken.substring(0, 10) + '...' : 'VAZIO');
-    console.log('[RD Station Test] Body completo:', JSON.stringify(req.body));
-    console.log('[RD Station Test] Headers:', JSON.stringify(req.headers));
+    console.log('[RD Station Test] Token recebido:', accessToken ? accessToken.substring(0, 6) + '…' : 'VAZIO');
+    // Não logar body/header completo para evitar vazamento de dados
     console.log('[RD Station Test] Testando conexão com API 1.3...');
 
     // Faz uma conversão de teste para validar o token
@@ -183,7 +195,7 @@ app.post('/api/rdstation/sync', async (req, res) => {
   try {
     const { accessToken, customer, tags } = req.body;
 
-    console.log('[RD Station Sync] Sincronizando cliente:', customer.email || customer.phone);
+    console.log('[RD Station Sync] Sincronizando cliente:', (customer?.email || customer?.phone || '').toString().replace(/.(?=.{4})/g, '*'));
 
     // Formatar data de nascimento para RD Station (YYYY-MM-DD formato ISO para aniversário)
     const birthdateField = customer.birthdate ? {
@@ -242,8 +254,8 @@ app.post('/api/onesignal/send-to-all', async (req, res) => {
 
     console.log('[OneSignal] Recebeu requisição');
     console.log('[OneSignal] appId:', appId);
-    console.log('[OneSignal] restApiKey:', restApiKey ? `${restApiKey.substring(0, 20)}...` : 'VAZIO');
-    console.log('[OneSignal] notification:', notification);
+    // Não logar a chave completa
+    console.log('[OneSignal] restApiKey:', restApiKey ? `${restApiKey.substring(0, 6)}…` : 'VAZIO');
 
     if (!restApiKey || restApiKey.trim() === '') {
       console.error('[OneSignal] ERRO: restApiKey está vazio!');

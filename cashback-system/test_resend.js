@@ -7,9 +7,9 @@
  * Para testar localmente SEM precisar do Vite
  */
 
-const RESEND_API_KEY = 're_gqFK8iHM_CS85k3Gj5Rvkx4VpfEC3b2GF';
-const FROM_EMAIL = 'onboarding@resend.dev';
-const FROM_NAME = 'Local CashBack';
+const RESEND_API_KEY = process.env.VITE_RESEND_API_KEY || '';
+const FROM_EMAIL = process.env.VITE_RESEND_FROM_EMAIL || 'onboarding@resend.dev';
+const FROM_NAME = process.env.VITE_RESEND_FROM_NAME || 'Local CashBack';
 
 /**
  * Teste 1: Enviar email simples
@@ -19,6 +19,10 @@ async function testSimpleEmail() {
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
   try {
+    if (!RESEND_API_KEY) {
+      console.log('❌ RESEND_API_KEY não configurada (defina em .env)');
+      return;
+    }
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -107,6 +111,10 @@ async function testVerificationEmail() {
   `;
 
   try {
+    if (!RESEND_API_KEY) {
+      console.log('❌ RESEND_API_KEY não configurada (defina em .env)');
+      return;
+    }
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
