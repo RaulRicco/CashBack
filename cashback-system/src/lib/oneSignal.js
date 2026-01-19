@@ -192,8 +192,6 @@ export async function registerCustomer(customerId, customerData) {
         
         // Adicionar tags (dados do cliente)
         await OneSignal.User.addTags({
-          customer_phone: customerData.phone,
-          customer_name: customerData.name,
           available_cashback: customerData.available_cashback || 0,
         });
 

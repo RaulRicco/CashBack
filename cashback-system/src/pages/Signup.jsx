@@ -14,7 +14,7 @@ export default function Signup() {
       toast.success(result.message);
       if (result.next?.type === 'verify-email') {
         setTimeout(() => {
-          navigate(`/verify-email?email=${encodeURIComponent(result.next.email)}`);
+          navigate('/verify-email');
         }, 2000);
       } else {
         setTimeout(() => {
