@@ -2,6 +2,14 @@
 
 ## ✅ Implementado
 
+Aviso importante: este documento descreve um fluxo LEGADO baseado em telefone/token na URL. Em produção, use o Supabase Auth para recuperação de senha.
+
+Resumo recomendado:
+- Supabase Auth envia e-mail com token seguro (sem PII na URL).
+- Configure o redirect `'/reset-password'` no Supabase.
+- Ative SMTP (ou Resend) para envio de e-mails.
+- Evite armazenar `password_hash` em `customers`; use credenciais do Supabase Auth.
+
 Sistema completo de recuperação de senha para **clientes** (não estabelecimentos/funcionários).
 
 ---
@@ -121,7 +129,7 @@ CREATE FUNCTION delete_expired_customer_tokens()
 
 ---
 
-## 🔄 Fluxo Completo
+## 🔄 Fluxo Completo (LEGADO)
 
 ### **1. Cliente Esqueceu a Senha**
 
@@ -306,9 +314,10 @@ async function enviarSMSRecuperacao(phone, code) {
 }
 ```
 
-### **2. Segurança da Senha**
+### **2. Segurança da Senha (LEGADO)**
+Prefira Supabase Auth para gestão de credenciais e reset de senha. Evite qualquer armazenamento manual de hash em `customers`.
 
-Atualmente usando `btoa()` (Base64) para hash de senha.
+Atualmente usando `btoa()` (Base64) para hash de senha (apenas como referência histórica).
 
 **Para produção:**
 - Usar **bcrypt** ou **Argon2**
