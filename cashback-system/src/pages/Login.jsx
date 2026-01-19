@@ -1,32 +1,21 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../store/authStore';
 import toast from 'react-hot-toast';
 import { Mail, Lock, LogIn, Eye, EyeOff } from 'lucide-react';
 import { BRAND_CONFIG, getLogo, getBrandName } from '../config/branding';
+import { useLogin } from '../hooks/useLogin';
 
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const login = useAuthStore(state => state.login);
+  const { email, setEmail, password, setPassword, showPassword, toggleShowPassword, loading, handleSubmit } = useLogin();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-
-    const result = await login(email, password);
-    
+  const onSubmit = async (e) => {
+    const result = await handleSubmit(e);
     if (result.success) {
       toast.success('Login realizado com sucesso!');
       navigate('/dashboard');
     } else {
       toast.error(result.error || 'Erro ao fazer login');
     }
-    
-    setLoading(false);
   };
 
   return (
@@ -50,7 +39,7 @@ export default function Login() {
         </div>
 
         {/* Formulário */}
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={onSubmit} className="space-y-6">
           {/* Email */}
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
@@ -101,7 +90,7 @@ export default function Login() {
               />
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
+                onClick={toggleShowPassword}
                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
                 tabIndex={-1}
               >

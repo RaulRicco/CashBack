@@ -2,23 +2,31 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Mail, ArrowLeft, RefreshCw, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { verifyEmailCode, resendVerificationCode } from '../lib/emailVerification';
+import { verifyEmailCode, verifyEmailToken, resendVerificationCode } from '../lib/emailVerification';
 
 export default function EmailVerification() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [email, setEmail] = useState(searchParams.get('email') || '');
+  const token = searchParams.get('token') || '';
   const [code, setCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
 
   useEffect(() => {
-    // Se não tiver email na URL, redirecionar para login
-    if (!email) {
-      toast.error('Email não fornecido');
-      navigate('/login');
+    // Se vier via link com token, verificar automaticamente sem expor email
+    if (token) {
+      (async () => {
+        const result = await verifyEmailToken({ token });
+        if (result.success) {
+          toast.success(result.message);
+          setTimeout(() => navigate('/login'), 1500);
+        } else {
+          toast.error(result.error || 'Código inválido ou expirado');
+        }
+      })();
     }
-  }, [email, navigate]);
+  }, [token, navigate]);
 
   const handleVerify = async (verificationCode = code) => {
     if (!verificationCode || verificationCode.length !== 6) {
@@ -91,10 +99,7 @@ export default function EmailVerification() {
               Verifique seu Email
             </h1>
             <p className="text-gray-600">
-              Enviamos um código de 6 dígitos para:
-            </p>
-            <p className="text-teal-600 font-semibold text-lg">
-              {email}
+              Enviamos um código de 6 dígitos para seu email.
             </p>
           </div>
 

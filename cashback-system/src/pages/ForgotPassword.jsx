@@ -1,42 +1,19 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Mail, ArrowLeft, Send } from 'lucide-react';
 import { BRAND_CONFIG, getLogo, getBrandName } from '../config/branding';
-import { requestPasswordReset } from '../lib/passwordReset';
+import { useForgotPassword } from '../hooks/useForgotPassword';
 
 export default function ForgotPassword() {
-  const [email, setEmail] = useState('');
-  const [userType, setUserType] = useState('merchant'); // 'merchant' ou 'customer'
-  const [loading, setLoading] = useState(false);
-  const [emailSent, setEmailSent] = useState(false);
   const navigate = useNavigate();
+  const { email, setEmail, userType, selectMerchant, selectCustomer, loading, emailSent, handleSubmit, resetView } = useForgotPassword();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!email) {
-      toast.error('Por favor, digite seu email');
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const result = await requestPasswordReset(email, userType);
-      
-      if (result.success) {
-        toast.success(result.message);
-        setEmailSent(true);
-        setLoading(false);
-      } else {
-        toast.error(result.error || 'Erro ao enviar email');
-        setLoading(false);
-      }
-    } catch (error) {
-      console.error('Erro ao solicitar reset:', error);
-      toast.error('Erro ao processar solicitação');
-      setLoading(false);
+  const onSubmit = async (e) => {
+    const result = await handleSubmit(e);
+    if (result.success) {
+      toast.success(result.message);
+    } else {
+      toast.error(result.error);
     }
   };
 
@@ -102,10 +79,7 @@ export default function ForgotPassword() {
             </div>
 
             <button
-              onClick={() => {
-                setEmailSent(false);
-                setEmail('');
-              }}
+              onClick={resetView}
               className="w-full flex items-center justify-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -114,7 +88,7 @@ export default function ForgotPassword() {
           </div>
         ) : (
           /* Formulário */
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={onSubmit} className="space-y-6">
             
             {/* Tipo de Usuário */}
             <div>
@@ -124,7 +98,7 @@ export default function ForgotPassword() {
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
-                  onClick={() => setUserType('merchant')}
+                  onClick={selectMerchant}
                   className={`py-3 px-4 rounded-lg border-2 font-medium transition-all ${
                     userType === 'merchant'
                       ? 'border-primary-600 bg-primary-50 text-primary-700'
@@ -135,7 +109,7 @@ export default function ForgotPassword() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setUserType('customer')}
+                  onClick={selectCustomer}
                   className={`py-3 px-4 rounded-lg border-2 font-medium transition-all ${
                     userType === 'customer'
                       ? 'border-primary-600 bg-primary-50 text-primary-700'
