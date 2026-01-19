@@ -1,7 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import * as dotenv from 'dotenv';
-
-dotenv.config();
+// Espera variáveis de ambiente já exportadas pelo shell (source ../.env)
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
@@ -22,13 +20,12 @@ async function createUser() {
   console.log('🔑 Senha:', password);
   console.log('━'.repeat(50));
   
-  // Tentar fazer signup
   const { data, error } = await supabase.auth.signUp({
     email: email,
     password: password,
     options: {
       data: {
-        merchant_id: 'd1de704a-2b5b-4b5d-a675-a413c965f16c', // ID do merchant
+        merchant_id: 'd1de704a-2b5b-4b5d-a675-a413c965f16c',
       }
     }
   });
@@ -38,7 +35,6 @@ async function createUser() {
       console.log('✅ Usuário já existe no Supabase Auth!');
       console.log('📝 Você pode usar "Esqueceu a senha" para resetar');
       
-      // Tentar enviar email de reset
       console.log('\n🔄 Tentando enviar email de recuperação...');
       const { data: resetData, error: resetError } = await supabase.auth.resetPasswordForEmail(
         email,

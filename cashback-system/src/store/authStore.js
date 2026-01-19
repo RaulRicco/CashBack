@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { supabase } from '../lib/supabase';
+import { signInWithPassword, signOut as authSignOut, getSession, fetchMerchantByEmail } from '../services/authService';
 
 export const useAuthStore = create(
   persist(
@@ -21,10 +21,7 @@ export const useAuthStore = create(
         set({ isLoading: true });
         try {
           // ✅ USAR SUPABASE AUTH - Autenticação real
-          const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-            email,
-            password
-          });
+          const { data: authData, error: authError } = await signInWithPassword(email, password);
 
           if (authError) {
             throw new Error('Credenciais inválidas');
@@ -36,11 +33,7 @@ export const useAuthStore = create(
 
           // ✅ Buscar dados do merchant associado ao usuário
           // Assumindo que o email do Auth corresponde ao email do merchant ou há uma relação
-          const { data: merchants, error: merchantError } = await supabase
-            .from('merchants')
-            .select('*')
-            .eq('email', email)
-            .limit(1);
+          const { data: merchants, error: merchantError } = await fetchMerchantByEmail(email);
 
           if (merchantError) {
             console.error('Erro ao buscar merchant:', merchantError);
@@ -77,7 +70,7 @@ export const useAuthStore = create(
 
       logout: async () => {
         // ✅ Fazer logout no Supabase Auth
-        await supabase.auth.signOut();
+        await authSignOut();
         
         set({
           user: null,
@@ -89,15 +82,11 @@ export const useAuthStore = create(
 
       checkAuth: async () => {
         // ✅ Verificar sessão do Supabase Auth
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await getSession();
         
         if (session?.user) {
           // Buscar merchant associado
-          const { data: merchants } = await supabase
-            .from('merchants')
-            .select('*')
-            .eq('email', session.user.email)
-            .limit(1);
+          const { data: merchants } = await fetchMerchantByEmail(session.user.email);
 
           const merchant = merchants && merchants.length > 0 ? merchants[0] : null;
 
@@ -122,10 +111,24 @@ export const useAuthStore = create(
     }),
     {
       name: 'auth-storage',
+      version: 2,
+      // Migrar storage antigo para formato mínimo e remover PII
+      migrate: (persistedState, version) => {
+        try {
+          const safeUser = persistedState?.user
+            ? { email: persistedState.user.email, id: persistedState.user.id }
+            : null;
+          return {
+            user: safeUser,
+            isAuthenticated: !!safeUser
+          };
+        } catch (e) {
+          return { user: null, isAuthenticated: false };
+        }
+      },
+      // Persistir apenas o mínimo necessário
       partialize: (state) => ({
         user: state.user,
-        merchant: state.merchant,
-        employee: state.employee,
         isAuthenticated: state.isAuthenticated
       })
     }

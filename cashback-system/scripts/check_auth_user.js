@@ -1,7 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import * as dotenv from 'dotenv';
-
-dotenv.config();
+// Espera variáveis de ambiente já exportadas pelo shell (source ../.env)
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -21,7 +19,6 @@ async function checkUser() {
   console.log('\n🔍 Verificando usuário:', email);
   console.log('━'.repeat(50));
   
-  // 1. Verificar se existe na tabela merchants
   const { data: merchant, error: merchantError } = await supabase
     .from('merchants')
     .select('id, email, business_name')
@@ -37,7 +34,6 @@ async function checkUser() {
     console.log('❌ Não encontrado');
   }
   
-  // 2. Verificar se existe no Supabase Auth (usando service role)
   const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
   
   console.log('\n🔐 Usuário no Supabase Auth:');
@@ -58,17 +54,15 @@ async function checkUser() {
     }
   }
   
-  // 3. Se o usuário não existe no Auth, vamos criar
   if (merchant && (!authUsers.users.find(u => u.email === email))) {
     console.log('\n🔧 Criando usuário no Supabase Auth...');
     
-    // Criar senha temporária
     const tempPassword = 'Temp123456!';
     
     const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
       email: email,
       password: tempPassword,
-      email_confirm: true, // Confirmar email automaticamente
+      email_confirm: true,
       user_metadata: {
         merchant_id: merchant.id,
         business_name: merchant.business_name

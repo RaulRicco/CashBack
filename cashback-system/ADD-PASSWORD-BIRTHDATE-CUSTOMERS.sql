@@ -6,13 +6,14 @@
 ALTER TABLE customers 
 ADD COLUMN IF NOT EXISTS birthdate DATE;
 
--- Adicionar campo de senha hash
+-- [DEPRECATED] Evitar armazenar senhas em tabelas.
+-- Use Supabase Auth para clientes e proprietários.
 ALTER TABLE customers 
-ADD COLUMN IF NOT EXISTS password_hash TEXT;
+-- ADD COLUMN IF NOT EXISTS password_hash TEXT; -- não recomendado
 
--- Criar índice no campo de senha para melhor performance
-CREATE INDEX IF NOT EXISTS idx_customers_password ON customers(password_hash);
+-- [DEPRECATED]
+-- CREATE INDEX IF NOT EXISTS idx_customers_password ON customers(password_hash);
 
 -- Comentários nas colunas
 COMMENT ON COLUMN customers.birthdate IS 'Data de nascimento do cliente';
-COMMENT ON COLUMN customers.password_hash IS 'Hash da senha do cliente para proteger acesso ao perfil';
+-- COMMENT ON COLUMN customers.password_hash IS 'Hash da senha do cliente para proteger acesso ao perfil';

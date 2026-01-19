@@ -158,6 +158,50 @@ export async function verifyEmailCode({ email, code }) {
 }
 
 /**
+ * Verificar email usando apenas token (sem expor email)
+ */
+export async function verifyEmailToken({ token }) {
+  try {
+    // Buscar verificação pelo token mais recente não verificado
+    const { data: verification, error: fetchError } = await supabase
+      .from('email_verifications')
+      .select('*')
+      .eq('token', token.trim())
+      .eq('verified', false)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (fetchError || !verification) {
+      return { success: false, error: 'Código inválido ou já utilizado' };
+    }
+
+    const now = new Date();
+    const expiresAt = new Date(verification.expires_at);
+    if (now > expiresAt) {
+      return { success: false, error: 'Código expirado. Solicite um novo.' };
+    }
+
+    const { error: updateError } = await supabase
+      .from('email_verifications')
+      .update({ verified: true, verified_at: new Date().toISOString() })
+      .eq('id', verification.id);
+    if (updateError) throw updateError;
+
+    if (verification.employee_id) {
+      const { error: employeeError } = await supabase
+        .from('employees')
+        .update({ email_verified: true })
+        .eq('id', verification.employee_id);
+      if (employeeError) throw employeeError;
+    }
+
+    return { success: true, message: 'Email verificado com sucesso!' };
+  } catch (error) {
+    return { success: false, error: error.message || 'Erro ao verificar token' };
+  }
+}
+/**
  * Reenviar código de verificação
  */
 export async function resendVerificationCode({ email }) {

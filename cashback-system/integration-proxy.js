@@ -1,13 +1,11 @@
 /**
- * Proxy Server para Integrações de Email Marketing
- * 
- * Este servidor resolve o problema de CORS ao fazer as chamadas
- * às APIs do Mailchimp e RD Station do lado do servidor.
- * 
+ * Proxy Server para Integrações (Mailchimp, RD Station, OneSignal, Resend)
+ * Resolve CORS e mantém segredos no servidor.
+ *
  * Como usar:
- * 1. Instalar dependências: npm install express cors axios md5
+ * 1. Instalar dependências: npm install express cors axios
  * 2. Executar: node integration-proxy.js
- * 3. O servidor vai rodar na porta 3001
+ * 3. O servidor roda na porta 3001
  */
 
 import express from 'express';
@@ -17,10 +15,21 @@ import crypto from 'crypto';
 
 const app = express();
 const PORT = 3001;
+const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
+const log = {
+  info: (...args) => console.log(...args),
+  warn: (...args) => console.warn(...args),
+  error: (...args) => console.error(...args),
+  debug: (...args) => { if (LOG_LEVEL === 'debug') console.log(...args); }
+};
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Leitura de variáveis de ambiente (não expor no cliente)
+const ONESIGNAL_APP_ID = process.env.ONESIGNAL_APP_ID || process.env.VITE_ONESIGNAL_APP_ID;
+const ONESIGNAL_REST_API_KEY = process.env.ONESIGNAL_REST_API_KEY || process.env.VITE_ONESIGNAL_REST_API_KEY;
 
 // ========================================
 // MAILCHIMP ROUTES
@@ -50,7 +59,7 @@ app.post('/api/mailchimp/test', async (req, res) => {
       memberCount: response.data.stats.member_count
     });
   } catch (error) {
-    console.error('Mailchimp test error:', error.response?.data || error.message);
+    log.error('Mailchimp test error:', error.response?.data || error.message);
     res.json({
       success: false,
       error: error.response?.data?.detail || error.response?.data?.title || error.message
@@ -67,18 +76,16 @@ app.post('/api/mailchimp/sync', async (req, res) => {
 
     const subscriberHash = crypto.createHash('md5').update((customer.email || customer.phone).toLowerCase().trim()).digest('hex');
 
-    // Formatar data de nascimento para Mailchimp (MM/DD formato para aniversário)
+    // Formatar data de nascimento para Mailchimp (MM/DD)
     let birthdayField = {};
     if (customer.birthdate) {
       try {
         const date = new Date(customer.birthdate);
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
-        birthdayField = {
-          BIRTHDAY: `${month}/${day}` // Formato MM/DD para automações de aniversário
-        };
+        birthdayField = { BIRTHDAY: `${month}/${day}` };
       } catch (e) {
-        console.log('[Mailchimp] Erro ao formatar birthdate:', e);
+        log.debug('[Mailchimp] Erro ao formatar birthdate:', e);
       }
     }
 
@@ -90,7 +97,7 @@ app.post('/api/mailchimp/sync', async (req, res) => {
         PHONE: customer.phone || '',
         CASHBACK: parseFloat(customer.available_cashback || 0).toFixed(2),
         TOTALSPENT: parseFloat(customer.total_spent || 0).toFixed(2),
-        ...birthdayField // Adiciona BIRTHDAY se existir
+        ...birthdayField
       },
       tags: tags || []
     };
@@ -106,20 +113,13 @@ app.post('/api/mailchimp/sync', async (req, res) => {
       }
     );
 
-    res.json({
-      success: true,
-      data: response.data
-    });
+    res.json({ success: true, data: response.data });
   } catch (error) {
-    console.error('Mailchimp sync error:', error.response?.data || error.message);
-    res.json({
-      success: false,
-      error: error.response?.data?.detail || error.message
-    });
+    log.error('Mailchimp sync error:', error.response?.data || error.message);
+    res.json({ success: false, error: error.response?.data?.detail || error.message });
   }
 });
 
-// ========================================
 // RD STATION ROUTES
 // ========================================
 
@@ -132,9 +132,8 @@ app.post('/api/rdstation/test', async (req, res) => {
     const { accessToken } = req.body;
 
     console.log('[RD Station Test] Recebeu requisição!');
-    console.log('[RD Station Test] Token recebido:', accessToken ? accessToken.substring(0, 10) + '...' : 'VAZIO');
-    console.log('[RD Station Test] Body completo:', JSON.stringify(req.body));
-    console.log('[RD Station Test] Headers:', JSON.stringify(req.headers));
+    console.log('[RD Station Test] Token recebido:', accessToken ? accessToken.substring(0, 6) + '…' : 'VAZIO');
+    // Não logar body/header completo para evitar vazamento de dados
     console.log('[RD Station Test] Testando conexão com API 1.3...');
 
     // Faz uma conversão de teste para validar o token
@@ -183,7 +182,7 @@ app.post('/api/rdstation/sync', async (req, res) => {
   try {
     const { accessToken, customer, tags } = req.body;
 
-    console.log('[RD Station Sync] Sincronizando cliente:', customer.email || customer.phone);
+    console.log('[RD Station Sync] Sincronizando cliente:', (customer?.email || customer?.phone || '').toString().replace(/.(?=.{4})/g, '*'));
 
     // Formatar data de nascimento para RD Station (YYYY-MM-DD formato ISO para aniversário)
     const birthdateField = customer.birthdate ? {
@@ -238,39 +237,50 @@ app.post('/api/rdstation/sync', async (req, res) => {
  */
 app.post('/api/onesignal/send-to-all', async (req, res) => {
   try {
-    const { appId, restApiKey, notification } = req.body;
+    const { notification, dryRun } = req.body;
 
-    console.log('[OneSignal] Recebeu requisição');
-    console.log('[OneSignal] appId:', appId);
-    console.log('[OneSignal] restApiKey:', restApiKey ? `${restApiKey.substring(0, 20)}...` : 'VAZIO');
-    console.log('[OneSignal] notification:', notification);
+    console.log('[OneSignal] Recebeu requisição de envio para todos');
 
-    if (!restApiKey || restApiKey.trim() === '') {
-      console.error('[OneSignal] ERRO: restApiKey está vazio!');
-      return res.json({
-        success: false,
-        error: 'REST API Key não foi enviada'
-      });
+    // Permitir dry-run sem necessidade de variáveis de ambiente
+    if (dryRun) {
+      const payload = {
+        app_id: ONESIGNAL_APP_ID || 'DRY_RUN_APP_ID',
+        included_segments: ['All'],
+        headings: { en: notification?.title },
+        contents: { en: notification?.message },
+        url: notification?.url || 'https://localcashback.com.br',
+        big_picture: notification?.image,
+        chrome_web_icon: notification?.icon || '/icon-192.png',
+      };
+      console.log('[OneSignal] Dry-run ativo. Não enviando notificação.');
+      return res.json({ success: true, dryRun: true, payload });
+    }
+
+    if (!ONESIGNAL_APP_ID || !ONESIGNAL_REST_API_KEY) {
+      console.error('[OneSignal] ERRO: Variáveis de ambiente não configuradas');
+      return res.json({ success: false, error: 'ONESIGNAL_APP_ID/ONESIGNAL_REST_API_KEY não configuradas' });
     }
 
     // OneSignal v2 REST API Key começa com 'os_v2_' e usa formato diferente
-    const authHeader = restApiKey.startsWith('os_v2_') 
-      ? `Key ${restApiKey}`  // Novo formato v2
-      : `Basic ${restApiKey}`; // Formato antigo
+    const authHeader = ONESIGNAL_REST_API_KEY.startsWith('os_v2_') 
+      ? `Key ${ONESIGNAL_REST_API_KEY}`
+      : `Basic ${ONESIGNAL_REST_API_KEY}`;
 
     console.log('[OneSignal] Auth header format:', authHeader.substring(0, 20) + '...');
 
+    const payload = {
+      app_id: ONESIGNAL_APP_ID,
+      included_segments: ['All'],
+      headings: { en: notification.title },
+      contents: { en: notification.message },
+      url: notification.url || 'https://localcashback.com.br',
+      big_picture: notification.image,
+      chrome_web_icon: notification.icon || '/icon-192.png',
+    };
+
     const response = await axios.post(
       'https://onesignal.com/api/v1/notifications',
-      {
-        app_id: appId,
-        included_segments: ['All'],
-        headings: { en: notification.title },
-        contents: { en: notification.message },
-        url: notification.url || 'https://localcashback.com.br',
-        big_picture: notification.image,
-        chrome_web_icon: notification.icon || '/icon-192.png',
-      },
+      payload,
       {
         headers: {
           'Content-Type': 'application/json',
@@ -300,26 +310,48 @@ app.post('/api/onesignal/send-to-all', async (req, res) => {
  */
 app.post('/api/onesignal/send-to-user', async (req, res) => {
   try {
-    const { appId, restApiKey, userId, notification } = req.body;
+    const { userId, notification, dryRun } = req.body;
 
     console.log('[OneSignal] Enviando para usuário:', userId);
 
+    // Permitir dry-run sem necessidade de variáveis de ambiente
+    if (dryRun) {
+      const payload = {
+        app_id: ONESIGNAL_APP_ID || 'DRY_RUN_APP_ID',
+        include_external_user_ids: [userId],
+        headings: { en: notification?.title },
+        contents: { en: notification?.message },
+        url: notification?.url || 'https://localcashback.com.br',
+        big_picture: notification?.image,
+        chrome_web_icon: notification?.icon || '/icon-192.png',
+      };
+      console.log('[OneSignal] Dry-run ativo (user). Não enviando.');
+      return res.json({ success: true, dryRun: true, payload });
+    }
+
+    if (!ONESIGNAL_APP_ID || !ONESIGNAL_REST_API_KEY) {
+      console.error('[OneSignal] ERRO: Variáveis de ambiente não configuradas');
+      return res.json({ success: false, error: 'ONESIGNAL_APP_ID/ONESIGNAL_REST_API_KEY não configuradas' });
+    }
+
     // OneSignal v2 REST API Key usa formato diferente
-    const authHeader = restApiKey.startsWith('os_v2_') 
-      ? `Key ${restApiKey}`  // Novo formato v2
-      : `Basic ${restApiKey}`; // Formato antigo
+    const authHeader = ONESIGNAL_REST_API_KEY.startsWith('os_v2_') 
+      ? `Key ${ONESIGNAL_REST_API_KEY}`
+      : `Basic ${ONESIGNAL_REST_API_KEY}`;
+
+    const payload = {
+      app_id: ONESIGNAL_APP_ID,
+      include_external_user_ids: [userId],
+      headings: { en: notification.title },
+      contents: { en: notification.message },
+      url: notification.url || 'https://localcashback.com.br',
+      big_picture: notification.image,
+      chrome_web_icon: notification.icon || '/icon-192.png',
+    };
 
     const response = await axios.post(
       'https://onesignal.com/api/v1/notifications',
-      {
-        app_id: appId,
-        include_external_user_ids: [userId],
-        headings: { en: notification.title },
-        contents: { en: notification.message },
-        url: notification.url || 'https://localcashback.com.br',
-        big_picture: notification.image,
-        chrome_web_icon: notification.icon || '/icon-192.png',
-      },
+      payload,
       {
         headers: {
           'Content-Type': 'application/json',
@@ -546,6 +578,60 @@ app.post('/api/resend/send', async (req, res) => {
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// ========================================
+// ONE SIGNAL CONFIG CHECK
+// ========================================
+
+// Não expõe valores; apenas indica presença das variáveis
+app.get('/api/onesignal/config', (req, res) => {
+  const appIdPresent = !!ONESIGNAL_APP_ID;
+  const restKeyPresent = !!ONESIGNAL_REST_API_KEY;
+  res.json({
+    configured: appIdPresent && restKeyPresent,
+    appIdPresent,
+    restKeyPresent
+  });
+});
+
+// Validação ativa com a OneSignal API sem enviar notificação
+app.get('/api/onesignal/validate', async (req, res) => {
+  try {
+    if (!ONESIGNAL_APP_ID || !ONESIGNAL_REST_API_KEY) {
+      return res.json({
+        validated: false,
+        configured: false,
+        error: 'Variáveis ONESIGNAL_APP_ID/ONESIGNAL_REST_API_KEY não configuradas'
+      });
+    }
+
+    const authHeader = ONESIGNAL_REST_API_KEY.startsWith('os_v2_')
+      ? `Key ${ONESIGNAL_REST_API_KEY}`
+      : `Basic ${ONESIGNAL_REST_API_KEY}`;
+
+    const response = await axios.get('https://onesignal.com/api/v1/apps', {
+      headers: {
+        'Authorization': authHeader,
+        'Content-Type': 'application/json'
+      },
+      timeout: 15000
+    });
+
+    // Verificar se o app configurado existe na conta
+    const apps = Array.isArray(response.data) ? response.data : [];
+    const match = apps.some(a => a?.id === ONESIGNAL_APP_ID);
+
+    return res.json({
+      validated: match,
+      configured: true,
+      appsCount: apps.length
+    });
+  } catch (error) {
+    const status = error.response?.status;
+    const message = error.response?.data?.errors?.[0] || error.response?.data || error.message;
+    return res.json({ validated: false, configured: true, status, error: message });
+  }
 });
 
 // ========================================

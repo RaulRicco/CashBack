@@ -1,6 +1,5 @@
 // Integração com OneSignal
 const ONESIGNAL_APP_ID = import.meta.env.VITE_ONESIGNAL_APP_ID;
-const ONESIGNAL_REST_API_KEY = import.meta.env.VITE_ONESIGNAL_REST_API_KEY;
 
 /**
  * Inicializar OneSignal
@@ -91,10 +90,6 @@ export async function sendNotificationToAll(notification) {
   try {
     console.log('📤 Enviando notificação para todos via proxy:', notification);
 
-    if (!ONESIGNAL_REST_API_KEY) {
-      throw new Error('REST API Key não configurada');
-    }
-
     // Usar o proxy local para evitar CORS (mesma origem em produção)
     const proxyUrl = window.location.hostname === 'localhost' 
       ? 'http://localhost:3001'
@@ -106,8 +101,6 @@ export async function sendNotificationToAll(notification) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        appId: ONESIGNAL_APP_ID,
-        restApiKey: ONESIGNAL_REST_API_KEY,
         notification: {
           title: notification.title,
           message: notification.message,
@@ -161,8 +154,6 @@ export async function sendNotificationToUser(userId, notification) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        appId: ONESIGNAL_APP_ID,
-        restApiKey: ONESIGNAL_REST_API_KEY,
         userId: userId,
         notification: {
           title: notification.title,
@@ -201,8 +192,6 @@ export async function registerCustomer(customerId, customerData) {
         
         // Adicionar tags (dados do cliente)
         await OneSignal.User.addTags({
-          customer_phone: customerData.phone,
-          customer_name: customerData.name,
           available_cashback: customerData.available_cashback || 0,
         });
 

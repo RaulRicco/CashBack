@@ -11,9 +11,6 @@ const RESEND_API_KEY = process.env.VITE_RESEND_API_KEY || '';
 const FROM_EMAIL = process.env.VITE_RESEND_FROM_EMAIL || 'onboarding@resend.dev';
 const FROM_NAME = process.env.VITE_RESEND_FROM_NAME || 'Local CashBack';
 
-/**
- * Teste 1: Enviar email simples
- */
 async function testSimpleEmail() {
   console.log('\n🧪 TESTE 1: Email Simples');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -31,7 +28,7 @@ async function testSimpleEmail() {
       },
       body: JSON.stringify({
         from: `${FROM_NAME} <${FROM_EMAIL}>`,
-        to: ['delivered@resend.dev'], // Email de teste do Resend
+        to: ['delivered@resend.dev'],
         subject: 'Teste - Resend Working!',
         html: '<h1>🎉 Email enviado com sucesso!</h1><p>O Resend está funcionando corretamente.</p>',
         text: 'Email enviado com sucesso! O Resend está funcionando.',
@@ -56,14 +53,11 @@ async function testSimpleEmail() {
   }
 }
 
-/**
- * Teste 2: Email de verificação com código
- */
 async function testVerificationEmail() {
   console.log('\n🧪 TESTE 2: Email de Verificação');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-  const verificationCode = '123456'; // Código de teste
+  const verificationCode = '123456';
   const userName = 'João da Silva';
 
   const html = `
@@ -147,9 +141,6 @@ async function testVerificationEmail() {
   }
 }
 
-/**
- * Teste 3: Verificar limites e configuração
- */
 async function testConfiguration() {
   console.log('\n🧪 TESTE 3: Verificar Configuração');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -170,9 +161,6 @@ async function testConfiguration() {
   console.log('   3. Use email from do seu domínio');
 }
 
-/**
- * Executar todos os testes
- */
 async function runAllTests() {
   console.log('\n');
   console.log('╔════════════════════════════════════════════════════════╗');
@@ -190,5 +178,4 @@ async function runAllTests() {
   console.log('');
 }
 
-// Executar
 runAllTests().catch(console.error);
