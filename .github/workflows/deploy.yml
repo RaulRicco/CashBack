@@ -3,7 +3,11 @@ name: Deploy to Server (Genspark)
 on:
   push:
     branches:
-      - main
+      - genspark_ai_developer
+
+concurrency:
+  group: deploy-genspark-ai-developer
+  cancel-in-progress: true
 
 jobs:
   deploy:
@@ -22,7 +26,7 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -p "${{ secrets.SSH_PORT }}" "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
 
-      - name: Deploy via SSH
+      - name: Deploy via SSH (genspark_ai_developer)
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -31,15 +35,13 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             set -e
-            cd /var/www/cashback/cashback-system
-            git pull origin main
-            npm install --legacy-peer-deps
-            npm run build
+            cd /var/www/cashback
+            git fetch origin genspark_ai_developer
+            git reset --hard origin/genspark_ai_developer
+            bash DEPLOY-RECUPERACAO-SENHA.sh
             # Reinicie serviços conforme configuração do servidor
-            # Exemplo: systemctl restart cashback-proxy
-            # Exemplo: systemctl reload nginx
-            if systemctl list-units --type=service | grep -q "cashback-proxy"; then
-              sudo systemctl restart cashback-proxy
+            if systemctl list-units --type=service | grep -q "integration-proxy"; then
+              sudo systemctl restart integration-proxy
             fi
             if systemctl list-units --type=service | grep -q "nginx"; then
               sudo systemctl reload nginx || sudo systemctl restart nginx
