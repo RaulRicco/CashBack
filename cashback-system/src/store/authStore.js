@@ -122,10 +122,24 @@ export const useAuthStore = create(
     }),
     {
       name: 'auth-storage',
+      version: 2,
+      // Migrar storage antigo para formato mínimo e remover PII
+      migrate: (persistedState, version) => {
+        try {
+          const safeUser = persistedState?.user
+            ? { email: persistedState.user.email, id: persistedState.user.id }
+            : null;
+          return {
+            user: safeUser,
+            isAuthenticated: !!safeUser
+          };
+        } catch (e) {
+          return { user: null, isAuthenticated: false };
+        }
+      },
+      // Persistir apenas o mínimo necessário
       partialize: (state) => ({
         user: state.user,
-        merchant: state.merchant,
-        employee: state.employee,
         isAuthenticated: state.isAuthenticated
       })
     }
