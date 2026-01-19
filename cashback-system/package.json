@@ -7,7 +7,12 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "proxy": "node integration-proxy.js",
+    "proxy:env": "bash -lc 'set -a && source ../.env && set +a && node integration-proxy.js'",
+    "scripts:resend-test": "node scripts/test_resend.js",
+    "scripts:create-auth-user": "node scripts/create_auth_user.js",
+    "scripts:check-auth-user": "node scripts/check_auth_user.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.76.1",
