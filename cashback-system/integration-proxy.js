@@ -15,6 +15,13 @@ import crypto from 'crypto';
 
 const app = express();
 const PORT = 3001;
+const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
+const log = {
+  info: (...args) => console.log(...args),
+  warn: (...args) => console.warn(...args),
+  error: (...args) => console.error(...args),
+  debug: (...args) => { if (LOG_LEVEL === 'debug') console.log(...args); }
+};
 
 // Middleware
 app.use(cors());
@@ -52,7 +59,7 @@ app.post('/api/mailchimp/test', async (req, res) => {
       memberCount: response.data.stats.member_count
     });
   } catch (error) {
-    console.error('Mailchimp test error:', error.response?.data || error.message);
+    log.error('Mailchimp test error:', error.response?.data || error.message);
     res.json({
       success: false,
       error: error.response?.data?.detail || error.response?.data?.title || error.message
@@ -78,7 +85,7 @@ app.post('/api/mailchimp/sync', async (req, res) => {
         const day = String(date.getDate()).padStart(2, '0');
         birthdayField = { BIRTHDAY: `${month}/${day}` };
       } catch (e) {
-        console.log('[Mailchimp] Erro ao formatar birthdate:', e);
+        log.debug('[Mailchimp] Erro ao formatar birthdate:', e);
       }
     }
 
@@ -108,7 +115,7 @@ app.post('/api/mailchimp/sync', async (req, res) => {
 
     res.json({ success: true, data: response.data });
   } catch (error) {
-    console.error('Mailchimp sync error:', error.response?.data || error.message);
+    log.error('Mailchimp sync error:', error.response?.data || error.message);
     res.json({ success: false, error: error.response?.data?.detail || error.message });
   }
 });
@@ -230,9 +237,24 @@ app.post('/api/rdstation/sync', async (req, res) => {
  */
 app.post('/api/onesignal/send-to-all', async (req, res) => {
   try {
-    const { notification } = req.body;
+    const { notification, dryRun } = req.body;
 
     console.log('[OneSignal] Recebeu requisição de envio para todos');
+
+    // Permitir dry-run sem necessidade de variáveis de ambiente
+    if (dryRun) {
+      const payload = {
+        app_id: ONESIGNAL_APP_ID || 'DRY_RUN_APP_ID',
+        included_segments: ['All'],
+        headings: { en: notification?.title },
+        contents: { en: notification?.message },
+        url: notification?.url || 'https://localcashback.com.br',
+        big_picture: notification?.image,
+        chrome_web_icon: notification?.icon || '/icon-192.png',
+      };
+      console.log('[OneSignal] Dry-run ativo. Não enviando notificação.');
+      return res.json({ success: true, dryRun: true, payload });
+    }
 
     if (!ONESIGNAL_APP_ID || !ONESIGNAL_REST_API_KEY) {
       console.error('[OneSignal] ERRO: Variáveis de ambiente não configuradas');
@@ -246,17 +268,19 @@ app.post('/api/onesignal/send-to-all', async (req, res) => {
 
     console.log('[OneSignal] Auth header format:', authHeader.substring(0, 20) + '...');
 
+    const payload = {
+      app_id: ONESIGNAL_APP_ID,
+      included_segments: ['All'],
+      headings: { en: notification.title },
+      contents: { en: notification.message },
+      url: notification.url || 'https://localcashback.com.br',
+      big_picture: notification.image,
+      chrome_web_icon: notification.icon || '/icon-192.png',
+    };
+
     const response = await axios.post(
       'https://onesignal.com/api/v1/notifications',
-      {
-        app_id: ONESIGNAL_APP_ID,
-        included_segments: ['All'],
-        headings: { en: notification.title },
-        contents: { en: notification.message },
-        url: notification.url || 'https://localcashback.com.br',
-        big_picture: notification.image,
-        chrome_web_icon: notification.icon || '/icon-192.png',
-      },
+      payload,
       {
         headers: {
           'Content-Type': 'application/json',
@@ -286,9 +310,24 @@ app.post('/api/onesignal/send-to-all', async (req, res) => {
  */
 app.post('/api/onesignal/send-to-user', async (req, res) => {
   try {
-    const { userId, notification } = req.body;
+    const { userId, notification, dryRun } = req.body;
 
     console.log('[OneSignal] Enviando para usuário:', userId);
+
+    // Permitir dry-run sem necessidade de variáveis de ambiente
+    if (dryRun) {
+      const payload = {
+        app_id: ONESIGNAL_APP_ID || 'DRY_RUN_APP_ID',
+        include_external_user_ids: [userId],
+        headings: { en: notification?.title },
+        contents: { en: notification?.message },
+        url: notification?.url || 'https://localcashback.com.br',
+        big_picture: notification?.image,
+        chrome_web_icon: notification?.icon || '/icon-192.png',
+      };
+      console.log('[OneSignal] Dry-run ativo (user). Não enviando.');
+      return res.json({ success: true, dryRun: true, payload });
+    }
 
     if (!ONESIGNAL_APP_ID || !ONESIGNAL_REST_API_KEY) {
       console.error('[OneSignal] ERRO: Variáveis de ambiente não configuradas');
@@ -300,17 +339,19 @@ app.post('/api/onesignal/send-to-user', async (req, res) => {
       ? `Key ${ONESIGNAL_REST_API_KEY}`
       : `Basic ${ONESIGNAL_REST_API_KEY}`;
 
+    const payload = {
+      app_id: ONESIGNAL_APP_ID,
+      include_external_user_ids: [userId],
+      headings: { en: notification.title },
+      contents: { en: notification.message },
+      url: notification.url || 'https://localcashback.com.br',
+      big_picture: notification.image,
+      chrome_web_icon: notification.icon || '/icon-192.png',
+    };
+
     const response = await axios.post(
       'https://onesignal.com/api/v1/notifications',
-      {
-        app_id: ONESIGNAL_APP_ID,
-        include_external_user_ids: [userId],
-        headings: { en: notification.title },
-        contents: { en: notification.message },
-        url: notification.url || 'https://localcashback.com.br',
-        big_picture: notification.image,
-        chrome_web_icon: notification.icon || '/icon-192.png',
-      },
+      payload,
       {
         headers: {
           'Content-Type': 'application/json',

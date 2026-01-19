@@ -1,32 +1,32 @@
-import { useEffect } from 'react';
+import { useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from './store/authStore';
 import { initGTM, initMetaPixel } from './lib/tracking';
 
 // Pages
-import Login from './pages/Login';
-import Signup from './pages/Signup';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
-import Dashboard from './pages/Dashboard';
-import Cashback from './pages/Cashback';
-import Redemption from './pages/Redemption';
-import Customers from './pages/Customers';
-import Employees from './pages/Employees';
-import Reports from './pages/Reports';
-import Integrations from './pages/Integrations';
-import Settings from './pages/Settings';
-import WhiteLabelSettings from './pages/WhiteLabelSettings';
-import CustomerCashback from './pages/CustomerCashback';
-import CustomerRedemption from './pages/CustomerRedemption';
-import CustomerDashboard from './pages/CustomerDashboard';
-import CustomerSignup from './pages/CustomerSignup';
-import CustomerLogin from './pages/CustomerLogin';
-import CustomerForgotPassword from './pages/CustomerForgotPassword';
-import CustomerResetPassword from './pages/CustomerResetPassword';
-import ForceUpdate from './pages/ForceUpdate';
-import AdminNotifications from './pages/AdminNotifications';
+const Login = lazy(() => import('./pages/Login'));
+const Signup = lazy(() => import('./pages/Signup'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Cashback = lazy(() => import('./pages/Cashback'));
+const Redemption = lazy(() => import('./pages/Redemption'));
+const Customers = lazy(() => import('./pages/Customers'));
+const Employees = lazy(() => import('./pages/Employees'));
+const Reports = lazy(() => import('./pages/Reports'));
+const Integrations = lazy(() => import('./pages/Integrations'));
+const Settings = lazy(() => import('./pages/Settings'));
+const WhiteLabelSettings = lazy(() => import('./pages/WhiteLabelSettings'));
+const CustomerCashback = lazy(() => import('./pages/CustomerCashback'));
+const CustomerRedemption = lazy(() => import('./pages/CustomerRedemption'));
+const CustomerDashboard = lazy(() => import('./pages/CustomerDashboard'));
+const CustomerSignup = lazy(() => import('./pages/CustomerSignup'));
+const CustomerLogin = lazy(() => import('./pages/CustomerLogin'));
+const CustomerForgotPassword = lazy(() => import('./pages/CustomerForgotPassword'));
+const CustomerResetPassword = lazy(() => import('./pages/CustomerResetPassword'));
+const ForceUpdate = lazy(() => import('./pages/ForceUpdate'));
+const AdminNotifications = lazy(() => import('./pages/AdminNotifications'));
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
@@ -85,6 +85,7 @@ function App() {
         }}
       />
       
+      <Suspense fallback={<div style={{padding:'2rem',textAlign:'center'}}>Carregando...</div>}>
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />
@@ -191,6 +192,7 @@ function App() {
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }
