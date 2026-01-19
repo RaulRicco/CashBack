@@ -1,115 +1,28 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 import { Store, User, Mail, Lock, Phone, MapPin, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { BRAND_CONFIG, getLogo, getBrandName } from '../config/branding';
+import { useSignup } from '../hooks/useSignup';
 
 export default function Signup() {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
-  const [formData, setFormData] = useState({
-    // Dados do estabelecimento
-    merchantName: '',
-    merchantPhone: '',
-    merchantAddress: '',
-    
-    // Dados do proprietário
-    ownerName: '',
-    ownerEmail: '',
-    ownerPassword: '',
-    ownerPasswordConfirm: '',
-  });
+  const { loading, showPassword, showPasswordConfirm, toggleShowPassword, toggleShowPasswordConfirm, formData, handleChange, handleSubmit } = useSignup();
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      // Validações
-      if (formData.ownerPassword !== formData.ownerPasswordConfirm) {
-        toast.error('As senhas não coincidem');
-        setLoading(false);
-        return;
-      }
-
-      if (formData.ownerPassword.length < 6) {
-        toast.error('A senha deve ter no mínimo 6 caracteres');
-        setLoading(false);
-        return;
-      }
-
-      // 1. Criar o estabelecimento (merchant)
-      // Usando apenas campos que SABEMOS que existem no schema
-      const { data: merchantData, error: merchantError } = await supabase
-        .from('merchants')
-        .insert({
-          name: formData.merchantName,
-          phone: formData.merchantPhone,
-          cashback_percentage: 5, // Padrão 5%
-        })
-        .select()
-        .single();
-
-      if (merchantError) throw merchantError;
-
-      // 2. Criar o usuário proprietário (employee com role owner)
-      const { data: employeeData, error: employeeError } = await supabase
-        .from('employees')
-        .insert({
-          merchant_id: merchantData.id,
-          name: formData.ownerName,
-          email: formData.ownerEmail,
-          password: formData.ownerPassword, // Em produção, hash a senha!
-          role: 'owner',
-        })
-        .select()
-        .single();
-
-      if (employeeError) throw employeeError;
-
-      // 3. Enviar email de verificação
-      const { sendVerificationCode } = await import('../lib/emailVerification');
-      const verificationResult = await sendVerificationCode({
-        email: formData.ownerEmail,
-        employeeId: employeeData.id,
-        userName: formData.ownerName,
-      });
-
-      if (verificationResult.success) {
-        toast.success('Conta criada! Verifique seu email para ativar.');
-        
-        // Redirecionar para página de verificação
+  const onSubmit = async (e) => {
+    const result = await handleSubmit(e);
+    if (result.success) {
+      toast.success(result.message);
+      if (result.next?.type === 'verify-email') {
         setTimeout(() => {
-          navigate(`/verify-email?email=${encodeURIComponent(formData.ownerEmail)}`);
+          navigate(`/verify-email?email=${encodeURIComponent(result.next.email)}`);
         }, 2000);
       } else {
-        // Se falhar o envio do email, ainda assim avisar o usuário
-        toast.error('Conta criada, mas houve erro ao enviar email de verificação.');
         setTimeout(() => {
           navigate('/login');
         }, 2000);
       }
-
-    } catch (error) {
-      console.error('Erro ao criar conta:', error);
-      
-      if (error.code === '23505') {
-        toast.error('Este email já está cadastrado');
-      } else {
-        toast.error(error.message || 'Erro ao criar conta. Tente novamente.');
-      }
-    } finally {
-      setLoading(false);
+    } else {
+      toast.error(result.error || 'Erro ao criar conta. Tente novamente.');
     }
   };
 
@@ -134,7 +47,7 @@ export default function Signup() {
         </div>
 
         {/* Formulário */}
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={onSubmit} className="space-y-6">
           {/* Seção: Dados do Estabelecimento */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
@@ -277,7 +190,7 @@ export default function Signup() {
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
+                    onClick={toggleShowPassword}
                     className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
                     tabIndex={-1}
                   >
@@ -311,7 +224,7 @@ export default function Signup() {
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPasswordConfirm(!showPasswordConfirm)}
+                    onClick={toggleShowPasswordConfirm}
                     className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
                     tabIndex={-1}
                   >
