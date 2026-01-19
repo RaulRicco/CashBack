@@ -554,6 +554,45 @@ app.get('/api/onesignal/config', (req, res) => {
   });
 });
 
+// Validação ativa com a OneSignal API sem enviar notificação
+app.get('/api/onesignal/validate', async (req, res) => {
+  try {
+    if (!ONESIGNAL_APP_ID || !ONESIGNAL_REST_API_KEY) {
+      return res.json({
+        validated: false,
+        configured: false,
+        error: 'Variáveis ONESIGNAL_APP_ID/ONESIGNAL_REST_API_KEY não configuradas'
+      });
+    }
+
+    const authHeader = ONESIGNAL_REST_API_KEY.startsWith('os_v2_')
+      ? `Key ${ONESIGNAL_REST_API_KEY}`
+      : `Basic ${ONESIGNAL_REST_API_KEY}`;
+
+    const response = await axios.get('https://onesignal.com/api/v1/apps', {
+      headers: {
+        'Authorization': authHeader,
+        'Content-Type': 'application/json'
+      },
+      timeout: 15000
+    });
+
+    // Verificar se o app configurado existe na conta
+    const apps = Array.isArray(response.data) ? response.data : [];
+    const match = apps.some(a => a?.id === ONESIGNAL_APP_ID);
+
+    return res.json({
+      validated: match,
+      configured: true,
+      appsCount: apps.length
+    });
+  } catch (error) {
+    const status = error.response?.status;
+    const message = error.response?.data?.errors?.[0] || error.response?.data || error.message;
+    return res.json({ validated: false, configured: true, status, error: message });
+  }
+});
+
 // ========================================
 // START SERVER
 // ========================================
