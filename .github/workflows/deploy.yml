@@ -3,7 +3,7 @@ name: Deploy to Server (Genspark)
 on:
   push:
     branches:
-      - genspark_ai_developer
+      - main  # 2. Alterado de genspark_ai_developer para main
   workflow_dispatch:
     inputs:
       reason:
@@ -12,7 +12,8 @@ on:
         default: "gatilho manual"
 
 concurrency:
-  group: deploy-genspark-ai-developer
+  # Sugestão: Alterar o grupo para evitar conflitos com deploys antigos
+  group: deploy-auroraone-main
   cancel-in-progress: true
 
 jobs:
@@ -37,7 +38,7 @@ jobs:
           [ -n "$SSH_KEY" ] || (echo "Falta secret SSH_KEY" && exit 1)
           echo "Secrets ok: host=$SSH_HOST user=$SSH_USER port=${SSH_PORT:-22}"
 
-      - name: Deploy via SSH (genspark_ai_developer)
+      - name: Deploy via SSH (AuroraOne Main)
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ env.SSH_HOST }}
@@ -48,10 +49,12 @@ jobs:
           script: |
             set -e
             cd /var/www/cashback
-            git fetch origin genspark_ai_developer
-            git reset --hard origin/genspark_ai_developer
+            # 3. Alterado para buscar e resetar com base na main
+            git fetch origin main
+            git reset --hard origin/main
+            
             bash DEPLOY-RECUPERACAO-SENHA.sh
-            # Reinicie serviços conforme configuração do servidor
+            
             if systemctl list-units --type=service | grep -q "integration-proxy"; then
               sudo systemctl restart integration-proxy
             fi
