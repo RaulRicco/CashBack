@@ -7,15 +7,8 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
-// Configuração com headers corretos para evitar erro 406
+// Não sobrescrever Authorization — o Supabase usa o JWT do usuário logado automaticamente (RLS)
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  global: {
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-      'Prefer': 'return=representation'
-    }
-  },
   db: {
     schema: 'public'
   },

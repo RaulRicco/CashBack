@@ -1,3 +1,5 @@
+
+
 /**
  * Servidor de API para integração Stripe
  * LocalCashback - Processamento de Pagamentos e Assinaturas
@@ -5,31 +7,56 @@
  * IMPORTANTE: Este servidor roda separadamente do frontend Vite
  * Porta padrão: 3001 (frontend usa 5173)
  */
-
+import 'dotenv/config'; 
 import express from 'express';
+import { createClient } from '@supabase/supabase-js'; // Importação direta aqui
 import Stripe from 'stripe';
 import cors from 'cors';
-import dotenv from 'dotenv';
-import { createClient } from '@supabase/supabase-js';
 import axios from 'axios';
 import mailchimp from '@mailchimp/mailchimp_marketing';
 import OneSignal from 'onesignal-node';
 import https from 'https';
 import cron from 'node-cron';
+import rateLimit from 'express-rate-limit';
 
-// Carregar variáveis de ambiente
-dotenv.config();
+// --- INICIALIZAÇÃO DO SUPABASE ---
+const supabaseUrl = process.env.SUPABASE_URL || "https://zxiehkdtsoeauqouwxvi.supabase.co";
+const supabaseKey = process.env.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4aWVoa2R0c29lYXVxb3V3eHZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5MTkyMTMsImV4cCI6MjA3ODQ5NTIxM30.6t5Aw0dUjNZrmuy_g_XUEW0acZoY5TCQs5ru_Jksms4";
+
+// LOG DE DEPURAÇÃO CRÍTICO (Verifique isso no terminal ao subir)
+console.log('DEBUG: URL capturada ->', supabaseUrl);
+
+// Criamos a instância usando as variáveis protegidas
+const supabase = createClient(supabaseUrl, supabaseKey, {
+  global: {
+    headers: {
+      'apikey': supabaseKey,
+      'Authorization': `Bearer ${supabaseKey}`
+    }
+  },
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false,
+    detectSessionInUrl: false
+  }
+});
+
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const supabaseAdmin = supabaseServiceRoleKey
+  ? createClient(supabaseUrl, supabaseServiceRoleKey, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false,
+      },
+    })
+  : null;
+
 
 // Inicializar Stripe (modo teste)
 const stripe = new Stripe(process.env.VITE_STRIPE_SECRET_KEY, {
   apiVersion: '2023-10-16',
 });
-
-// Inicializar Supabase
-const supabase = createClient(
-  process.env.VITE_SUPABASE_URL,
-  process.env.VITE_SUPABASE_ANON_KEY
-);
 
 // Inicializar Mailchimp
 mailchimp.setConfig({
@@ -49,6 +76,16 @@ const oneSignalClient = new OneSignal.Client({
 // Inicializar Express
 const app = express();
 const PORT = process.env.PORT || 3001;
+const RESEND_API_KEY = process.env.RESEND_API_KEY || process.env.VITE_RESEND_API_KEY || '';
+const RESEND_FROM_EMAIL = process.env.RESEND_FROM_EMAIL || process.env.VITE_RESEND_FROM_EMAIL || 'onboarding@resend.dev';
+const RESEND_FROM_NAME = process.env.RESEND_FROM_NAME || process.env.VITE_RESEND_FROM_NAME || 'Local CashBack';
+// LOG DE ACESSO - COLOQUE AQUI
+
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] 📥 REQUISIÇÃO: ${req.method} ${req.url}`);
+  console.log('Headers:', req.headers['origin']);
+  next();
+});
 
 // Configurar CORS para aceitar requisições do frontend
 const allowedOrigins = [
@@ -73,8 +110,52 @@ app.use(cors({
   credentials: true,
 }));
 
+// ============================================
+// ⚔️ RATE LIMITING - Proteção contra brute force
+// ============================================
+
+// Limite geral: 100 req/15min por IP
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: 'Muitas requisições deste IP, tente novamente mais tarde.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Limite para autenticação/reset senha: 5 req/15min por IP
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: 'Muitas tentativas de autenticação. Tente novamente em 15 minutos.',
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => req.ip === '::1' || req.ip === '127.0.0.1', // Allow localhost
+});
+
+// Limite para envio de emails: 10 req/1hora por IP
+const emailLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 10,
+  message: 'Limite de envio de emails atingido. Tente novamente mais tarde.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Limite para webhooks: 200 req/1min (mais alto pois é de confiança)
+const webhookLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 200,
+  message: 'Muitos webhooks recebidos',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Aplicar rate limiting global
+app.use(generalLimiter);
+
 // Webhook precisa do body raw, então configuramos ANTES do express.json()
-app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+app.post('/api/stripe/webhook', webhookLimiter, express.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
@@ -161,12 +242,12 @@ async function sendWebPushNotification(merchantId, title, message, url = null) {
       });
 
       const options = {
-        hostname: 'onesignal.com',
+        hostname: 'api.onesignal.com',
         port: 443,
-        path: '/api/v1/notifications',
+        path: '/notifications',
         method: 'POST',
         headers: {
-          'Authorization': `Basic ${process.env.ONESIGNAL_REST_API_KEY}`,
+          'Authorization': `Key ${process.env.ONESIGNAL_REST_API_KEY}`,
           'Content-Type': 'application/json',
           'Content-Length': Buffer.byteLength(postData)
         }
@@ -216,6 +297,108 @@ app.get('/api/health', (req, res) => {
     message: 'Servidor Stripe API funcionando!',
     timestamp: new Date().toISOString()
   });
+});
+
+/**
+ * POST /api/transactions/create-cashback-qr
+ * Cria transação de cashback (QR) via backend para evitar bloqueios de RLS no frontend.
+ */
+app.post('/api/transactions/create-cashback-qr', async (req, res) => {
+  try {
+    const {
+      merchantId,
+      customerId,
+      employeeId = null,
+      amount,
+      cashbackAmount,
+      cashbackPercentage,
+    } = req.body || {};
+
+    if (!merchantId || !customerId) {
+      return res.status(400).json({ success: false, error: 'merchantId e customerId são obrigatórios' });
+    }
+
+    const parsedAmount = Number(amount);
+    const parsedCashbackAmount = Number(cashbackAmount);
+    const parsedCashbackPercentage = Number(cashbackPercentage);
+
+    if (
+      !Number.isFinite(parsedAmount) || parsedAmount <= 0 ||
+      !Number.isFinite(parsedCashbackAmount) || parsedCashbackAmount < 0 ||
+      !Number.isFinite(parsedCashbackPercentage) || parsedCashbackPercentage < 0
+    ) {
+      return res.status(400).json({ success: false, error: 'Valores de cashback inválidos' });
+    }
+
+    const dbClient = supabaseAdmin || supabase;
+
+    const generateUniqueToken = () => {
+      const timestamp = Date.now();
+      const randomPart = Math.random().toString(36).substring(2, 15);
+      const randomPart2 = Math.random().toString(36).substring(2, 15);
+      return `CASHBACK_${String(merchantId).substring(0, 8)}_${timestamp}_${randomPart}${randomPart2}`;
+    };
+
+    let transaction = null;
+    let transactionError = null;
+    let retryCount = 0;
+    const maxRetries = 3;
+
+    while (retryCount < maxRetries && !transaction) {
+      const qrToken = generateUniqueToken();
+
+      const result = await dbClient
+        .from('transactions')
+        .insert({
+          merchant_id: merchantId,
+          customer_id: customerId,
+          employee_id: employeeId,
+          transaction_type: 'cashback',
+          amount: parsedAmount,
+          cashback_amount: parsedCashbackAmount,
+          cashback_percentage: parsedCashbackPercentage,
+          qr_code_token: qrToken,
+          status: 'completed',
+          qr_scanned: true,
+          qr_scanned_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (result.error) {
+        if (result.error.code === '23505' || String(result.error.message || '').includes('duplicate')) {
+          retryCount += 1;
+          await new Promise((resolve) => setTimeout(resolve, 100));
+          continue;
+        }
+
+        transactionError = result.error;
+        break;
+      }
+
+      transaction = result.data;
+    }
+
+    if (transactionError) {
+      console.error('[Cashback QR] Erro ao inserir transação:', {
+        message: transactionError.message,
+        code: transactionError.code,
+        details: transactionError.details,
+        hint: transactionError.hint,
+        status: transactionError.status,
+      });
+      return res.status(500).json({ success: false, error: transactionError.message || 'Erro ao criar transação' });
+    }
+
+    if (!transaction) {
+      return res.status(500).json({ success: false, error: 'Falha ao criar transação após múltiplas tentativas' });
+    }
+
+    return res.json({ success: true, transaction });
+  } catch (error) {
+    console.error('[Cashback QR] Erro inesperado:', error);
+    return res.status(500).json({ success: false, error: error.message || 'Erro interno ao gerar QR Code' });
+  }
 });
 
 /**
@@ -395,14 +578,16 @@ app.get('/api/stripe/subscription-status/:merchantId', async (req, res) => {
  * POST /api/resend/send
  * Envia email através da API do Resend
  */
-app.post('/api/resend/send', async (req, res) => {
+app.post('/api/resend/send', emailLimiter, async (req, res) => {
   try {
     const { apiKey, from, to, subject, html, text } = req.body;
+    const finalApiKey = apiKey || RESEND_API_KEY;
+    const finalFrom = from || `${RESEND_FROM_NAME} <${RESEND_FROM_EMAIL}>`;
 
     console.log('[Resend] Enviando email para:', to);
     console.log('[Resend] Assunto:', subject);
 
-    if (!apiKey) {
+    if (!finalApiKey) {
       return res.json({
         success: false,
         error: 'API Key do Resend não fornecida'
@@ -412,7 +597,7 @@ app.post('/api/resend/send', async (req, res) => {
     const response = await axios.post(
       'https://api.resend.com/emails',
       {
-        from: from || 'onboarding@resend.dev',
+        from: finalFrom,
         to: Array.isArray(to) ? to : [to],
         subject,
         html,
@@ -420,7 +605,7 @@ app.post('/api/resend/send', async (req, res) => {
       },
       {
         headers: {
-          'Authorization': `Bearer ${apiKey}`,
+          'Authorization': `Bearer ${finalApiKey}`,
           'Content-Type': 'application/json',
         },
         timeout: 30000
@@ -439,6 +624,139 @@ app.post('/api/resend/send', async (req, res) => {
     res.json({
       success: false,
       error: error.response?.data?.message || error.message
+    });
+  }
+});
+
+/**
+ * POST /api/auth/password-reset/request
+ * Gera link de recuperação e envia por Resend (quando configurado).
+ * Fallback: usa fluxo nativo do Supabase para envio de recovery email.
+ */
+app.post('/api/auth/password-reset/request', authLimiter, async (req, res) => {
+  try {
+    const { email, userType = 'merchant', redirectTo } = req.body || {};
+    const normalizedEmail = (email || '').toLowerCase().trim();
+
+    if (!normalizedEmail) {
+      return res.status(400).json({ success: false, error: 'Email é obrigatório' });
+    }
+
+    if (!['merchant', 'customer'].includes(userType)) {
+      return res.status(400).json({ success: false, error: 'Tipo de usuário inválido' });
+    }
+
+    // Evita enumeração de usuários no fluxo de estabelecimento
+    if (userType === 'merchant') {
+      const { data: merchant } = await supabase
+        .from('merchants')
+        .select('id, email')
+        .eq('email', normalizedEmail)
+        .maybeSingle();
+
+      if (!merchant) {
+        return res.json({
+          success: true,
+          message: 'Se o email existir no sistema, você receberá um email de recuperação.',
+        });
+      }
+    }
+
+    const finalRedirect =
+      redirectTo ||
+      (userType === 'customer'
+        ? 'https://localcashback.com.br/customer/reset-password'
+        : 'https://localcashback.com.br/reset-password');
+
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+
+    // Caminho preferencial: gerar link via admin + enviar pela API do Resend.
+    if (serviceRoleKey && RESEND_API_KEY) {
+      const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+        },
+      });
+
+      const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+        type: 'recovery',
+        email: normalizedEmail,
+        options: {
+          redirectTo: finalRedirect,
+        },
+      });
+
+      if (linkError) {
+        throw new Error(linkError.message || 'Falha ao gerar link de recuperação');
+      }
+
+      const actionLink =
+        linkData?.properties?.action_link ||
+        linkData?.properties?.actionLink ||
+        linkData?.action_link;
+
+      if (!actionLink) {
+        throw new Error('Link de recuperação não foi retornado pelo Supabase');
+      }
+
+      await axios.post(
+        'https://api.resend.com/emails',
+        {
+          from: `${RESEND_FROM_NAME} <${RESEND_FROM_EMAIL}>`,
+          to: [normalizedEmail],
+          subject: 'Recuperação de senha - Local CashBack',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2>Recuperação de senha</h2>
+              <p>Recebemos uma solicitação para redefinir sua senha.</p>
+              <p>Clique no botão abaixo para continuar:</p>
+              <p>
+                <a href="${actionLink}" style="display:inline-block;padding:12px 20px;background:#16a34a;color:#fff;text-decoration:none;border-radius:8px;">
+                  Redefinir senha
+                </a>
+              </p>
+              <p>Se você não solicitou, ignore este email.</p>
+              <p style="color:#6b7280;font-size:12px;">Este link expira em 1 hora.</p>
+            </div>
+          `,
+          text: `Recuperação de senha: ${actionLink}`,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${RESEND_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          timeout: 30000,
+        }
+      );
+
+      return res.json({
+        success: true,
+        message: 'Se o email existir no sistema, você receberá um email de recuperação.',
+        provider: 'resend',
+      });
+    }
+
+    // Fallback para manter funcionamento mesmo sem service role / Resend válidos.
+    const { error: fallbackError } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
+      redirectTo: finalRedirect,
+    });
+
+    if (fallbackError) {
+      throw new Error(fallbackError.message || 'Falha ao solicitar recuperação');
+    }
+
+    return res.json({
+      success: true,
+      message: 'Se o email existir no sistema, você receberá um email de recuperação.',
+      provider: 'supabase',
+    });
+  } catch (error) {
+    console.error('[Password Reset] Erro:', error.message || error);
+    return res.status(500).json({
+      success: false,
+      error: 'Não foi possível processar a recuperação agora. Tente novamente em instantes.',
     });
   }
 });
@@ -1363,58 +1681,168 @@ app.get('/api/birthday/upcoming', async (req, res) => {
   }
 });
 
-app.post('/api/birthday/send-test', async (req, res) => {
+app.post('/api/signup', async (req, res) => {
+  console.log('🚀 [REQUISIÇÃO] Iniciando cadastro...');
+  const { merchantName, merchantPhone, ownerName, ownerEmail, ownerPassword } = req.body;
+
   try {
-    const { customerId } = req.body;
-    
-    if (!customerId) {
-      return res.status(400).json({ error: 'customerId é obrigatório' });
-    }
+    let mId = null;
 
-    // Buscar cliente
-    const { data: customer, error } = await supabase
-      .from('customers')
-      .select('*')
-      .eq('id', customerId)
-      .single();
-
-    if (error || !customer) {
-      return res.status(404).json({ error: 'Cliente não encontrado' });
-    }
-
-    // Buscar merchant
-    const { data: merchant } = await supabase
+    // 1. INSERIR MERCHANT (ou reaproveitar se já existir)
+    // Isso recupera casos antigos em que o cadastro falhou depois de criar merchant.
+    console.log('-> Inserindo Merchant...');
+    const { data: merchantData, error: mError } = await supabase
       .from('merchants')
-      .select('*')
-      .eq('id', customer.merchant_id)
+      .insert([{
+        name: merchantName,
+        email: ownerEmail,
+        phone: merchantPhone,
+        business_name: merchantName,
+        cashback_percentage: 5
+      }])
+      .select('id')
       .single();
 
-    // Enviar mensagem de teste
-    const result = await sendBirthdayWhatsAppMessage({
-      ...customer,
-      daysUntilBirthday: 0
-    }, merchant);
+    if (mError) {
+      const isDuplicate = mError.code === '23505' || (mError.message || '').toLowerCase().includes('duplicate');
+      if (!isDuplicate) {
+        console.error('Erro no Merchant:', mError);
+        throw mError;
+      }
 
-    res.json({
-      success: true,
-      result
+      console.log('-> Merchant já existe, reaproveitando cadastro existente...');
+      const { data: existingMerchant, error: existingError } = await supabase
+        .from('merchants')
+        .select('id')
+        .eq('email', ownerEmail)
+        .limit(1)
+        .maybeSingle();
+
+      if (existingError || !existingMerchant?.id) {
+        console.error('Erro ao buscar merchant existente:', existingError);
+        throw existingError || new Error('Não foi possível localizar merchant existente para este email.');
+      }
+
+      mId = existingMerchant.id;
+    } else {
+      mId = merchantData.id;
+    }
+
+    // 2. CRIAR USUÁRIO NO AUTH (Via SDK)
+    console.log('-> Criando Auth User...');
+    const { data: authData, error: aError } = await supabase.auth.signUp({
+      email: ownerEmail,
+      password: ownerPassword,
+      options: {
+        data: { merchant_id: mId, name: ownerName }
+      }
     });
-  } catch (error) {
-    console.error('Erro ao enviar mensagem de teste:', error);
-    res.status(500).json({ error: error.message });
+
+    if (aError) {
+      const authMsg = aError.message || '';
+      if (authMsg.toLowerCase().includes('already registered')) {
+        return res.status(409).json({
+          success: false,
+          error: 'Este email já está cadastrado. Tente entrar ou use "Esqueceu a senha?".'
+        });
+      }
+      console.error('Erro no Auth:', aError);
+      throw aError;
+    }
+
+    if (!authData?.user?.id) {
+      throw new Error('Falha ao criar usuário de autenticação.');
+    }
+
+    // 3. INSERIR EMPLOYEE (ou ignorar se já existir)
+    console.log('-> Inserindo Employee...');
+    const { error: eError } = await supabase
+      .from('employees')
+      .insert([{ 
+        merchant_id: mId, 
+        name: ownerName, 
+        email: ownerEmail, 
+        role: 'owner',
+        active: true
+      }]);
+
+    if (eError) {
+      const isDuplicateEmployee = eError.code === '23505' || (eError.message || '').toLowerCase().includes('duplicate');
+      if (!isDuplicateEmployee) {
+        console.error('Erro no Employee:', eError);
+        throw eError;
+      }
+      console.log('-> Employee já existente, seguindo fluxo...');
+    }
+
+    console.log('✅ CADASTRO REALIZADO COM SUCESSO!');
+    res.status(200).json({ success: true, merchantId: mId });
+
+  } catch (err) {
+    // Aqui capturamos o erro real para o seu log do servidor
+    const errorMessage = err.message || 'Erro desconhecido';
+    console.error('🔥 ERRO DE EXECUÇÃO:', errorMessage);
+    res.status(500).json({ success: false, error: errorMessage });
   }
 });
 
 // ====================================
-// CRON: EXECUTAR DIARIAMENTE ÀS 9:00
+// ENDPOINT: SIGNUP VIA GOOGLE OAUTH
+// User already has Supabase Auth session; just create merchant + employee
 // ====================================
+app.post('/api/signup/oauth', async (req, res) => {
+  const { merchantName, merchantPhone, merchantAddress, ownerName, ownerEmail } = req.body;
 
-// Executar todo dia às 9:00 AM
-cron.schedule('0 9 * * *', () => {
-  console.log('⏰ Cron job ativado: Mensagens de Aniversário');
-  processBirthdayMessages();
-}, {
-  timezone: "America/Sao_Paulo"
+  if (!ownerEmail || !merchantName) {
+    return res.status(400).json({ success: false, error: 'Campos obrigatórios faltando.' });
+  }
+
+  try {
+    // 1. Insert or reuse merchant record
+    let mId = null;
+    const { data: merchantData, error: mError } = await supabase
+      .from('merchants')
+      .insert([{
+        name: merchantName,
+        email: ownerEmail,
+        phone: merchantPhone || '',
+        business_name: merchantName,
+        cashback_percentage: 5
+      }])
+      .select('id')
+      .single();
+
+    if (mError) {
+      const isDuplicate = mError.code === '23505' || (mError.message || '').toLowerCase().includes('duplicate');
+      if (!isDuplicate) throw mError;
+      const { data: existing, error: eErr } = await supabase
+        .from('merchants')
+        .select('id')
+        .eq('email', ownerEmail)
+        .limit(1)
+        .maybeSingle();
+      if (eErr || !existing?.id) throw eErr || new Error('Merchant não encontrado.');
+      mId = existing.id;
+    } else {
+      mId = merchantData.id;
+    }
+
+    // 2. Insert employee (owner role)
+    await supabase.from('employees').insert([{
+      merchant_id: mId,
+      name: ownerName || ownerEmail,
+      email: ownerEmail,
+      role: 'owner',
+      active: true
+    }]).select();
+    // Ignore duplicate employee - user may already exist
+
+    console.log(`✅ [OAUTH SIGNUP] Merchant criado: ${merchantName} (${ownerEmail})`);
+    res.status(200).json({ success: true, merchantId: mId });
+  } catch (err) {
+    console.error('🔥 [OAUTH SIGNUP] Erro:', err.message);
+    res.status(500).json({ success: false, error: err.message || 'Erro ao finalizar cadastro.' });
+  }
 });
 
 // Iniciar servidor
@@ -1436,6 +1864,7 @@ app.listen(PORT, () => {
   console.log(`   GET  /api/stripe/subscription-status/:merchantId`);
   console.log(`   POST /api/stripe/webhook`);
   console.log(`   POST /api/resend/send`);
+  console.log(`   POST /api/auth/password-reset/request`);
   console.log(`   POST /api/mailchimp/subscribe`);
   console.log(`   POST /api/mailchimp/sync`);
   console.log(`   POST /api/onesignal/notify-cashback`);

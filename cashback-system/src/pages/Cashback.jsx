@@ -53,19 +53,6 @@ export default function Cashback() {
       const cashbackPercentage = merchant.cashback_percentage || 5;
       const cashbackAmount = (purchaseAmount * cashbackPercentage) / 100;
 
-      // Gerar token único para o QR Code com UUID para garantir unicidade absoluta
-      const generateUniqueToken = () => {
-        const timestamp = Date.now();
-        const randomPart = Math.random().toString(36).substring(2, 15);
-        const randomPart2 = Math.random().toString(36).substring(2, 15);
-        return `CASHBACK_${merchant.id.substring(0, 8)}_${timestamp}_${randomPart}${randomPart2}`;
-      };
-
-      let transaction = null;
-      let transactionError = null;
-      let retryCount = 0;
-      const maxRetries = 3;
-
       // Verificar se employee existe na tabela employees (quando merchant loga, employee pode ser mock)
       let validEmployeeId = null;
       if (employee?.id) {
@@ -86,49 +73,25 @@ export default function Cashback() {
         console.log('ℹ️ Nenhum employee.id fornecido, usando NULL');
       }
 
-      // Tentar criar transação com retry em caso de conflito 409
-      while (retryCount < maxRetries && !transaction) {
-        const qrToken = generateUniqueToken();
+      const apiResponse = await fetch('/api/transactions/create-cashback-qr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          merchantId: merchant.id,
+          customerId: customer.id,
+          employeeId: validEmployeeId,
+          amount: purchaseAmount,
+          cashbackAmount,
+          cashbackPercentage,
+        }),
+      });
 
-        const result = await supabase
-          .from('transactions')
-          .insert({
-            merchant_id: merchant.id,
-            customer_id: customer.id,
-            employee_id: validEmployeeId,  // ✅ NULL se merchant está operando diretamente
-            transaction_type: 'cashback',
-            amount: purchaseAmount,
-            cashback_amount: cashbackAmount,
-            cashback_percentage: cashbackPercentage,
-            qr_code_token: qrToken,
-            status: 'completed',  // ✅ JÁ COMPLETO - CASHBACK IMEDIATO
-            qr_scanned: true,
-            qr_scanned_at: new Date().toISOString()
-          })
-          .select()
-          .single();
-
-        if (result.error) {
-          // Se for erro 409 (conflito), tentar novamente
-          if (result.error.code === '23505' || result.error.message?.includes('duplicate')) {
-            console.log(`⚠️ Token duplicado detectado (tentativa ${retryCount + 1}/${maxRetries}), gerando novo token...`);
-            retryCount++;
-            await new Promise(resolve => setTimeout(resolve, 100)); // Aguardar 100ms antes de retry
-            continue;
-          } else {
-            // Outro tipo de erro, falhar imediatamente
-            transactionError = result.error;
-            break;
-          }
-        } else {
-          transaction = result.data;
-        }
+      const apiResult = await apiResponse.json();
+      if (!apiResponse.ok || !apiResult?.success) {
+        throw new Error(apiResult?.error || 'Erro ao criar transação de cashback');
       }
 
-      if (transactionError) throw transactionError;
-      if (!transaction) {
-        throw new Error('Não foi possível criar a transação após múltiplas tentativas. Tente novamente.');
-      }
+      const transaction = apiResult.transaction;
 
       // ℹ️ O saldo do cliente é atualizado AUTOMATICAMENTE pelo trigger do banco de dados
       // quando uma transação com status='completed' é inserida.
@@ -162,7 +125,7 @@ export default function Cashback() {
       setAmount('');
     } catch (error) {
       console.error('Erro ao gerar QR Code:', error);
-      toast.error('Erro ao gerar QR Code. Tente novamente.');
+      toast.error(error.message || 'Erro ao gerar QR Code. Tente novamente.');
     } finally {
       setLoading(false);
     }

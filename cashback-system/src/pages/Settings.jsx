@@ -20,6 +20,23 @@ import {
   Save
 } from 'lucide-react';
 
+const logSupabaseError = (context, error, extra = {}) => {
+  const normalized = {
+    context,
+    message: error?.message || null,
+    code: error?.code || null,
+    details: error?.details || null,
+    hint: error?.hint || null,
+    status: error?.status || null,
+    name: error?.name || null,
+    extra,
+    raw: error
+  };
+
+  console.error(`[Supabase][${context}]`, normalized);
+  console.dir(normalized, { depth: null });
+};
+
 export default function Settings() {
   const { merchant, employee } = useAuthStore();
   const [loading, setLoading] = useState(true);
@@ -55,9 +72,12 @@ export default function Settings() {
 
   const [signupUrl, setSignupUrl] = useState('');
 
+  // Aguardar o merchant ser carregado pelo Zustand (hidratação do localStorage é assíncrona)
   useEffect(() => {
-    loadSettings();
-  }, []);
+    if (merchant?.id) {
+      loadSettings();
+    }
+  }, [merchant?.id]);
 
   useEffect(() => {
     // Atualizar URL de cadastro quando o slug mudar
@@ -145,14 +165,27 @@ export default function Settings() {
 
       console.log('Salvando perfil:', { employeeId: employee.id, updateData });
 
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from('employees')
         .update(updateData)
         .eq('id', employee.id)
         .select();
 
+      // Compatibilidade: alguns ambientes não têm a coluna `phone` em `employees`.
       if (error) {
-        console.error('Erro do Supabase:', error);
+        const { phone, ...fallbackUpdateData } = updateData;
+        ({ data, error } = await supabase
+          .from('employees')
+          .update(fallbackUpdateData)
+          .eq('id', employee.id)
+          .select());
+      }
+
+      if (error) {
+        logSupabaseError('settings.profile.update', error, {
+          employeeId: employee.id,
+          updateData
+        });
         throw error;
       }
 
@@ -168,7 +201,10 @@ export default function Settings() {
       // Recarregar para atualizar dados
       await loadSettings();
     } catch (error) {
-      console.error('Erro ao salvar perfil:', error);
+      logSupabaseError('settings.profile.save.catch', error, {
+        employeeId: employee?.id,
+        profileData
+      });
       toast.error(error.message || 'Erro ao salvar perfil');
     } finally {
       setSaving(false);
@@ -190,6 +226,7 @@ export default function Settings() {
         updateData.phone = settings.phone;
         updateData.cashback_percentage = parseFloat(settings.cashback_percentage);
       } else if (section === 'cashback') {
+        updateData.cashback_percentage = parseFloat(settings.cashback_percentage);
         updateData.cashback_program_name = settings.cashback_program_name;
         updateData.cashback_expires = settings.cashback_expires;
         updateData.cashback_expiration_days = parseInt(settings.cashback_expiration_days);
@@ -211,7 +248,11 @@ export default function Settings() {
         .select();
 
       if (error) {
-        console.error('Erro do Supabase:', error);
+        logSupabaseError('settings.merchant.update', error, {
+          merchantId: merchant.id,
+          section,
+          updateData
+        });
         throw error;
       }
 
@@ -221,7 +262,11 @@ export default function Settings() {
       // Recarregar para atualizar dados
       await loadSettings();
     } catch (error) {
-      console.error('Erro ao salvar:', error);
+      logSupabaseError('settings.merchant.save.catch', error, {
+        merchantId: merchant?.id,
+        section,
+        settings
+      });
       toast.error(error.message || 'Erro ao salvar configurações');
     } finally {
       setSaving(false);

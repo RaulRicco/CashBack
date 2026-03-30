@@ -7,6 +7,23 @@ import { Upload, Palette, Save, RefreshCw, Lock, TrendingUp } from 'lucide-react
 import toast from 'react-hot-toast';
 import { useSubscription } from '../hooks/useSubscription';
 
+const logSupabaseError = (context, error, extra = {}) => {
+  const normalized = {
+    context,
+    message: error?.message || null,
+    code: error?.code || null,
+    details: error?.details || null,
+    hint: error?.hint || null,
+    status: error?.status || null,
+    name: error?.name || null,
+    extra,
+    raw: error
+  };
+
+  console.error(`[Supabase][${context}]`, normalized);
+  console.dir(normalized, { depth: null });
+};
+
 export default function WhiteLabelSettings() {
   const { merchant: authMerchant } = useAuthStore();
   const { checkFeature, currentPlan } = useSubscription();
@@ -47,7 +64,9 @@ export default function WhiteLabelSettings() {
         .single();
 
       if (merchantError) {
-        console.error('Erro ao buscar merchant:', merchantError);
+        logSupabaseError('whitelabel.merchant.load', merchantError, {
+          merchantId: authMerchant?.id
+        });
         throw merchantError;
       }
 
@@ -66,7 +85,9 @@ export default function WhiteLabelSettings() {
         phone: merchantData.phone || ''
       });
     } catch (error) {
-      console.error('Erro ao carregar merchant:', error);
+      logSupabaseError('whitelabel.merchant.load.catch', error, {
+        merchantId: authMerchant?.id
+      });
       toast.error('Erro ao carregar dados do estabelecimento');
     } finally {
       setLoading(false);
@@ -98,17 +119,18 @@ export default function WhiteLabelSettings() {
         fileType: file.type
       });
 
-      // Verificar merchant autenticado
-      if (!merchant || !merchant.id) {
-        console.error('Merchant não encontrado!');
+      // Verificar merchant autenticado (usar fallback se merchant local ainda não carregou)
+      const currentMerchant = merchant || authMerchant;
+      if (!currentMerchant || !currentMerchant.id) {
+        console.error('❌ Merchant não encontrado!', { merchant, authMerchant });
         toast.error('Você precisa estar logado para fazer upload');
         return;
       }
-      console.log('Merchant autenticado:', merchant.id);
+      console.log('✅ Merchant autenticado:', currentMerchant.id);
 
       // Nome único para o arquivo
       const fileExt = file.name.split('.').pop();
-      const fileName = `${merchant.id}-${Date.now()}.${fileExt}`;
+      const fileName = `${currentMerchant.id}-${Date.now()}.${fileExt}`;
       const filePath = `logos/${fileName}`;
 
       console.log('Upload path:', filePath);
@@ -122,7 +144,13 @@ export default function WhiteLabelSettings() {
         });
 
       if (uploadError) {
-        console.error('Erro no upload:', uploadError);
+        logSupabaseError('whitelabel.logo.upload', uploadError, {
+          filePath,
+          fileName: file?.name,
+          fileSize: file?.size,
+          fileType: file?.type,
+          merchantId: currentMerchant?.id
+        });
         throw uploadError;
       }
 
@@ -140,7 +168,9 @@ export default function WhiteLabelSettings() {
 
       toast.success('Logo carregada com sucesso! Clique em Salvar para confirmar.');
     } catch (error) {
-      console.error('Error uploading logo:', error);
+      logSupabaseError('whitelabel.logo.upload.catch', error, {
+        merchantId: (merchant || authMerchant)?.id
+      });
       toast.error(`Erro ao fazer upload da logo: ${error.message}`);
     } finally {
       setUploading(false);
@@ -148,27 +178,30 @@ export default function WhiteLabelSettings() {
   }
 
   async function handleSave() {
-    if (!merchant) return;
+    const currentMerchant = merchant || authMerchant;
+    if (!currentMerchant?.id) return;
 
     setSaving(true);
 
     try {
       console.log('Salvando configurações:', settings);
 
+      const updateData = {
+        logo_url: settings.logo_url,
+        primary_color: settings.primary_color,
+        secondary_color: settings.secondary_color,
+        accent_color: settings.accent_color,
+        cashback_percentage: parseFloat(settings.cashback_percentage),
+        business_name: settings.business_name,
+        name: settings.name,
+        email: settings.email,
+        phone: settings.phone
+      };
+
       const { error } = await supabase
         .from('merchants')
-        .update({
-          logo_url: settings.logo_url,
-          primary_color: settings.primary_color,
-          secondary_color: settings.secondary_color,
-          accent_color: settings.accent_color,
-          cashback_percentage: parseFloat(settings.cashback_percentage),
-          business_name: settings.business_name,
-          name: settings.name,
-          email: settings.email,
-          phone: settings.phone
-        })
-        .eq('id', merchant.id);
+        .update(updateData)
+        .eq('id', currentMerchant.id);
 
       if (error) throw error;
 
@@ -179,7 +212,10 @@ export default function WhiteLabelSettings() {
         window.location.reload();
       }, 1000);
     } catch (error) {
-      console.error('Erro ao salvar:', error);
+      logSupabaseError('whitelabel.merchant.save.catch', error, {
+        merchantId: currentMerchant?.id,
+        settings
+      });
       toast.error('Erro ao salvar configurações');
     } finally {
       setSaving(false);

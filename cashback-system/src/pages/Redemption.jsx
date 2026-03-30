@@ -62,14 +62,34 @@ export default function Redemption() {
     }
 
     const redemptionAmount = parseFloat(amount);
-    
-    if (redemptionAmount > customer.available_cashback) {
-      toast.error('Valor maior que saldo disponível');
-      return;
-    }
 
     setLoading(true);
     try {
+      // ✅ Sempre buscar saldo ATUALIZADO do banco antes de validar
+      // (evita usar saldo em cache desatualizado do estado React)
+      const { data: freshCustomer, error: freshError } = await supabase
+        .from('customers')
+        .select('available_cashback, total_cashback')
+        .eq('id', customer.id)
+        .single();
+
+      if (freshError || !freshCustomer) {
+        toast.error('Erro ao verificar saldo atualizado do cliente');
+        setLoading(false);
+        return;
+      }
+
+      // Atualizar estado local com saldo real do banco
+      setCustomer(prev => ({ ...prev, ...freshCustomer }));
+
+      if (redemptionAmount > freshCustomer.available_cashback) {
+        toast.error(
+          `Saldo insuficiente. Saldo atual: R$ ${parseFloat(freshCustomer.available_cashback).toFixed(2)}`
+        );
+        setLoading(false);
+        return;
+      }
+
       // Gerar token único para o QR Code de resgate
       const qrToken = `REDEMPTION_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
 
