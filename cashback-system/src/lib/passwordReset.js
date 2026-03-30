@@ -47,22 +47,58 @@ export async function requestPasswordReset(email, userType = 'merchant') {
       console.log('✅ Merchant encontrado:', merchant.id);
     }
 
-    // Usar o método nativo do Supabase Auth para reset de senha
-    // Isso envia um email com link mágico para resetar a senha
-    const { data, error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
-      redirectTo: `${window.location.origin}/reset-password`,
+    const apiUrl = import.meta.env.VITE_API_URL || window.location.origin;
+    const redirectTo = userType === 'customer'
+      ? `${window.location.origin}/customer/reset-password`
+      : `${window.location.origin}/reset-password`;
+
+    // Caminho principal: backend gera e envia (Resend quando disponível).
+    const backendResponse = await fetch(`${apiUrl}/api/auth/password-reset/request`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: normalizedEmail,
+        userType,
+        redirectTo,
+      }),
+    });
+
+    const backendData = await backendResponse.json().catch(() => ({}));
+
+    if (backendResponse.ok && backendData.success) {
+      console.log(`✅ Email de recuperação solicitado via ${backendData.provider || 'backend'}!`);
+      return {
+        success: true,
+        message: backendData.message || 'Email de recuperação enviado! Verifique sua caixa de entrada.',
+      };
+    }
+
+    // Fallback de segurança: Supabase direto no frontend.
+    const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
+      redirectTo,
     });
 
     if (error) {
       console.error('❌ Erro ao enviar email de reset:', error);
-      // Mesmo com erro, retornar sucesso para não expor se email existe
+
+      // Erro operacional do provedor de email (ex: SMTP não configurado no Supabase)
+      if ((error.message || '').toLowerCase().includes('error sending recovery email')) {
+        return {
+          success: false,
+          error: 'Não foi possível enviar o email de recuperação no momento. Verifique a configuração de email no Supabase (Auth > Email) e tente novamente.',
+        };
+      }
+
+      // Manter mensagem neutra para erros não-operacionais e evitar enumeração de usuários
       return {
         success: true,
         message: 'Se o email existir no sistema, você receberá um email de recuperação.',
       };
     }
 
-    console.log('✅ Email de recuperação enviado via Supabase Auth!');
+    console.log('✅ Email de recuperação enviado via Supabase Auth (fallback)!');
 
     return {
       success: true,

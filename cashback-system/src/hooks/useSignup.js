@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { supabase } from '../lib/supabase';
+// Importação do supabase removida daqui se não for usada em outro lugar deste arquivo
 
 export function useSignup() {
   const [loading, setLoading] = useState(false);
@@ -31,6 +31,7 @@ export function useSignup() {
   const submit = useCallback(async () => {
     setLoading(true);
     try {
+      // 1. Validações iniciais
       if (formData.ownerPassword !== formData.ownerPasswordConfirm) {
         return { success: false, error: 'As senhas não coincidem' };
       }
@@ -38,55 +39,38 @@ export function useSignup() {
         return { success: false, error: 'A senha deve ter no mínimo 6 caracteres' };
       }
 
-      const { data: merchantData, error: merchantError } = await supabase
-        .from('merchants')
-        .insert({
-          name: formData.merchantName,
-          phone: formData.merchantPhone,
-          cashback_percentage: 5,
-        })
-        .select()
-        .single();
-      if (merchantError) throw merchantError;
-
-      // 2. Criar usuário proprietário no Supabase Auth
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email: formData.ownerEmail,
-        password: formData.ownerPassword,
-        options: {
-          data: { merchant_id: merchantData.id, name: formData.ownerName }
-        }
-      });
-      if (signUpError) throw signUpError;
-
-      // 3. Criar registro do employee (sem armazenar senha)
-      const { data: employeeData, error: employeeError } = await supabase
-        .from('employees')
-        .insert({
-          merchant_id: merchantData.id,
-          name: formData.ownerName,
-          email: formData.ownerEmail,
-          role: 'owner',
-          email_verified: false,
-        })
-        .select()
-        .single();
-      if (employeeError) throw employeeError;
-
-      const { sendVerificationCode } = await import('../lib/emailVerification');
-      const verificationResult = await sendVerificationCode({
-        email: formData.ownerEmail,
-        employeeId: employeeData.id,
-        userName: formData.ownerName,
+      // 2. Chamada ÚNICA para sua API (ela fará o trabalho no Supabase)
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/signup`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
       });
 
-      if (verificationResult.success) {
-        return { success: true, message: 'Conta criada! Verifique seu email para ativar.', next: { type: 'verify-email' } };
-      } else {
-        return { success: true, message: 'Conta criada, mas houve erro ao enviar email de verificação.', next: { type: 'login' } };
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Erro ao processar cadastro no servidor');
       }
+
+      // 3. Sucesso! O servidor já cuidou do Merchant, Auth e Email.
+      // Redireciona para planos com dados do merchant recém-criado.
+      return { 
+        success: true, 
+        message: 'Conta criada com sucesso! Escolha seu plano para continuar.', 
+        next: {
+          type: 'plans',
+          merchant: {
+            id: result.merchantId,
+            email: formData.ownerEmail,
+          },
+        },
+      };
+
     } catch (error) {
-      if (error?.code === '23505') {
+      // Captura erros de rede ou duplicidade de email
+      if (error.message.includes('23505') || error.message.includes('cadastrado')) {
         return { success: false, error: 'Este email já está cadastrado' };
       }
       return { success: false, error: error.message || 'Erro ao criar conta. Tente novamente.' };

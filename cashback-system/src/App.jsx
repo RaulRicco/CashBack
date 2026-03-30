@@ -27,6 +27,9 @@ const CustomerForgotPassword = lazy(() => import('./pages/CustomerForgotPassword
 const CustomerResetPassword = lazy(() => import('./pages/CustomerResetPassword'));
 const ForceUpdate = lazy(() => import('./pages/ForceUpdate'));
 const AdminNotifications = lazy(() => import('./pages/AdminNotifications'));
+const OAuthCallback = lazy(() => import('./pages/OAuthCallback'));
+const SignupComplete = lazy(() => import('./pages/SignupComplete'));
+const PlansPublic = lazy(() => import('./pages/PlansPublic'));
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
@@ -93,6 +96,9 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/signup/:slug" element={<CustomerSignup />} />
+        <Route path="/oauth/callback" element={<OAuthCallback />} />
+        <Route path="/signup/complete" element={<SignupComplete />} />
+        <Route path="/plans" element={<PlansPublic />} />
         <Route path="/force-update" element={<ForceUpdate />} />
         
         {/* Customer Public Routes (QR Code scans) */}

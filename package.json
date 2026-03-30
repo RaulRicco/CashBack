@@ -10,11 +10,12 @@
   },
   "dependencies": {
     "@mailchimp/mailchimp_marketing": "^3.0.80",
-    "@supabase/supabase-js": "^2.84.0",
+    "@supabase/supabase-js": "^2.45.6",
     "axios": "^1.13.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^4.21.2",
+    "express-rate-limit": "^8.3.1",
     "node-cron": "^4.2.1",
     "onesignal-node": "^3.4.0",
     "resend": "^4.0.1",

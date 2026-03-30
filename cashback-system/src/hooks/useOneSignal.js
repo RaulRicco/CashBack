@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 
+const FALLBACK_ONESIGNAL_APP_ID = import.meta.env.VITE_ONESIGNAL_APP_ID;
+
 /**
  * Hook para gerenciar OneSignal Web SDK
  * Inicializa OneSignal com o App ID do merchant e permite subscription
@@ -37,13 +39,19 @@ export function useOneSignal(merchantId, customerPhone) {
         .eq('is_active', true)
         .single();
 
-      if (error || !config?.app_id) {
-        console.log('⚠️ [OneSignal] Não configurado para este merchant');
+      const appId = config?.app_id || FALLBACK_ONESIGNAL_APP_ID;
+
+      if (!appId) {
+        console.log('⚠️ [OneSignal] Não configurado para este merchant e sem App ID global');
         setLoading(false);
         return;
       }
 
-      console.log('✅ [OneSignal] Configuração encontrada:', config.app_id);
+      if (config?.app_id) {
+        console.log('✅ [OneSignal] Configuração encontrada no banco:', config.app_id);
+      } else {
+        console.log('ℹ️ [OneSignal] Usando App ID global do ambiente');
+      }
 
       // Verificar se OneSignalDeferred está disponível
       if (!window.OneSignalDeferred) {
@@ -55,7 +63,7 @@ export function useOneSignal(merchantId, customerPhone) {
       // Inicializar OneSignal
       window.OneSignalDeferred.push(async function(OneSignal) {
         await OneSignal.init({
-          appId: config.app_id,
+          appId,
           allowLocalhostAsSecureOrigin: true, // Para desenvolvimento
           notifyButton: {
             enable: false // Desabilitar botão padrão (usamos nosso próprio)

@@ -1,7 +1,81 @@
-import { loadStripe } from '@stripe/stripe-js';
+/**
+ * Stripe Module - Inicialização segura
+ * Se chave não configurada, tudo retorna null
+ */
 
-// Inicializar Stripe com a chave pública
-export const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+let stripeInstance = null;
+let loadingAttempted = false;
+const key = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+const stripeDisabled = !key || key.length === 0 || !key.startsWith('pk_');
+
+console.log('[Stripe] Status:', stripeDisabled ? '❌ DESABILITADO' : '✓ Ativo');
+
+/**
+ * Obter instância do Stripe (lazy loading)
+ */
+export async function getStripePromise() {
+  // Se está desabilitado, sempre retornar null
+  if (stripeDisabled) {
+    if (!loadingAttempted) {
+      console.warn('[Stripe] Biblioteca não será carregada - chave não configurada');
+      loadingAttempted = true;
+    }
+    return null;
+  }
+
+  // Se já tentamos e falhou, não tentar de novo
+  if (loadingAttempted && stripeInstance === null) {
+    return null;
+  }
+
+  // Se já carregou, retornar instância
+  if (stripeInstance !== null) {
+    return stripeInstance;
+  }
+
+  loadingAttempted = true;
+
+  try {
+    // Importar versão "pure" para permitir setLoadParameters antes do loadStripe.
+    const { loadStripe } = await import('@stripe/stripe-js/pure').catch(error => {
+      console.error('[Stripe] Erro ao importar @stripe/stripe-js/pure:', error.message);
+      return { loadStripe: null };
+    });
+
+    if (!loadStripe) {
+      console.error('[Stripe] loadStripe não encontrado');
+      return null;
+    }
+
+    // Desativa sinais antifraude avançados para evitar chamadas para m.stripe.com
+    // em redes que não resolvem esse host.
+    if (typeof loadStripe.setLoadParameters === 'function') {
+      loadStripe.setLoadParameters({ advancedFraudSignals: false });
+    }
+
+    console.log('[Stripe] Carregando biblioteca...');
+    stripeInstance = await loadStripe(key);
+
+    if (stripeInstance) {
+      console.log('[Stripe] ✓ Carregada com sucesso');
+    } else {
+      console.warn('[Stripe] loadStripe retornou null');
+    }
+
+    return stripeInstance;
+  } catch (error) {
+    console.error('[Stripe] Erro durante inicialização:', error.message);
+    stripeInstance = null;
+    return null;
+  }
+}
+
+/**
+ * Para compatibilidade com código antigo que espera uma promise
+ */
+export const stripePromise = (async () => {
+  return await getStripePromise();
+})();
 
 // Definição dos planos
 export const SUBSCRIPTION_PLANS = {

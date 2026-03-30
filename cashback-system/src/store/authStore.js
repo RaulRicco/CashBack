@@ -24,7 +24,14 @@ export const useAuthStore = create(
           const { data: authData, error: authError } = await signInWithPassword(email, password);
 
           if (authError) {
-            throw new Error('Credenciais inválidas');
+            const authMsg = authError.message || '';
+            if (authMsg.toLowerCase().includes('invalid login credentials')) {
+              throw new Error('Email ou senha inválidos');
+            }
+            if (authMsg.toLowerCase().includes('email not confirmed')) {
+              throw new Error('Email ainda não confirmado. Verifique sua caixa de entrada.');
+            }
+            throw new Error(authMsg || 'Erro ao autenticar');
           }
 
           if (!authData.user) {
