@@ -16,3 +16,6 @@ cashback-system/dist.backup/
 # OS files
 .DS_Store
 Thumbs.db
+# Arquivos locais (nao publicar no GitHub)
+APRESENTACAO-SISTEMA.md
+RELATORIO-CLIENTE-CODIGO-E-OPERACAO.md
