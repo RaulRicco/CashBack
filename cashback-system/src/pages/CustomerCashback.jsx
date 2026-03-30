@@ -231,7 +231,8 @@ export default function CustomerCashback() {
         notifyCashbackReceived({
           amount: updatedTx.cashback_amount,
           merchantName: updatedTx.merchant.name,
-          customerPhone: updatedTx.customer.phone
+           customerPhone: updatedTx.customer.phone,
+           merchantId: updatedTx.merchant_id
         });
       }, 500);
 
@@ -245,7 +246,12 @@ export default function CustomerCashback() {
 
   const handleGoToDashboard = () => {
     if (customer?.phone) {
-      navigate(`/customer/dashboard/${customer.phone}`);
+      const merchantQuery = transaction?.merchant_id || merchant?.id || customer?.referred_by_merchant_id;
+      navigate(
+        merchantQuery
+          ? `/customer/dashboard/${customer.phone}?merchant=${merchantQuery}`
+          : `/customer/dashboard/${customer.phone}`
+      );
     }
   };
 

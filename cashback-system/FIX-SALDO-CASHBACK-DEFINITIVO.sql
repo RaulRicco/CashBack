@@ -15,6 +15,8 @@
 --      está MUDANDO para 'completed' (não quando já era).
 --   B. Recalcular TODOS os saldos do zero para corrigir dados
 --      históricos corrompidos.
+--   C. Usar apenas colunas confirmadas na produção. Não atualizar
+--      first_purchase_at/last_purchase_at para evitar erro de schema.
 --
 -- COMO EXECUTAR:
 --   1. Acesse o Supabase Dashboard > SQL Editor
@@ -40,8 +42,7 @@ BEGIN
     SET
       total_cashback    = total_cashback    + NEW.cashback_amount,
       available_cashback = available_cashback + NEW.cashback_amount,
-      total_spent       = total_spent       + NEW.amount,
-      last_purchase_at  = NOW()
+      total_spent       = total_spent       + NEW.amount
     WHERE id = NEW.customer_id;
   END IF;
 

@@ -14,13 +14,26 @@ export default function Cashback() {
   const [loading, setLoading] = useState(false);
   const [qrData, setQrData] = useState(null);
 
+  const normalizeAmount = (value) => {
+    if (typeof value !== 'string') return '';
+
+    return value
+      .replace(/\./g, '')
+      .replace(',', '.')
+      .replace(/[^\d.]/g, '')
+      .replace(/(\..*)\./g, '$1');
+  };
+
   const handleGenerateQR = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
+      const normalizedAmount = normalizeAmount(amount);
+      const parsedAmount = parseFloat(normalizedAmount);
+
       // Validar inputs
-      if (!phone || !amount || parseFloat(amount) <= 0) {
+      if (!phone || !normalizedAmount || !Number.isFinite(parsedAmount) || parsedAmount <= 0) {
         toast.error('Preencha todos os campos corretamente');
         setLoading(false);
         return;
@@ -49,7 +62,7 @@ export default function Cashback() {
       }
 
       // Calcular cashback
-      const purchaseAmount = parseFloat(amount);
+      const purchaseAmount = parsedAmount;
       const cashbackPercentage = merchant.cashback_percentage || 5;
       const cashbackAmount = (purchaseAmount * cashbackPercentage) / 100;
 
@@ -220,7 +233,8 @@ export default function Cashback() {
                 </div>
                 <input
                   id="amount"
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
                   step="0.01"
                   min="0"
                   value={amount}
@@ -233,7 +247,10 @@ export default function Cashback() {
             </div>
 
             {/* Info do Cashback */}
-            {amount && parseFloat(amount) > 0 && (
+            {amount && (() => {
+              const parsedPreviewAmount = parseFloat(normalizeAmount(amount));
+              return Number.isFinite(parsedPreviewAmount) && parsedPreviewAmount > 0;
+            })() && (
               <div className="p-4 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
                   <Gift className="w-5 h-5 text-primary-600 dark:text-primary-400" />
@@ -242,10 +259,10 @@ export default function Cashback() {
                   </span>
                 </div>
                 <p className="text-2xl font-bold text-primary-700 dark:text-primary-400">
-                  R$ {((parseFloat(amount) * (merchant?.cashback_percentage || 5)) / 100).toFixed(2)}
+                  R$ {((parseFloat(normalizeAmount(amount)) * (merchant?.cashback_percentage || 5)) / 100).toFixed(2)}
                 </p>
                 <p className="text-sm text-primary-600 dark:text-primary-400 mt-1">
-                  {merchant?.cashback_percentage || 5}% de R$ {parseFloat(amount).toFixed(2)}
+                  {merchant?.cashback_percentage || 5}% de R$ {parseFloat(normalizeAmount(amount)).toFixed(2)}
                 </p>
               </div>
             )}

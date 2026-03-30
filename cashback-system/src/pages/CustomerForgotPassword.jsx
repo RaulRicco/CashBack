@@ -151,7 +151,11 @@ export default function CustomerForgotPassword() {
       // Redirecionar para login após 2 segundos
       setTimeout(() => {
         const phoneClean = phone.replace(/\D/g, '');
-        navigate(`/customer/dashboard/${phoneClean}`);
+        navigate(
+          merchant?.id
+            ? `/customer/dashboard/${phoneClean}?merchant=${merchant.id}`
+            : `/customer/dashboard/${phoneClean}`
+        );
       }, 2000);
 
     } catch (error) {

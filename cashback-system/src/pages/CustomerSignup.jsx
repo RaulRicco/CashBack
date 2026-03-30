@@ -216,7 +216,7 @@ export default function CustomerSignup() {
       }, 2000); // Aguardar 2 segundos após o cadastro
 
       toast.success('Cadastro realizado com sucesso!');
-      navigate(`/customer/dashboard/${phoneClean}`);
+      navigate(`/customer/dashboard/${phoneClean}?merchant=${merchant.id}`);
     } catch (error) {
       console.error('Erro ao cadastrar:', error);
       toast.error('Erro ao realizar cadastro. Tente novamente.');

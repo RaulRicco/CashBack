@@ -12,6 +12,7 @@ export default function CustomerResetPassword() {
   const [verifyingToken, setVerifyingToken] = useState(true);
   const [tokenValid, setTokenValid] = useState(false);
   const [customerId, setCustomerId] = useState(null);
+  const [merchantId, setMerchantId] = useState('');
   const [phone, setPhone] = useState('');
   const [token, setToken] = useState('');
   const [password, setPassword] = useState('');
@@ -38,7 +39,7 @@ export default function CustomerResetPassword() {
       // Buscar cliente pelo telefone
       const { data: customer, error: customerError } = await supabase
         .from('customers')
-        .select('id')
+        .select('id, referred_by_merchant_id')
         .eq('phone', phoneNumber)
         .single();
 
@@ -75,6 +76,7 @@ export default function CustomerResetPassword() {
 
       // Token válido
       setCustomerId(customer.id);
+      setMerchantId(customer.referred_by_merchant_id || '');
       setTokenValid(true);
       setVerifyingToken(false);
 
@@ -126,7 +128,11 @@ export default function CustomerResetPassword() {
 
       // Redirecionar para o dashboard após 2 segundos
       setTimeout(() => {
-        navigate(`/customer/dashboard/${phone}`);
+        navigate(
+          merchantId
+            ? `/customer/dashboard/${phone}?merchant=${merchantId}`
+            : `/customer/dashboard/${phone}`
+        );
       }, 2000);
 
     } catch (error) {

@@ -108,7 +108,8 @@ export default function CustomerRedemption() {
         notifyRedemptionCompleted({
           amount: updatedRedemption.amount,
           merchantName: updatedRedemption.merchant.name,
-          customerPhone: updatedRedemption.customer.phone
+           customerPhone: updatedRedemption.customer.phone,
+           merchantId: updatedRedemption.merchant_id
         });
       }, 500);
 
@@ -122,7 +123,12 @@ export default function CustomerRedemption() {
 
   const handleGoToDashboard = () => {
     if (customer?.phone) {
-      navigate(`/customer/dashboard/${customer.phone}`);
+      const merchantQuery = redemption?.merchant_id || merchant?.id || customer?.referred_by_merchant_id;
+      navigate(
+        merchantQuery
+          ? `/customer/dashboard/${customer.phone}?merchant=${merchantQuery}`
+          : `/customer/dashboard/${customer.phone}`
+      );
     }
   };
 

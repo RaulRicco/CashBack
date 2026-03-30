@@ -152,7 +152,10 @@ export async function sendLocalNotification(options) {
  * Enviar notificação de cashback recebido
  */
 export async function notifyCashbackReceived(data) {
-  const { amount, merchantName, customerPhone } = data;
+  const { amount, merchantName, customerPhone, merchantId } = data;
+  const dashboardUrl = merchantId
+    ? `/customer/dashboard/${customerPhone}?merchant=${merchantId}`
+    : `/customer/dashboard/${customerPhone}`;
 
   return await sendLocalNotification({
     title: '🎉 Cashback Recebido!',
@@ -163,7 +166,7 @@ export async function notifyCashbackReceived(data) {
       type: 'cashback',
       amount,
       merchantName,
-      url: `/customer/dashboard/${customerPhone}`
+      url: dashboardUrl
     },
     vibrate: [300, 100, 300, 100, 300],
     requireInteraction: false
@@ -174,7 +177,10 @@ export async function notifyCashbackReceived(data) {
  * Enviar notificação de resgate realizado
  */
 export async function notifyRedemptionCompleted(data) {
-  const { amount, merchantName, customerPhone } = data;
+  const { amount, merchantName, customerPhone, merchantId } = data;
+  const dashboardUrl = merchantId
+    ? `/customer/dashboard/${customerPhone}?merchant=${merchantId}`
+    : `/customer/dashboard/${customerPhone}`;
 
   return await sendLocalNotification({
     title: '💰 Resgate Confirmado!',
@@ -185,7 +191,7 @@ export async function notifyRedemptionCompleted(data) {
       type: 'redemption',
       amount,
       merchantName,
-      url: `/customer/dashboard/${customerPhone}`
+      url: dashboardUrl
     },
     vibrate: [200, 100, 200],
     requireInteraction: false
