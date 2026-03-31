@@ -36,10 +36,31 @@ export default function Reports() {
   useEffect(() => {
     if (merchant?.id) {
       loadReportData();
+    } else {
+      setChartData([]);
+      setSummaryData({
+        totalTransactions: 0,
+        totalRevenue: 0,
+        totalCashback: 0,
+        totalRedemptions: 0
+      });
+      setLoading(false);
     }
   }, [merchant, dateRange]);
 
   const loadReportData = async () => {
+    if (!merchant?.id) {
+      setChartData([]);
+      setSummaryData({
+        totalTransactions: 0,
+        totalRevenue: 0,
+        totalCashback: 0,
+        totalRedemptions: 0
+      });
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
 

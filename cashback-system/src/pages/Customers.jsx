@@ -19,10 +19,19 @@ export default function Customers() {
   useEffect(() => {
     if (merchant?.id) {
       loadCustomers();
+    } else {
+      setLoading(false);
     }
   }, [merchant]);
 
   const loadCustomers = async () => {
+    if (!merchant?.id) {
+      setCustomers([]);
+      setCustomersWithStats([]);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
 

@@ -35,10 +35,19 @@ export default function Employees() {
   useEffect(() => {
     if (merchant?.id) {
       loadEmployees();
+    } else {
+      setEmployees([]);
+      setLoading(false);
     }
   }, [merchant]);
 
   const loadEmployees = async () => {
+    if (!merchant?.id) {
+      setEmployees([]);
+      setLoading(false);
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('employees')
