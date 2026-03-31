@@ -76,6 +76,8 @@ export default function Settings() {
   useEffect(() => {
     if (merchant?.id) {
       loadSettings();
+    } else {
+      setLoading(false);
     }
   }, [merchant?.id]);
 
@@ -90,6 +92,11 @@ export default function Settings() {
   }, [settings.signup_link_slug, settings.custom_domain]);
 
   const loadSettings = async () => {
+    if (!merchant?.id) {
+      setLoading(false);
+      return;
+    }
+
     try {
       if (!merchant || !merchant.id) {
         throw new Error('Merchant não encontrado. Faça login novamente.');
