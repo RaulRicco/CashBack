@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       host: true,
-      allowedHosts: ['.sandbox.novita.ai', 'localhost', 'localcashback.com.br'],
+      allowedHosts: ['.sandbox.novita.ai', 'localhost', 'localcashback.com.br', '.bsbichos.com.br'],
       proxy: {
         '/api': {
           target: 'http://localhost:3001',
