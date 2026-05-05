@@ -28,7 +28,7 @@ export default function MerchantSEO({ merchant, pageType = 'signup' }) {
   const description = descriptions[pageType] || descriptions.signup;
 
   // URL da logo - usar logo do merchant ou fallback
-  const imageUrl = merchant.logo_url || '/logo-light.png';
+  const imageUrl = merchant.logo_url || '/logo.png';
   
   // URL atual da página
   const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
