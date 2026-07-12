@@ -73,31 +73,6 @@ export default function Employees() {
     }
     
     try {
-      // 🔒 VERIFICAR LIMITE DE FUNCIONÁRIOS DO PLANO
-      const { data: merchantData } = await supabase
-        .from('merchants')
-        .select('subscription_plan, employee_limit')
-        .eq('id', merchant.id)
-        .single();
-
-      // Se existe limite, verificar se foi atingido
-      if (merchantData?.employee_limit) {
-        // Contar funcionários atuais
-        const { count: currentEmployeeCount } = await supabase
-          .from('employees')
-          .select('*', { count: 'exact', head: true })
-          .eq('merchant_id', merchant.id);
-
-        // Verificar se atingiu o limite
-        if (currentEmployeeCount >= merchantData.employee_limit) {
-          toast.error(
-            `Limite de funcionários atingido (${merchantData.employee_limit}). Faça upgrade do seu plano!`,
-            { duration: 5000 }
-          );
-          return;
-        }
-      }
-
       const { error } = await supabase
         .from('employees')
         .insert({

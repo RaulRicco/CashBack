@@ -294,17 +294,9 @@ async function handleCheckoutCompleted(session) {
   // Buscar detalhes da assinatura
   const subscription = await stripe.subscriptions.retrieve(subscriptionId);
 
-  // Determinar plano baseado no price_id
-  const priceId = subscription.items.data[0].price.id;
-  let plan = 'starter';
-  if (priceId === process.env.VITE_STRIPE_PRICE_BUSINESS) {
-    plan = 'business';
-  } else if (priceId === process.env.VITE_STRIPE_PRICE_PREMIUM) {
-    plan = 'premium';
-  }
-
-  // Configurar limites e features baseado no plano
-  const planConfig = getPlanConfig(plan);
+  // Plano único "lançamento"
+  const plan = 'launch';
+  const planConfig = getPlanConfig();
 
   // Atualizar merchant no banco
   await supabase
@@ -345,16 +337,9 @@ async function handleSubscriptionUpdated(subscription) {
     return;
   }
 
-  // Determinar plano
-  const priceId = subscription.items.data[0].price.id;
-  let plan = 'starter';
-  if (priceId === process.env.VITE_STRIPE_PRICE_BUSINESS) {
-    plan = 'business';
-  } else if (priceId === process.env.VITE_STRIPE_PRICE_PREMIUM) {
-    plan = 'premium';
-  }
-
-  const planConfig = getPlanConfig(plan);
+  // Plano único "lançamento"
+  const plan = 'launch';
+  const planConfig = getPlanConfig();
 
   // Atualizar merchant
   await supabase
@@ -389,27 +374,15 @@ async function handleSubscriptionDeleted(subscription) {
 
   if (!merchant) return;
 
-  // Voltar para plano Starter com limites mínimos
+  // Assinatura cancelada — mantém o plano único, apenas marca o status
   await supabase
     .from('merchants')
     .update({
       subscription_status: 'canceled',
-      subscription_plan: 'starter',
-      customer_limit: 2000,
-      employee_limit: 1,
-      features_enabled: {
-        dashboard_cac_ltv: false,
-        integrations: false,
-        push_notifications: true,
-        advanced_reports: false,
-        whitelabel: false,
-        custom_domain: false,
-        multiple_stores: false,
-      },
     })
     .eq('id', merchant.id);
 
-  console.log(`✅ Merchant ${merchant.id} - Assinatura cancelada, voltou para Starter`);
+  console.log(`✅ Merchant ${merchant.id} - Assinatura cancelada`);
 }
 
 /**
@@ -470,50 +443,21 @@ async function handlePaymentFailed(invoice) {
 // HELPER FUNCTIONS
 // =====================================
 
-function getPlanConfig(plan) {
-  const configs = {
-    starter: {
-      customerLimit: 2000,
-      employeeLimit: 1,
-      features: {
-        dashboard_cac_ltv: false,
-        integrations: false,
-        push_notifications: true,
-        advanced_reports: false,
-        whitelabel: false,
-        custom_domain: false,
-        multiple_stores: false,
-      },
-    },
-    business: {
-      customerLimit: 10000,
-      employeeLimit: 5,
-      features: {
-        dashboard_cac_ltv: true,
-        integrations: true,
-        push_notifications: true,
-        advanced_reports: true,
-        whitelabel: true,
-        custom_domain: false,
-        multiple_stores: false,
-      },
-    },
-    premium: {
-      customerLimit: null, // ilimitado
-      employeeLimit: null, // ilimitado
-      features: {
-        dashboard_cac_ltv: true,
-        integrations: true,
-        push_notifications: true,
-        advanced_reports: true,
-        whitelabel: true,
-        custom_domain: true,
-        multiple_stores: true,
-      },
+function getPlanConfig() {
+  // Plano único "lançamento" — tudo liberado, sem limites
+  return {
+    customerLimit: null,
+    employeeLimit: null,
+    features: {
+      dashboard_cac_ltv: true,
+      integrations: true,
+      push_notifications: true,
+      advanced_reports: true,
+      whitelabel: true,
+      custom_domain: true,
+      multiple_stores: true,
     },
   };
-
-  return configs[plan] || configs.starter;
 }
 
 // Iniciar servidor

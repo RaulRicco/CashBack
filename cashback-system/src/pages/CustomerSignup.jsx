@@ -100,37 +100,6 @@ export default function CustomerSignup() {
     setSubmitting(true);
 
     try {
-      // 🔒 VERIFICAR LIMITE DE CLIENTES DO PLANO
-      // Buscar dados de assinatura do merchant
-      const { data: merchantData } = await supabase
-        .from('merchants')
-        .select('subscription_plan, customer_limit')
-        .eq('id', merchant.id)
-        .single();
-
-      // Se existe limite, verificar se foi atingido
-      if (merchantData?.customer_limit) {
-        // Contar clientes únicos atuais (baseado em transações)
-        const { data: transactions } = await supabase
-          .from('transactions')
-          .select('customer_id')
-          .eq('merchant_id', merchant.id)
-          .eq('status', 'completed');
-
-        const uniqueCustomers = [...new Set(transactions?.map(t => t.customer_id) || [])];
-        const currentCustomerCount = uniqueCustomers.length;
-
-        // Verificar se atingiu o limite
-        if (currentCustomerCount >= merchantData.customer_limit) {
-          toast.error(
-            `Limite de clientes atingido (${merchantData.customer_limit}). O estabelecimento precisa fazer upgrade do plano.`,
-            { duration: 6000 }
-          );
-          setSubmitting(false);
-          return;
-        }
-      }
-
       // Verificar se o cliente já existe NESTE estabelecimento específico
       const { data: existingCustomer } = await supabase
         .from('customers')

@@ -5,40 +5,25 @@ import { useAuthStore } from '../store/authStore';
 import { redirectToCheckout } from '../lib/stripe';
 import toast from 'react-hot-toast';
 
-const PRICE_FALLBACKS = {
-  starter: 'price_1SluhgAev6mInEFVzGTKjPoV',
-  business: 'price_1TEVzwAev6mInEFVFkqZkxRL',
-  premium: 'price_1TEVzwAev6mInEFVfEh3ySHG',
-};
-
 const PLANS = [
   {
-    id: 'starter',
-    title: 'Pequenas Empresas',
-    name: 'Starter',
+    id: 'launch',
+    title: 'Oferta de Lançamento',
+    name: 'Plano Mensal',
     price: 97,
     color: 'emerald',
-    priceId: import.meta.env.VITE_STRIPE_PRICE_STARTER || PRICE_FALLBACKS.starter,
-    benefits: ['Até 5.000 clientes', 'Até 10 funcionários', 'Cashback + portal do cliente', '14 dias grátis'],
-  },
-  {
-    id: 'business',
-    title: 'Empresas Médias',
-    name: 'Business',
-    price: 297,
-    color: 'indigo',
     popular: true,
-    priceId: import.meta.env.VITE_STRIPE_PRICE_BUSINESS || PRICE_FALLBACKS.business,
-    benefits: ['Até 20.000 clientes', 'Até 30 funcionários', 'Integrações e relatórios avançados', 'Suporte prioritário'],
-  },
-  {
-    id: 'premium',
-    title: 'Empresas Grandes',
-    name: 'Premium',
-    price: 497,
-    color: 'rose',
-    priceId: import.meta.env.VITE_STRIPE_PRICE_PREMIUM || PRICE_FALLBACKS.premium,
-    benefits: ['Clientes ilimitados', 'Funcionários ilimitados', 'Whitelabel + múltiplas unidades', 'Acompanhamento dedicado'],
+    priceId: 'price_1Slw77Aev6mInEFVI6INDD3B',
+    benefits: [
+      'Clientes ilimitados',
+      'Funcionários ilimitados',
+      'Cashback + portal do cliente',
+      'Dashboard avançado + CAC/LTV',
+      'Integrações e push notifications',
+      'Whitelabel + domínio próprio',
+      'Múltiplas lojas/unidades',
+      '14 dias grátis',
+    ],
   },
 ];
 
@@ -83,11 +68,11 @@ export default function SubscriptionPlans() {
         <div className="text-center mb-10">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Assinatura LocalCashback</h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Escolha o plano de acordo com o tamanho da sua operacao e siga direto para a pagina de pagamento.
+            Um único plano, com tudo liberado. Siga direto para a pagina de pagamento.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 max-w-md mx-auto gap-6">
           {PLANS.map((plan) => {
             const isLoading = loading === plan.id;
             const color = COLOR_STYLES[plan.color] || COLOR_STYLES.emerald;

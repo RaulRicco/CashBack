@@ -7,63 +7,27 @@ import { fetchMerchantByEmail } from '../services/authService';
 import { redirectToCheckout } from '../lib/stripe';
 import toast from 'react-hot-toast';
 
-const PRICE_FALLBACKS = {
-  starter: 'price_1SluhgAev6mInEFVzGTKjPoV',
-  business: 'price_1TEVzwAev6mInEFVFkqZkxRL',
-  premium: 'price_1TEVzwAev6mInEFVfEh3ySHG',
-};
-
 const PLANS = [
   {
-    id: 'starter',
-    label: 'Pequenas Empresas',
-    name: 'Starter',
+    id: 'launch',
+    label: 'Oferta de Lançamento',
+    name: 'Plano Mensal',
     price: 97,
     color: 'emerald',
-    badge: 'Entrada',
-    priceId: import.meta.env.VITE_STRIPE_PRICE_STARTER || PRICE_FALLBACKS.starter,
-    benefits: [
-      'Até 5.000 clientes',
-      'Até 10 funcionários',
-      'Sistema completo de cashback',
-      'Portal do cliente + QR Code',
-      'Dashboard operacional',
-      '14 dias grátis',
-    ],
-  },
-  {
-    id: 'business',
-    label: 'Empresas Médias',
-    name: 'Business',
-    price: 297,
-    color: 'indigo',
-    badge: 'Mais escolhido',
+    badge: 'Tudo incluso',
     popular: true,
-    priceId: import.meta.env.VITE_STRIPE_PRICE_BUSINESS || PRICE_FALLBACKS.business,
-    benefits: [
-      'Até 20.000 clientes',
-      'Até 30 funcionários',
-      'Tudo do Starter + relatórios avançados',
-      'Integrações e automações',
-      'Push notifications e campanhas',
-      'Suporte prioritário',
-    ],
-  },
-  {
-    id: 'premium',
-    label: 'Empresas Grandes',
-    name: 'Premium',
-    price: 497,
-    color: 'rose',
-    badge: 'Escala',
-    priceId: import.meta.env.VITE_STRIPE_PRICE_PREMIUM || PRICE_FALLBACKS.premium,
+    priceId: 'price_1Slw77Aev6mInEFVI6INDD3B',
     benefits: [
       'Clientes ilimitados',
       'Funcionários ilimitados',
-      'Múltiplas unidades/lojas',
-      'Whitelabel completo',
-      'Domínio próprio e recursos enterprise',
-      'Gestão dedicada de sucesso',
+      'Sistema completo de cashback',
+      'Portal do cliente + QR Code',
+      'Dashboard avançado + relatórios CAC/LTV',
+      'Integrações e push notifications',
+      'Whitelabel e domínio próprio',
+      'Múltiplas lojas/unidades',
+      'Suporte prioritário',
+      '14 dias grátis',
     ],
   },
 ];
@@ -164,13 +128,13 @@ export default function PlansPublic() {
           <span className="inline-block bg-green-100 text-green-700 text-sm font-semibold px-4 py-1 rounded-full mb-4">
             14 dias GRATIS — Sem cartao de credito
           </span>
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Escolha o plano ideal para seu negocio</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Um único plano, tudo liberado</h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Temos opcoes para empresas pequenas, medias e grandes. Ao escolher o plano, voce segue direto para a pagina de pagamento do Stripe.
+            Sem pegadinhas nem limites escondidos. Ao assinar, voce segue direto para a pagina de pagamento do Stripe.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+        <div className="grid grid-cols-1 max-w-md mx-auto gap-6 items-stretch">
           {PLANS.map((plan) => {
             const style = COLOR_STYLES[plan.color] || COLOR_STYLES.emerald;
             const isLoading = loadingPlanId === plan.id;

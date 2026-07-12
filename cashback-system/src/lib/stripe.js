@@ -77,7 +77,7 @@ export const stripePromise = (async () => {
   return await getStripePromise();
 })();
 
-// Definição dos planos
+// Definição dos planos — apenas o Plano Lançamento, com tudo liberado
 export const SUBSCRIPTION_PLANS = {
   launch: {
     id: 'launch',
@@ -85,8 +85,8 @@ export const SUBSCRIPTION_PLANS = {
     price: 97,
     priceId: 'price_1Slw77Aev6mInEFVI6INDD3B', // TEST mode
     description: 'Plano completo com todos os recursos',
-    customerLimit: 5000, // Limite de 5 mil clientes
-    employeeLimit: 10, // Limite de 10 funcionários
+    customerLimit: null, // Ilimitado
+    employeeLimit: null, // Ilimitado
     features: {
       dashboard_basic: true,
       cashback_system: true,
@@ -105,8 +105,8 @@ export const SUBSCRIPTION_PLANS = {
     },
     benefits: [
       '🎉 Oferta de Lançamento',
-      '✅ Até 5.000 clientes',
-      '✅ Até 10 funcionários',
+      '✅ Clientes ilimitados',
+      '✅ Funcionários ilimitados',
       '✅ Sistema de Cashback completo',
       '✅ Portal do Cliente',
       '✅ QR Code para Resgate',
@@ -119,118 +119,6 @@ export const SUBSCRIPTION_PLANS = {
       '✅ Múltiplas lojas/unidades',
       '✅ Suporte WhatsApp prioritário',
       '🎁 14 dias de teste GRÁTIS',
-      '💬 Renegociação após 5.000 clientes',
-    ],
-  },
-  starter: {
-    id: 'starter',
-    name: 'Starter',
-    price: 147,
-    priceId: import.meta.env.VITE_STRIPE_PRICE_STARTER,
-    description: 'Para quem está começando',
-    customerLimit: 2000,
-    employeeLimit: 1,
-    features: {
-      dashboard_basic: true,
-      cashback_system: true,
-      customer_portal: true,
-      qr_code: true,
-      email_support: true,
-      // Features desabilitadas
-      dashboard_cac_ltv: false,
-      integrations: false,
-      push_notifications: false,
-      advanced_reports: false,
-      whitelabel: false,
-      custom_domain: false,
-      multiple_stores: false,
-      whatsapp_support: false,
-      dedicated_manager: false,
-    },
-    benefits: [
-      'Até 2.000 clientes',
-      'Sistema de Cashback',
-      'Portal do Cliente',
-      'QR Code Resgate',
-      'Dashboard Básico',
-      '1 funcionário',
-      'Suporte por email',
-    ],
-  },
-  business: {
-    id: 'business',
-    name: 'Business',
-    price: 297,
-    priceId: import.meta.env.VITE_STRIPE_PRICE_BUSINESS,
-    description: 'Para crescer rápido',
-    popular: true,
-    customerLimit: 10000,
-    employeeLimit: 5,
-    features: {
-      // Todas do Starter
-      dashboard_basic: true,
-      cashback_system: true,
-      customer_portal: true,
-      qr_code: true,
-      email_support: true,
-      // Features Business
-      dashboard_cac_ltv: true,
-      integrations: true,
-      push_notifications: true,
-      advanced_reports: true,
-      whitelabel: true,
-      custom_domain: true,
-      whatsapp_support: true,
-      // Features desabilitadas
-      multiple_stores: false,
-      dedicated_manager: false,
-    },
-    benefits: [
-      'Tudo do Starter +',
-      'Até 10.000 clientes',
-      'Dashboard CAC/LTV',
-      'Integrações (Mailchimp, RD)',
-      'Push Notifications',
-      'Domínio Próprio',
-      'Até 5 funcionários',
-      'Whitelabel (sua marca)',
-      'Suporte WhatsApp prioritário',
-    ],
-  },
-  premium: {
-    id: 'premium',
-    name: 'Premium',
-    price: 497,
-    priceId: import.meta.env.VITE_STRIPE_PRICE_PREMIUM,
-    description: 'Para dominar o mercado',
-    customerLimit: null, // Ilimitado
-    employeeLimit: null, // Ilimitado
-    features: {
-      // Todas do Business
-      dashboard_basic: true,
-      cashback_system: true,
-      customer_portal: true,
-      qr_code: true,
-      email_support: true,
-      dashboard_cac_ltv: true,
-      integrations: true,
-      push_notifications: true,
-      advanced_reports: true,
-      whitelabel: true,
-      custom_domain: true,
-      whatsapp_support: true,
-      // Features Premium
-      multiple_stores: true,
-      dedicated_manager: true,
-    },
-    benefits: [
-      'Tudo do Business +',
-      'Clientes ILIMITADOS',
-      'Funcionários ilimitados',
-      'Múltiplas lojas/unidades',
-      'Atendimento VIP',
-      'Integrações personalizadas',
-      'Suporte prioritário 24/7',
     ],
   },
 };
@@ -293,47 +181,33 @@ export async function redirectToCheckout(priceId, merchantId, merchantEmail) {
 
 /**
  * Verificar se merchant pode adicionar mais clientes
+ * Plano único "lançamento" — sempre liberado (sem limites)
  */
-export function canAddCustomer(currentCount, plan) {
-  const planConfig = SUBSCRIPTION_PLANS[plan];
-  if (!planConfig) return false;
-  
-  // Se limite é null, é ilimitado
-  if (planConfig.customerLimit === null) return true;
-  
-  return currentCount < planConfig.customerLimit;
+export function canAddCustomer() {
+  return true;
 }
 
 /**
  * Verificar se merchant pode adicionar mais funcionários
+ * Plano único "lançamento" — sempre liberado (sem limites)
  */
-export function canAddEmployee(currentCount, plan) {
-  const planConfig = SUBSCRIPTION_PLANS[plan];
-  if (!planConfig) return false;
-  
-  // Se limite é null, é ilimitado
-  if (planConfig.employeeLimit === null) return true;
-  
-  return currentCount < planConfig.employeeLimit;
+export function canAddEmployee() {
+  return true;
 }
 
 /**
  * Verificar se feature está habilitada no plano
+ * Plano único "lançamento" — todas as features liberadas
  */
-export function hasFeature(plan, featureName) {
-  const planConfig = SUBSCRIPTION_PLANS[plan];
-  if (!planConfig) return false;
-  
-  return planConfig.features[featureName] === true;
+export function hasFeature() {
+  return true;
 }
 
 /**
- * Obter próximo plano recomendado para upgrade
+ * Não há upgrade — plano único
  */
-export function getUpgradePlan(currentPlan) {
-  if (currentPlan === 'starter') return 'business';
-  if (currentPlan === 'business') return 'premium';
-  return null; // Já está no máximo
+export function getUpgradePlan() {
+  return null;
 }
 
 /**
