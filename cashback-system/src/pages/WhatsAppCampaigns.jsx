@@ -210,7 +210,7 @@ export default function WhatsAppCampaigns() {
   return (
     <DashboardLayout>
       <div className="p-6 space-y-6 max-w-4xl mx-auto">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Campanhas de WhatsApp</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Campanhas de WhatsApp (em breve)</h1>
 
         <div className="card p-6 space-y-4">
           <div className="flex items-center justify-between">

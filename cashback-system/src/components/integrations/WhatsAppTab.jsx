@@ -67,7 +67,7 @@ export default function WhatsAppTab({ merchantId }) {
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">WhatsApp Business</h2>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">WhatsApp Business (em breve)</h2>
       </div>
 
       {!config?.is_active ? (

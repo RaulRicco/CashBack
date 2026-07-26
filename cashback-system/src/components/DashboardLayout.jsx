@@ -62,7 +62,7 @@ export default function DashboardLayout({ children }) {
     { name: 'Funcionários', href: '/employees', icon: UserPlus },
     { name: 'Relatórios', href: '/reports', icon: TrendingUp },
     { name: 'Integrações', href: '/integrations', icon: Mail },
-    { name: 'Campanhas WhatsApp', href: '/whatsapp/campanhas', icon: MessageCircle },
+    { name: 'Campanhas WhatsApp (em breve)', href: '/whatsapp/campanhas', icon: MessageCircle },
     { name: 'Meu CashBack', href: '/whitelabel', icon: Palette },
     { name: 'Assinatura', href: '/dashboard/planos', icon: Store },
     { name: 'Configurações', href: '/settings', icon: Settings },

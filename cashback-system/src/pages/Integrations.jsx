@@ -475,7 +475,7 @@ export default function Integrations() {
               >
                 <div className="flex items-center gap-2">
                   <MessageCircle className="w-6 h-6" />
-                  WhatsApp
+                  WhatsApp (em breve)
                 </div>
               </button>
 
