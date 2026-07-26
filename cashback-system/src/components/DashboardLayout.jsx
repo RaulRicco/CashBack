@@ -97,7 +97,7 @@ export default function DashboardLayout({ children }) {
                 alt={getBrandName()} 
                 className="object-contain w-10 h-10"
               />
-              <span className="text-xl font-bold text-gray-900 dark:text-gray-100">{getBrandName(true)}</span>
+              <span className="text-xl font-bold text-gray-900 dark:text-gray-100">{getBrandName()}</span>
             </div>
             <button
               onClick={() => setSidebarOpen(false)}
@@ -177,7 +177,7 @@ export default function DashboardLayout({ children }) {
                   alt={getBrandName()} 
                   className="object-contain w-8 h-8"
                 />
-                <span className="text-lg font-bold text-gray-900 dark:text-gray-100">{getBrandName(true)}</span>
+                <span className="text-lg font-bold text-gray-900 dark:text-gray-100">{getBrandName()}</span>
               </div>
             </div>
             
