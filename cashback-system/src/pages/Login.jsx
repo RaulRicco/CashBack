@@ -128,10 +128,10 @@ export default function Login() {
           <p className="text-sm text-gray-600">
             Não tem uma conta?{' '}
             <button
-              onClick={() => navigate('/signup')}
+              onClick={() => navigate('/plans')}
               className="text-primary-600 hover:text-primary-700 font-semibold hover:underline"
             >
-              Criar conta grátis
+              Escolher plano
             </button>
           </p>
         </div>

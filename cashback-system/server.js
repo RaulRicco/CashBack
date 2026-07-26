@@ -116,6 +116,36 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Catalogo simples da API para integracoes externas
+app.get('/api', (req, res) => {
+  const baseUrl = `${req.protocol}://${req.get('host')}/api`;
+
+  res.json({
+    success: true,
+    name: 'LocalCashback API',
+    version: 'v1',
+    status: 'online',
+    docs_note: 'Este catalogo lista os principais endpoints. Para detalhes de payload, contate o suporte tecnico.',
+    base_url: baseUrl,
+    endpoints: {
+      health: 'GET /api/health',
+      stripe_checkout: 'POST /api/stripe/create-checkout-session',
+      stripe_portal: 'POST /api/stripe/create-portal-session',
+      stripe_subscription_status: 'GET /api/stripe/subscription-status/:merchantId',
+      stripe_webhook: 'POST /api/stripe/webhook'
+    }
+  });
+});
+
+// Evita ruido no console do navegador ao abrir endpoints JSON diretamente
+app.get('/favicon.ico', (req, res) => {
+  res.status(204).end();
+});
+
+app.get('/.well-known/appspecific/com.chrome.devtools.json', (req, res) => {
+  res.status(204).end();
+});
+
 /**
  * POST /api/stripe/create-checkout-session
  * Cria uma sessão de checkout do Stripe
@@ -132,6 +162,22 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
     }
 
     console.log('🛒 Criando checkout session:', { priceId, merchantId, merchantEmail });
+
+    // Valida o preco antes de criar a sessao para evitar erro 500 generico.
+    const price = await stripe.prices.retrieve(priceId);
+    if (!price?.active) {
+      return res.status(400).json({
+        code: 'PRICE_INACTIVE',
+        error: 'O plano selecionado esta temporariamente indisponivel. Atualize a pagina e tente novamente.',
+      });
+    }
+
+    if (price?.type !== 'recurring') {
+      return res.status(400).json({
+        code: 'PRICE_NOT_SUBSCRIPTION',
+        error: 'Preco invalido para assinatura recorrente.',
+      });
+    }
 
     // Verificar se já tem cliente Stripe
     const { data: merchant } = await supabase
@@ -187,6 +233,13 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
     res.json({ sessionId: session.id, url: session.url });
   } catch (error) {
     console.error('❌ Erro ao criar checkout session:', error);
+    if (error?.type === 'StripeInvalidRequestError') {
+      return res.status(400).json({
+        code: 'STRIPE_INVALID_REQUEST',
+        error: error.message,
+      });
+    }
+
     res.status(500).json({ error: error.message });
   }
 });

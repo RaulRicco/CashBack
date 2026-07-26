@@ -2,6 +2,21 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { signInWithPassword, signOut as authSignOut, getSession, fetchMerchantByEmail } from '../services/authService';
 
+function hasValidSubscriptionAccess(merchant) {
+  const status = String(merchant?.subscription_status || '').toLowerCase();
+  const trialEndRaw = merchant?.trial_end_date || merchant?.trial_ends_at;
+
+  if (status === 'active') return true;
+
+  if (status === 'trial') {
+    if (!trialEndRaw) return true;
+    const trialEnd = new Date(trialEndRaw);
+    return !Number.isNaN(trialEnd.getTime()) && trialEnd > new Date();
+  }
+
+  return false;
+}
+
 export const useAuthStore = create(
   persist(
     (set, get) => ({
@@ -10,11 +25,15 @@ export const useAuthStore = create(
       employee: null,
       isAuthenticated: false,
       isLoading: false,
+      // true quando o usuário está autenticado no Supabase mas a assinatura
+      // não está em dia (past_due/canceled/expired) — bloqueia acesso ao
+      // dashboard sem descartar a sessão, para permitir regularizar o pagamento.
+      subscriptionBlocked: false,
 
       setUser: (user) => set({ user, isAuthenticated: !!user }),
-      
+
       setMerchant: (merchant) => set({ merchant }),
-      
+
       setEmployee: (employee) => set({ employee }),
 
       login: async (email, password) => {
@@ -48,6 +67,11 @@ export const useAuthStore = create(
 
           const merchant = merchants && merchants.length > 0 ? merchants[0] : null;
 
+          if (!merchant) {
+            await authSignOut();
+            throw new Error('Conta sem estabelecimento vinculado. Fale com o suporte.');
+          }
+
           // Criar objeto employee-like para compatibilidade
           const employeeData = {
             id: authData.user.id,
@@ -56,15 +80,33 @@ export const useAuthStore = create(
             merchant_id: merchant?.id || null,
             is_active: true
           };
-          
+
+          if (!hasValidSubscriptionAccess(merchant)) {
+            // Mantém a sessão (não faz signOut) para a tela de regularização
+            // poder identificar o merchant e abrir o portal de pagamento Stripe.
+            set({
+              user: {
+                email: authData.user.email,
+                id: authData.user.id
+              },
+              employee: employeeData,
+              merchant: merchant,
+              isAuthenticated: false,
+              subscriptionBlocked: true,
+              isLoading: false
+            });
+            return { success: false, subscriptionBlocked: true };
+          }
+
           set({
-            user: { 
-              email: authData.user.email, 
-              id: authData.user.id 
+            user: {
+              email: authData.user.email,
+              id: authData.user.id
             },
             employee: employeeData,
             merchant: merchant,
             isAuthenticated: true,
+            subscriptionBlocked: false,
             isLoading: false
           });
 
@@ -78,24 +120,30 @@ export const useAuthStore = create(
       logout: async () => {
         // ✅ Fazer logout no Supabase Auth
         await authSignOut();
-        
+
         set({
           user: null,
           merchant: null,
           employee: null,
-          isAuthenticated: false
+          isAuthenticated: false,
+          subscriptionBlocked: false
         });
       },
 
       checkAuth: async () => {
         // ✅ Verificar sessão do Supabase Auth
         const { data: { session } } = await getSession();
-        
+
         if (session?.user) {
           // Buscar merchant associado
           const { data: merchants } = await fetchMerchantByEmail(session.user.email);
 
           const merchant = merchants && merchants.length > 0 ? merchants[0] : null;
+
+          if (!merchant) {
+            await get().logout();
+            return;
+          }
 
           const employeeData = {
             id: session.user.id,
@@ -105,11 +153,25 @@ export const useAuthStore = create(
             is_active: true
           };
 
+          if (!hasValidSubscriptionAccess(merchant)) {
+            // Mantém a sessão Supabase válida, apenas bloqueia o acesso ao
+            // dashboard até a assinatura ser regularizada.
+            set({
+              user: { email: session.user.email, id: session.user.id },
+              employee: employeeData,
+              merchant: merchant,
+              isAuthenticated: false,
+              subscriptionBlocked: true
+            });
+            return;
+          }
+
           set({
             user: { email: session.user.email, id: session.user.id },
             employee: employeeData,
             merchant: merchant,
-            isAuthenticated: true
+            isAuthenticated: true,
+            subscriptionBlocked: false
           });
         } else {
           get().logout();

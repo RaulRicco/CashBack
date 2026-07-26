@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 import { Phone, Calendar, ArrowLeft, Key, Lock, Eye, EyeOff, CheckCircle } from 'lucide-react';
@@ -8,6 +8,8 @@ import { getLogo, getBrandName } from '../config/branding';
 export default function CustomerForgotPassword() {
   const { phone: phoneParam } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const merchantIdFromUrl = searchParams.get('merchant');
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1); // 1: telefone+nascimento, 2: nova senha
   const [phone, setPhone] = useState(phoneParam || '');
@@ -28,12 +30,23 @@ export default function CustomerForgotPassword() {
   const loadMerchant = async (customerPhone) => {
     try {
       const phoneClean = customerPhone.replace(/\D/g, '');
-      const { data: customerList } = await supabase
+      let merchantQuery = supabase
         .from('customers')
         .select('referred_by_merchant_id')
-        .eq('phone', phoneClean)
-        .order('created_at', { ascending: false })  // Pegar o mais recente
-        .limit(1);
+        .eq('phone', phoneClean);
+
+      if (merchantIdFromUrl) {
+        merchantQuery = merchantQuery.eq('referred_by_merchant_id', merchantIdFromUrl);
+      } else {
+        merchantQuery = merchantQuery.order('created_at', { ascending: false }).limit(2);
+      }
+
+      const { data: customerList } = await merchantQuery;
+
+      if (!merchantIdFromUrl && customerList && customerList.length > 1) {
+        toast.error('Encontramos mais de um cadastro para este telefone. Abra pelo link do estabelecimento correto.');
+        return;
+      }
 
       const customerData = customerList && customerList.length > 0 ? customerList[0] : null;
 
@@ -85,14 +98,20 @@ export default function CustomerForgotPassword() {
         return;
       }
 
-      // Buscar cliente pelo telefone e data de nascimento (usando limit(1))
-      const { data: customerList, error: findError } = await supabase
+      // Buscar cliente pelo telefone e data de nascimento no contexto do merchant.
+      let customerQuery = supabase
         .from('customers')
-        .select('id, name, phone, birthdate')
+        .select('id, name, phone, birthdate, referred_by_merchant_id')
         .eq('phone', phoneClean)
-        .eq('birthdate', birthdate)
-        .order('created_at', { ascending: false })  // Pegar o mais recente
-        .limit(1);
+        .eq('birthdate', birthdate);
+
+      if (merchantIdFromUrl) {
+        customerQuery = customerQuery.eq('referred_by_merchant_id', merchantIdFromUrl);
+      } else {
+        customerQuery = customerQuery.order('created_at', { ascending: false }).limit(2);
+      }
+
+      const { data: customerList, error: findError } = await customerQuery;
 
       const customer = customerList && customerList.length > 0 ? customerList[0] : null;
 
@@ -100,6 +119,24 @@ export default function CustomerForgotPassword() {
         toast.error('Telefone ou data de nascimento incorretos');
         setLoading(false);
         return;
+      }
+
+      if (!merchantIdFromUrl && customerList && customerList.length > 1) {
+        toast.error('Encontramos mais de um cadastro para este telefone. Use o link do estabelecimento.');
+        setLoading(false);
+        return;
+      }
+
+      if (!merchant && customer.referred_by_merchant_id) {
+        const { data: merchantData } = await supabase
+          .from('merchants')
+          .select('id, name, logo_url')
+          .eq('id', customer.referred_by_merchant_id)
+          .single();
+
+        if (merchantData) {
+          setMerchant(merchantData);
+        }
       }
 
       // Identidade verificada!

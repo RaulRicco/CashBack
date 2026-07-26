@@ -8,6 +8,7 @@ import { getLogo, getBrandName } from '../config/branding';
 export default function CustomerResetPassword() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const merchantIdFromUrl = searchParams.get('merchant');
   const [loading, setLoading] = useState(false);
   const [verifyingToken, setVerifyingToken] = useState(true);
   const [tokenValid, setTokenValid] = useState(false);
@@ -36,12 +37,26 @@ export default function CustomerResetPassword() {
 
   const verifyToken = async (phoneNumber, tokenCode) => {
     try {
-      // Buscar cliente pelo telefone
-      const { data: customer, error: customerError } = await supabase
+      // Buscar cliente pelo telefone no contexto do merchant.
+      let customerQuery = supabase
         .from('customers')
         .select('id, referred_by_merchant_id')
-        .eq('phone', phoneNumber)
-        .single();
+        .eq('phone', phoneNumber);
+
+      if (merchantIdFromUrl) {
+        customerQuery = customerQuery.eq('referred_by_merchant_id', merchantIdFromUrl);
+      } else {
+        customerQuery = customerQuery.order('created_at', { ascending: false }).limit(2);
+      }
+
+      const { data: customerList, error: customerError } = await customerQuery;
+      const customer = customerList && customerList.length > 0 ? customerList[0] : null;
+
+      if (!merchantIdFromUrl && customerList && customerList.length > 1) {
+        toast.error('Link ambíguo para este telefone. Solicite recuperação pelo link do estabelecimento.');
+        setVerifyingToken(false);
+        return;
+      }
 
       if (customerError || !customer) {
         toast.error('Cliente não encontrado');

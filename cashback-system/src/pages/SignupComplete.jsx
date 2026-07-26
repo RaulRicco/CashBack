@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Store, Phone, MapPin, User } from 'lucide-react';
 import { getLogo, getBrandName } from '../config/branding';
 import toast from 'react-hot-toast';
+import { useAuthStore } from '../store/authStore';
 
 export default function SignupComplete() {
   const navigate = useNavigate();
@@ -38,8 +39,9 @@ export default function SignupComplete() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Erro ao finalizar cadastro');
-      toast.success('Cadastro concluído! Escolha seu plano.');
-      navigate('/plans');
+      await useAuthStore.getState().checkAuth();
+      toast.success('Cadastro concluído! Acesso liberado.');
+      navigate('/dashboard');
     } catch (err) {
       toast.error(err.message);
     } finally {

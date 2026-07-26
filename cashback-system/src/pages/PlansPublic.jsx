@@ -1,144 +1,54 @@
-import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Check, Loader2, ArrowLeft } from 'lucide-react';
+import { Check, ArrowLeft } from 'lucide-react';
 import { getLogo, getBrandName } from '../config/branding';
-import { supabase } from '../lib/supabase';
-import { fetchMerchantByEmail } from '../services/authService';
-import { redirectToCheckout } from '../lib/stripe';
-import toast from 'react-hot-toast';
-
-const PRICE_FALLBACKS = {
-  starter: 'price_1SluhgAev6mInEFVzGTKjPoV',
-  business: 'price_1TEVzwAev6mInEFVFkqZkxRL',
-  premium: 'price_1TEVzwAev6mInEFVfEh3ySHG',
-};
 
 const PLANS = [
   {
-    id: 'starter',
-    label: 'Pequenas Empresas',
-    name: 'Starter',
+    id: 'launch',
+    label: 'Oferta de Lançamento',
+    name: 'Plano Mensal',
     price: 97,
-    color: 'emerald',
-    badge: 'Entrada',
-    priceId: import.meta.env.VITE_STRIPE_PRICE_STARTER || PRICE_FALLBACKS.starter,
-    benefits: [
-      'Até 5.000 clientes',
-      'Até 10 funcionários',
-      'Sistema completo de cashback',
-      'Portal do cliente + QR Code',
-      'Dashboard operacional',
-      '14 dias grátis',
-    ],
-  },
-  {
-    id: 'business',
-    label: 'Empresas Médias',
-    name: 'Business',
-    price: 297,
-    color: 'indigo',
-    badge: 'Mais escolhido',
+    color: 'purple',
+    badge: 'Tudo incluso',
     popular: true,
-    priceId: import.meta.env.VITE_STRIPE_PRICE_BUSINESS || PRICE_FALLBACKS.business,
-    benefits: [
-      'Até 20.000 clientes',
-      'Até 30 funcionários',
-      'Tudo do Starter + relatórios avançados',
-      'Integrações e automações',
-      'Push notifications e campanhas',
-      'Suporte prioritário',
-    ],
-  },
-  {
-    id: 'premium',
-    label: 'Empresas Grandes',
-    name: 'Premium',
-    price: 497,
-    color: 'rose',
-    badge: 'Escala',
-    priceId: import.meta.env.VITE_STRIPE_PRICE_PREMIUM || PRICE_FALLBACKS.premium,
     benefits: [
       'Clientes ilimitados',
       'Funcionários ilimitados',
-      'Múltiplas unidades/lojas',
-      'Whitelabel completo',
-      'Domínio próprio e recursos enterprise',
-      'Gestão dedicada de sucesso',
+      'Sistema completo de cashback',
+      'Portal do cliente + QR Code',
+      'Dashboard avançado + relatórios CAC/LTV',
+      'Integrações e push notifications',
+      'Whitelabel e domínio próprio',
+      'Múltiplas lojas/unidades',
+      'Suporte prioritário',
+      '14 dias grátis',
     ],
   },
 ];
 
 const COLOR_STYLES = {
-  emerald: {
-    ring: 'ring-emerald-500',
-    gradient: 'from-emerald-600 to-teal-600',
-    gradientHover: 'hover:from-emerald-700 hover:to-teal-700',
-    badge: 'bg-emerald-600',
-    benefitIcon: 'text-emerald-500',
-  },
-  indigo: {
-    ring: 'ring-indigo-500',
-    gradient: 'from-indigo-600 to-violet-600',
-    gradientHover: 'hover:from-indigo-700 hover:to-violet-700',
-    badge: 'bg-indigo-600',
-    benefitIcon: 'text-indigo-500',
-  },
-  rose: {
-    ring: 'ring-rose-500',
-    gradient: 'from-rose-600 to-pink-600',
-    gradientHover: 'hover:from-rose-700 hover:to-pink-700',
-    badge: 'bg-rose-600',
-    benefitIcon: 'text-rose-500',
+  purple: {
+    ring: 'ring-purple-500',
+    gradient: 'from-purple-600 to-violet-600',
+    gradientHover: 'hover:from-purple-700 hover:to-violet-700',
+    badge: 'bg-purple-600',
+    benefitIcon: 'text-purple-500',
   },
 };
 
 export default function PlansPublic() {
   const navigate = useNavigate();
   const location = useLocation();
-  const signupMerchant = location.state?.merchant || null;
-  const [loadingPlanId, setLoadingPlanId] = useState(null);
-  const [merchant, setMerchant] = useState(signupMerchant);
-  const [checkingAuth, setCheckingAuth] = useState(true);
+  const prefilledEmail = new URLSearchParams(location.search).get('email') || '';
 
-  useEffect(() => {
-    const checkSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (session?.user) {
-        const { data: merchants } = await fetchMerchantByEmail(session.user.email);
-        if (merchants && merchants.length > 0) {
-          setMerchant(merchants[0]);
-        }
-      }
-
-      setCheckingAuth(false);
-    };
-
-    checkSession();
-  }, []);
-
-  const handleSubscribe = async (plan) => {
-    if (!merchant) {
-      navigate('/signup');
-      return;
+  const handleGoToCheckout = (plan) => {
+    const params = new URLSearchParams();
+    if (prefilledEmail) {
+      params.set('email', prefilledEmail);
     }
 
-    if (!plan?.priceId) {
-      toast.error('Plano indisponível no momento. Verifique a configuração Stripe.');
-      return;
-    }
-
-    setLoadingPlanId(plan.id);
-
-    try {
-      await redirectToCheckout(plan.priceId, merchant.id, merchant.email);
-    } catch (error) {
-      console.error('Erro ao criar checkout:', error);
-      toast.error('Erro ao processar pagamento. Tente novamente.');
-      setLoadingPlanId(null);
-    }
+    const queryString = params.toString();
+    navigate(`/stripe-checkout/${plan.id}${queryString ? `?${queryString}` : ''}`);
   };
 
   return (
@@ -164,17 +74,15 @@ export default function PlansPublic() {
           <span className="inline-block bg-green-100 text-green-700 text-sm font-semibold px-4 py-1 rounded-full mb-4">
             14 dias GRATIS — Sem cartao de credito
           </span>
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Escolha o plano ideal para seu negocio</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Um único plano, tudo liberado</h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Temos opcoes para empresas pequenas, medias e grandes. Ao escolher o plano, voce segue direto para a pagina de pagamento do Stripe.
+            Sem pegadinhas nem limites escondidos. Comece a usar agora e veja os resultados no seu caixa antes de pagar qualquer mensalidade.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+        <div className="grid grid-cols-1 max-w-md mx-auto gap-6 items-stretch">
           {PLANS.map((plan) => {
-            const style = COLOR_STYLES[plan.color] || COLOR_STYLES.emerald;
-            const isLoading = loadingPlanId === plan.id;
-            const buttonLabel = merchant ? `Ir para pagamento (${plan.name})` : 'Criar conta e continuar';
+            const style = COLOR_STYLES[plan.color] || COLOR_STYLES.purple;
 
             return (
               <div
@@ -207,21 +115,15 @@ export default function PlansPublic() {
                   </div>
 
                   <button
-                    onClick={() => handleSubscribe(plan)}
-                    disabled={isLoading || checkingAuth}
-                    className={`w-full py-4 px-6 rounded-xl font-bold text-base bg-gradient-to-r ${style.gradient} ${style.gradientHover} text-white shadow-xl transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2`}
+                    onClick={() => handleGoToCheckout(plan)}
+                    className={`w-full py-4 px-6 rounded-xl font-bold text-base bg-gradient-to-r ${style.gradient} ${style.gradientHover} text-white shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2`}
                   >
-                    {isLoading || checkingAuth ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        {checkingAuth ? 'Verificando...' : 'Abrindo pagamento...'}
-                      </>
-                    ) : (
-                      buttonLabel
-                    )}
+                    Iniciar Avaliação Gratuita
                   </button>
 
-                  <p className="text-center text-xs text-gray-400 mt-3">Checkout Stripe seguro • Cancele quando quiser</p>
+                  <p className="text-center text-xs text-gray-400 mt-3">
+                    Acesso imediato às ferramentas. Você só será cobrado após o período de 14 dias de teste.
+                  </p>
                 </div>
               </div>
             );

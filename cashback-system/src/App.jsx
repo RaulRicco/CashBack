@@ -30,15 +30,24 @@ const AdminNotifications = lazy(() => import('./pages/AdminNotifications'));
 const OAuthCallback = lazy(() => import('./pages/OAuthCallback'));
 const SignupComplete = lazy(() => import('./pages/SignupComplete'));
 const PlansPublic = lazy(() => import('./pages/PlansPublic'));
+const CheckoutComplete = lazy(() => import('./pages/CheckoutComplete'));
+const StripePlanCheckout = lazy(() => import('./pages/StripePlanCheckout'));
+const SubscriptionPlans = lazy(() => import('./pages/SubscriptionPlans'));
+const SubscriptionRequired = lazy(() => import('./pages/SubscriptionRequired'));
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
   const isAuthenticated = useAuthStore(state => state.isAuthenticated);
-  
+  const subscriptionBlocked = useAuthStore(state => state.subscriptionBlocked);
+
+  if (subscriptionBlocked) {
+    return <Navigate to="/assinatura-necessaria" replace />;
+  }
+
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
-  
+
   return children;
 }
 
@@ -59,6 +68,16 @@ function App() {
     // Check auth on mount
     const checkAuth = useAuthStore.getState().checkAuth;
     checkAuth();
+
+    // Reverificar status da assinatura periodicamente (detecta pagamento
+    // atrasado/cancelado durante o uso, sem depender de reload da página)
+    const subscriptionCheckInterval = setInterval(() => {
+      if (useAuthStore.getState().isAuthenticated) {
+        useAuthStore.getState().checkAuth();
+      }
+    }, 5 * 60 * 1000);
+
+    return () => clearInterval(subscriptionCheckInterval);
   }, []);
 
   return (
@@ -92,6 +111,7 @@ function App() {
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />
+        <Route path="/assinatura-necessaria" element={<SubscriptionRequired />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
@@ -99,6 +119,8 @@ function App() {
         <Route path="/oauth/callback" element={<OAuthCallback />} />
         <Route path="/signup/complete" element={<SignupComplete />} />
         <Route path="/plans" element={<PlansPublic />} />
+        <Route path="/checkout/complete" element={<CheckoutComplete />} />
+        <Route path="/stripe-checkout/:planId" element={<StripePlanCheckout />} />
         <Route path="/force-update" element={<ForceUpdate />} />
         
         {/* Customer Public Routes (QR Code scans) */}
@@ -192,6 +214,18 @@ function App() {
               <WhiteLabelSettings />
             </ProtectedRoute>
           } 
+        />
+        <Route
+          path="/dashboard/planos"
+          element={
+            <ProtectedRoute>
+              <SubscriptionPlans />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard/assinatura"
+          element={<Navigate to="/dashboard/planos" replace />}
         />
         
         {/* Default redirect */}

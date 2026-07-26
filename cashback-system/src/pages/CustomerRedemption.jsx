@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
 import { CheckCircle, Gift, ArrowRight, Loader } from 'lucide-react';
 import { trackRedemptionCompleted } from '../lib/tracking';
 import { syncCustomerToIntegrations, sendPushNotification } from '../lib/integrations';
@@ -32,86 +31,59 @@ export default function CustomerRedemption() {
     try {
       setLoading(true);
 
-      // Buscar resgate pelo token
-      const { data: redemptionData, error: redemptionError } = await supabase
-        .from('redemptions')
-        .select('*, customer:customers(*), merchant:merchants(*)')
-        .eq('qr_code_token', token)
-        .single();
+      const apiResponse = await fetch('/api/redemptions/process-qr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+      });
 
-      if (redemptionError || !redemptionData) {
-        throw new Error('QR Code inválido ou expirado');
+      const apiResult = await apiResponse.json();
+      if (!apiResponse.ok || !apiResult?.success || !apiResult?.redemption) {
+        throw new Error(apiResult?.error || 'QR Code inválido ou expirado');
       }
 
-      // Verificar se já foi processado (status completed)
-      if (redemptionData.status === 'completed') {
-        setRedemption(redemptionData);
-        setCustomer(redemptionData.customer);
-        setMerchant(redemptionData.merchant);
-        setLoading(false);
-        return;
-      }
-
-      // Verificar se o cliente tem saldo suficiente
-      if (redemptionData.customer.available_cashback < redemptionData.amount) {
-        throw new Error('Saldo insuficiente para este resgate');
-      }
-
-      // Marcar como completado
-      const { data: updatedRedemption, error: updateError } = await supabase
-        .from('redemptions')
-        .update({
-          status: 'completed'
-        })
-        .eq('id', redemptionData.id)
-        .select('*, customer:customers(*), merchant:merchants(*)')
-        .single();
-
-      if (updateError) throw updateError;
+      const updatedRedemption = apiResult.redemption;
 
       setRedemption(updatedRedemption);
       setCustomer(updatedRedemption.customer);
       setMerchant(updatedRedemption.merchant);
 
-      // Tracking: Resgate Completado
-      trackRedemptionCompleted({
-        amount: updatedRedemption.amount,
-        customerPhone: updatedRedemption.customer.phone,
-        merchantId: updatedRedemption.merchant_id
-      });
-
-      // Sincronizar com integrações de email marketing
-      syncCustomerToIntegrations(updatedRedemption.customer, updatedRedemption.merchant_id, 'redemption');
-
-      // Enviar notificação push de resgate realizado
-      sendPushNotification(
-        updatedRedemption.customer,
-        updatedRedemption.merchant_id,
-        'redemption',
-        { 
+      if (!apiResult.alreadyProcessed) {
+        trackRedemptionCompleted({
           amount: updatedRedemption.amount,
-          merchantName: updatedRedemption.merchant.name
-        }
-      );
-
-      // Mostrar notificação de resgate
-      setTimeout(() => {
-        showNotification({
-          type: 'redemption',
-          title: '💰 Resgate Realizado!',
-          message: `Você usou seu cashback em ${updatedRedemption.merchant.name}`,
-          amount: updatedRedemption.amount,
-          duration: 6000
+          customerPhone: updatedRedemption.customer.phone,
+          merchantId: updatedRedemption.merchant_id
         });
 
-        // Enviar Push Notification nativa
-        notifyRedemptionCompleted({
-          amount: updatedRedemption.amount,
-          merchantName: updatedRedemption.merchant.name,
-           customerPhone: updatedRedemption.customer.phone,
-           merchantId: updatedRedemption.merchant_id
-        });
-      }, 500);
+        syncCustomerToIntegrations(updatedRedemption.customer, updatedRedemption.merchant_id, 'redemption');
+
+        sendPushNotification(
+          updatedRedemption.customer,
+          updatedRedemption.merchant_id,
+          'redemption',
+          {
+            amount: updatedRedemption.amount,
+            merchantName: updatedRedemption.merchant.name
+          }
+        );
+
+        setTimeout(() => {
+          showNotification({
+            type: 'redemption',
+            title: '💰 Resgate Realizado!',
+            message: `Você usou seu cashback em ${updatedRedemption.merchant.name}`,
+            amount: updatedRedemption.amount,
+            duration: 6000
+          });
+
+          notifyRedemptionCompleted({
+            amount: updatedRedemption.amount,
+            merchantName: updatedRedemption.merchant.name,
+             customerPhone: updatedRedemption.customer.phone,
+             merchantId: updatedRedemption.merchant_id
+          });
+        }, 500);
+      }
 
       setLoading(false);
     } catch (error) {

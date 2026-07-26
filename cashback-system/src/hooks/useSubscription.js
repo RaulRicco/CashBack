@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { supabase } from '../lib/supabase';
-import { canAddCustomer, canAddEmployee, hasFeature, SUBSCRIPTION_PLANS } from '../lib/stripe';
+import { SUBSCRIPTION_PLANS } from '../lib/stripe';
 
 /**
  * Hook personalizado para gerenciar assinatura e limites
@@ -72,35 +72,19 @@ export function useSubscription() {
     loadSubscriptionData();
   };
 
-  // Verificações de limites
+  // Plano único "lançamento" — sem limites e com todas as features liberadas
   const checks = {
-    canAddCustomer: subscriptionData
-      ? canAddCustomer(customerCount, subscriptionData.subscription_plan)
-      : false,
-    
-    canAddEmployee: subscriptionData
-      ? canAddEmployee(employeeCount, subscriptionData.subscription_plan)
-      : false,
-    
-    isNearCustomerLimit: subscriptionData?.customer_limit
-      ? (customerCount / subscriptionData.customer_limit) > 0.8
-      : false,
-    
-    isNearEmployeeLimit: subscriptionData?.employee_limit
-      ? (employeeCount / subscriptionData.employee_limit) > 0.8
-      : false,
+    canAddCustomer: true,
+    canAddEmployee: true,
+    isNearCustomerLimit: false,
+    isNearEmployeeLimit: false,
   };
 
-  // Verificar se tem uma feature específica
-  const checkFeature = (featureName) => {
-    if (!subscriptionData) return false;
-    return hasFeature(subscriptionData.subscription_plan, featureName);
-  };
+  // Verificar se tem uma feature específica — sempre liberado
+  const checkFeature = () => true;
 
-  // Obter configuração do plano atual
-  const currentPlan = subscriptionData 
-    ? SUBSCRIPTION_PLANS[subscriptionData.subscription_plan] || SUBSCRIPTION_PLANS.launch
-    : SUBSCRIPTION_PLANS.launch; // Usar "launch" como padrão
+  // Plano único "lançamento"
+  const currentPlan = SUBSCRIPTION_PLANS.launch;
 
   return {
     // Estado

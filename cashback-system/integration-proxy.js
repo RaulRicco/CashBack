@@ -14,7 +14,7 @@ import axios from 'axios';
 import crypto from 'crypto';
 
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3002;
 const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
 const log = {
   info: (...args) => console.log(...args),

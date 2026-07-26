@@ -16,6 +16,41 @@ export default function Redemption() {
   const [checkingCustomer, setCheckingCustomer] = useState(false);
   const [qrData, setQrData] = useState(null);
 
+  const getCustomerCashbackSummary = async (customerId) => {
+    const { data: transactions, error: txError } = await supabase
+      .from('transactions')
+      .select('cashback_amount')
+      .eq('customer_id', customerId)
+      .eq('transaction_type', 'cashback')
+      .eq('status', 'completed');
+
+    if (txError) throw txError;
+
+    const { data: redemptions, error: redError } = await supabase
+      .from('redemptions')
+      .select('amount')
+      .eq('customer_id', customerId)
+      .eq('status', 'completed');
+
+    if (redError) throw redError;
+
+    const totalCashback = (transactions || []).reduce(
+      (sum, t) => sum + parseFloat(t.cashback_amount || 0),
+      0
+    );
+    const totalRedeemed = (redemptions || []).reduce(
+      (sum, r) => sum + parseFloat(r.amount || 0),
+      0
+    );
+    const availableCashback = Math.max(0, totalCashback - totalRedeemed);
+
+    return {
+      totalCashback,
+      totalRedeemed,
+      availableCashback,
+    };
+  };
+
   const handleCheckCustomer = async () => {
     if (!phone) {
       toast.error('Insira o telefone do cliente');
@@ -35,8 +70,15 @@ export default function Redemption() {
         toast.error('Cliente não encontrado neste estabelecimento');
         setCustomer(null);
       } else {
-        setCustomer(data);
-        if (data.available_cashback <= 0) {
+        const summary = await getCustomerCashbackSummary(data.id);
+
+        setCustomer({
+          ...data,
+          total_cashback: summary.totalCashback,
+          available_cashback: summary.availableCashback,
+        });
+
+        if (summary.availableCashback <= 0) {
           toast.error('Cliente não possui saldo disponível');
         }
       }
@@ -65,33 +107,29 @@ export default function Redemption() {
 
     setLoading(true);
     try {
-      // ✅ Sempre buscar saldo ATUALIZADO do banco antes de validar
-      // (evita usar saldo em cache desatualizado do estado React)
-      const { data: freshCustomer, error: freshError } = await supabase
-        .from('customers')
-        .select('available_cashback, total_cashback')
-        .eq('id', customer.id)
-        .single();
+      // Buscar saldo recalculado por transações e resgates concluídos
+      const summary = await getCustomerCashbackSummary(customer.id);
 
-      if (freshError || !freshCustomer) {
+      if (!Number.isFinite(summary.availableCashback)) {
         toast.error('Erro ao verificar saldo atualizado do cliente');
         setLoading(false);
         return;
       }
 
-      // Atualizar estado local com saldo real do banco
-      setCustomer(prev => ({ ...prev, ...freshCustomer }));
+      // Atualizar estado local com saldo real calculado
+      setCustomer((prev) => ({
+        ...prev,
+        total_cashback: summary.totalCashback,
+        available_cashback: summary.availableCashback,
+      }));
 
-      if (redemptionAmount > freshCustomer.available_cashback) {
+      if (redemptionAmount > summary.availableCashback) {
         toast.error(
-          `Saldo insuficiente. Saldo atual: R$ ${parseFloat(freshCustomer.available_cashback).toFixed(2)}`
+          `Saldo insuficiente. Saldo atual: R$ ${parseFloat(summary.availableCashback).toFixed(2)}`
         );
         setLoading(false);
         return;
       }
-
-      // Gerar token único para o QR Code de resgate
-      const qrToken = `REDEMPTION_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
 
       // Verificar se employee existe na tabela employees (quando merchant loga, employee pode ser mock)
       let validEmployeeId = null;
@@ -113,21 +151,25 @@ export default function Redemption() {
         console.log('ℹ️ Nenhum employee.id fornecido, usando NULL');
       }
 
-      // Criar resgate
-      const { data: redemption, error: redemptionError } = await supabase
-        .from('redemptions')
-        .insert({
-          merchant_id: merchant.id,
-          customer_id: customer.id,
-          employee_id: validEmployeeId,  // ✅ NULL se merchant está operando diretamente
-          amount: redemptionAmount,
-          qr_code_token: qrToken,
-          status: 'pending'
-        })
-        .select()
-        .single();
 
-      if (redemptionError) throw redemptionError;
+      // Criar resgate via backend para evitar bloqueios de RLS
+      const apiResponse = await fetch('/api/redemptions/create-qr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          merchantId: merchant.id,
+          customerId: customer.id,
+          employeeId: validEmployeeId,
+          amount: redemptionAmount,
+        }),
+      });
+
+      const apiResult = await apiResponse.json();
+      if (!apiResponse.ok || !apiResult?.success) {
+        throw new Error(apiResult?.error || 'Erro ao criar resgate');
+      }
+
+      const redemption = apiResult.redemption;
 
       // Tracking: Resgate Gerado
       trackRedemptionGenerated({
@@ -137,11 +179,11 @@ export default function Redemption() {
       });
 
       // Gerar URL para o QR Code (o cliente vai escanear)
-      const qrUrl = `${window.location.origin}/customer/redemption/${qrToken}`;
+      const qrUrl = `${window.location.origin}/customer/redemption/${redemption.qr_code_token}`;
 
       setQrData({
         url: qrUrl,
-        token: qrToken,
+        token: redemption.qr_code_token,
         amount: redemptionAmount,
         customerPhone: phone,
         redemptionId: redemption.id,

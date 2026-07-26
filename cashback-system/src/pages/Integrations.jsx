@@ -32,6 +32,7 @@ export default function Integrations() {
   const { merchant } = useAuthStore();
   const { checkFeature, currentPlan } = useSubscription();
   const [loading, setLoading] = useState(true);
+  const [totalCustomers, setTotalCustomers] = useState(0);
   
   // Verificar se tem acesso a integrações
   const hasIntegrationsAccess = checkFeature('integrations');
@@ -75,8 +76,19 @@ export default function Integrations() {
     if (merchant?.id) {
       loadConfigs();
       loadSyncLogs();
+      fetchTotalCustomers();
     }
   }, [merchant]);
+
+  const fetchTotalCustomers = async () => {
+    try {
+      const response = await fetch('/api/system/plan-mode');
+      const data = await response.json();
+      setTotalCustomers(data.totalCustomers || 0);
+    } catch (error) {
+      console.error('Erro ao buscar total de clientes:', error);
+    }
+  };
 
   const loadConfigs = async () => {
     setLoading(true);
@@ -338,7 +350,15 @@ export default function Integrations() {
               </Link>
               
               <p className="text-sm text-gray-500 mt-6">
-                Plano Business: <strong>R$ 297/mês</strong> | Plano Premium: <strong>R$ 497/mês</strong>
+                {totalCustomers >= 1000 ? (
+                  <>
+                    Plano Business: <strong>R$ 297/mês</strong> | Plano Premium: <strong>R$ 497/mês</strong>
+                  </>
+                ) : (
+                  <>
+                    Alcançar <strong>1.000 clientes</strong> para desbloquear os planos e seus preços
+                  </>
+                )}
               </p>
             </div>
             

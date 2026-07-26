@@ -10,28 +10,39 @@ export default function SubscriptionRequired() {
   const { merchant, logout } = useAuthStore();
   const [loading, setLoading] = useState(false);
 
-  async function handleSubscribe() {
+  async function handleRegularize() {
+    if (!merchant?.id) {
+      toast.error('Não foi possível identificar o estabelecimento. Faça login novamente.');
+      return;
+    }
+
     setLoading(true);
     try {
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-      const response = await fetch(`${apiUrl}/api/stripe/create-checkout`, {
+
+      // Se já existe um customer no Stripe, manda para o portal (atualizar
+      // cartão / reativar assinatura). Caso contrário, abre um novo checkout.
+      const endpoint = merchant.stripe_customer_id
+        ? `${apiUrl}/api/stripe/create-portal-session`
+        : `${apiUrl}/api/stripe/create-checkout`;
+
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ merchantId: merchant.id })
       });
-      
+
       const data = await response.json();
-      
-      if (data.success) {
-        // Redirecionar para Stripe Checkout
-        window.location.href = data.checkoutUrl;
-      } else {
-        toast.error('Erro ao criar checkout: ' + data.error);
-        setLoading(false);
+
+      const checkoutUrl = data.url || data.checkoutUrl;
+      if (data.success === false || !checkoutUrl) {
+        throw new Error(data.error || 'Não foi possível abrir o pagamento');
       }
+
+      window.location.href = checkoutUrl;
     } catch (error) {
-      console.error('Erro ao criar checkout:', error);
-      toast.error('Erro ao processar pagamento');
+      console.error('Erro ao abrir pagamento:', error);
+      toast.error('Erro ao processar pagamento: ' + error.message);
       setLoading(false);
     }
   }
@@ -47,31 +58,31 @@ export default function SubscriptionRequired() {
         {/* Header com Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center mb-4">
-            <img 
+            <img
               src={getLogo('icon')}
-              alt={getBrandName()} 
+              alt={getBrandName()}
               className="object-contain w-16 h-16"
             />
           </div>
-          
+
           {/* Ícone de Bloqueio */}
           <div className="mx-auto w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mb-4">
             <Lock className="w-10 h-10 text-red-600" />
           </div>
-          
+
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Trial Expirado
+            Assinatura pendente
           </h1>
           <p className="text-lg text-gray-600">
-            Seu período de teste de 14 dias chegou ao fim.
+            Seu período de teste terminou ou o pagamento não foi confirmado.
           </p>
         </div>
 
         {/* Mensagem Principal */}
         <div className="bg-gradient-to-r from-orange-50 to-yellow-50 border border-orange-200 rounded-lg p-6 mb-6">
           <p className="text-gray-700 text-center mb-4">
-            Para continuar usando o <strong>{getBrandName()}</strong> e ter acesso a todas as funcionalidades, 
-            assine agora!
+            Para continuar usando o <strong>{getBrandName()}</strong> e ter acesso a todas as funcionalidades,
+            regularize sua assinatura.
           </p>
         </div>
 
@@ -110,15 +121,15 @@ export default function SubscriptionRequired() {
 
         {/* Pricing Info */}
         <div className="bg-gradient-to-r from-primary-500 to-primary-700 text-white rounded-lg p-6 mb-6 text-center">
-          <p className="text-sm opacity-90 mb-2">Plano Único</p>
-          <p className="text-4xl font-bold mb-2">R$ XX,XX<span className="text-lg font-normal">/mês</span></p>
+          <p className="text-sm opacity-90 mb-2">Plano Único — Tudo Liberado</p>
+          <p className="text-4xl font-bold mb-2">R$ 97<span className="text-lg font-normal">/mês</span></p>
           <p className="text-sm opacity-90">Cancele quando quiser • Sem permanência</p>
         </div>
 
         {/* Botões de Ação */}
         <div className="space-y-3">
           <button
-            onClick={handleSubscribe}
+            onClick={handleRegularize}
             disabled={loading}
             className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-4 px-6 rounded-lg transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
           >
@@ -130,7 +141,7 @@ export default function SubscriptionRequired() {
             ) : (
               <>
                 <CreditCard className="w-5 h-5" />
-                💳 Assinar Agora
+                💳 Regularizar Pagamento
               </>
             )}
           </button>

@@ -29,16 +29,7 @@ export default function Signup() {
     const result = await handleSubmit(e);
     if (result.success) {
       toast.success(result.message);
-      if (result.next?.type === 'plans') {
-        navigate('/plans', {
-          state: {
-            merchant: result.next?.merchant || null,
-            fromSignup: true,
-          },
-        });
-      } else {
-        navigate('/login');
-      }
+      navigate('/login');
     } else {
       toast.error(result.error || 'Erro ao criar conta. Tente novamente.');
     }
@@ -60,7 +51,7 @@ export default function Signup() {
             Criar Conta
           </h1>
           <p className="text-gray-600">
-            Cadastre seu estabelecimento e comece a fidelizar clientes
+            Finalize seu cadastro usando o mesmo email informado no checkout do Stripe
           </p>
         </div>
 

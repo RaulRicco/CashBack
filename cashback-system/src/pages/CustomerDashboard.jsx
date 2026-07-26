@@ -15,6 +15,7 @@ export default function CustomerDashboard() {
   const [searchParams] = useSearchParams();
   const merchantIdFromUrl = searchParams.get('merchant'); // Pega merchant da URL
   const [loading, setLoading] = useState(true);
+  const [accessError, setAccessError] = useState(null);
   const [authenticated, setAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -27,8 +28,8 @@ export default function CustomerDashboard() {
   useEffect(() => {
     if (phone) {
       // Verificar se já está autenticado no sessionStorage
-      const authKey = `customer_auth_${phone}`;
-      const isAuth = sessionStorage.getItem(authKey);
+      const authKey = merchantIdFromUrl ? `customer_auth_${phone}_${merchantIdFromUrl}` : null;
+      const isAuth = authKey ? sessionStorage.getItem(authKey) : null;
       
       if (isAuth === 'true') {
         setAuthenticated(true);
@@ -39,24 +40,23 @@ export default function CustomerDashboard() {
         setLoading(false);
       }
     }
-  }, [phone]);
+  }, [phone, merchantIdFromUrl]);
 
   const loadMerchantOnly = async () => {
     try {
       console.log('🔍 Buscando cliente com telefone:', phone, 'e merchant_id:', merchantIdFromUrl);
       
-      // Buscar cliente filtrado por merchant_id da URL
+      // Buscar cliente no contexto do merchant informado.
       let query = supabase
         .from('customers')
         .select('referred_by_merchant_id')
         .eq('phone', phone);
       
-      // Se tem merchant na URL, filtrar por ele
       if (merchantIdFromUrl) {
         query = query.eq('referred_by_merchant_id', merchantIdFromUrl);
       } else {
-        // Caso não tenha merchant na URL, pegar o mais recente
-        query = query.order('created_at', { ascending: false }).limit(1);
+        // Sem merchant na URL: evita escolher estabelecimento errado quando existir mais de um cadastro.
+        query = query.order('created_at', { ascending: false }).limit(2);
       }
       
       const { data: customerList, error: customerError } = await query;
@@ -70,6 +70,11 @@ export default function CustomerDashboard() {
         console.error('❌ Erro status:', customerError.code);
         console.error('❌ Erro message:', customerError.message);
         console.error('❌ Erro details:', customerError.details);
+        return;
+      }
+
+      if (!merchantIdFromUrl && customerList && customerList.length > 1) {
+        setAccessError('Encontramos mais de um cadastro para este telefone. Abra pelo link do estabelecimento correto.');
         return;
       }
 
@@ -108,18 +113,17 @@ export default function CustomerDashboard() {
     try {
       console.log('🔐 Tentando fazer login com telefone:', phone, 'e merchant_id:', merchantIdFromUrl);
       
-      // Buscar cliente filtrado por merchant_id da URL
+      // Buscar cliente no contexto do merchant informado.
       let query = supabase
         .from('customers')
         .select('id, password_hash, referred_by_merchant_id')
         .eq('phone', phone);
       
-      // Se tem merchant na URL, filtrar por ele
       if (merchantIdFromUrl) {
         query = query.eq('referred_by_merchant_id', merchantIdFromUrl);
       } else {
-        // Caso não tenha merchant na URL, pegar o mais recente
-        query = query.order('created_at', { ascending: false }).limit(1);
+        // Sem merchant na URL: evita escolher estabelecimento errado quando existir mais de um cadastro.
+        query = query.order('created_at', { ascending: false }).limit(2);
       }
       
       const { data: customerList, error: customerError } = await query;
@@ -145,6 +149,12 @@ export default function CustomerDashboard() {
         return;
       }
 
+      if (!merchantIdFromUrl && customerList && customerList.length > 1) {
+        toast.error('Encontramos mais de um cadastro para este telefone. Use o link do estabelecimento.');
+        setLoading(false);
+        return;
+      }
+
       console.log('✅ Cliente encontrado, verificando senha...');
 
       // Verificar senha (usando btoa para decode simples)
@@ -157,7 +167,7 @@ export default function CustomerDashboard() {
       }
 
       // Autenticado com sucesso
-      const authKey = `customer_auth_${phone}`;
+      const authKey = `customer_auth_${phone}_${customerData.referred_by_merchant_id}`;
       sessionStorage.setItem(authKey, 'true');
       setAuthenticated(true);
       toast.success('Login realizado com sucesso!');
@@ -204,23 +214,28 @@ export default function CustomerDashboard() {
 
       console.log('📂 Carregando dados do cliente com telefone:', phone, 'e merchant_id:', merchantIdFromUrl);
 
-      // Buscar cliente filtrado por merchant_id da URL
+      // Buscar cliente no contexto do merchant informado.
       let query = supabase
         .from('customers')
         .select('*')
         .eq('phone', phone);
       
-      // Se tem merchant na URL, filtrar por ele
       if (merchantIdFromUrl) {
         query = query.eq('referred_by_merchant_id', merchantIdFromUrl);
       } else {
-        // Caso não tenha merchant na URL, pegar o mais recente
-        query = query.order('created_at', { ascending: false }).limit(1);
+        // Sem merchant na URL: evita escolher estabelecimento errado quando existir mais de um cadastro.
+        query = query.order('created_at', { ascending: false }).limit(2);
       }
       
       const { data: customerList, error: customerError } = await query;
 
       if (customerError) throw customerError;
+
+      if (!merchantIdFromUrl && customerList && customerList.length > 1) {
+        setAccessError('Encontramos mais de um cadastro para este telefone. Abra pelo link do estabelecimento correto.');
+        setLoading(false);
+        return;
+      }
 
       const customerData = customerList && customerList.length > 0 ? customerList[0] : null;
       
@@ -303,6 +318,21 @@ export default function CustomerDashboard() {
 
   // Tela de login se não autenticado
   if (!authenticated && !loading) {
+    if (accessError) {
+      return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+          <div className="text-center max-w-md">
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              Acesso bloqueado por segurança
+            </h1>
+            <p className="text-gray-600">
+              {accessError}
+            </p>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
@@ -386,7 +416,7 @@ export default function CustomerDashboard() {
           <div className="mt-6 text-center">
             <button
               type="button"
-              onClick={() => navigate(`/customer/forgot-password/${phone}`)}
+              onClick={() => navigate(merchantIdFromUrl ? `/customer/forgot-password/${phone}?merchant=${merchantIdFromUrl}` : `/customer/forgot-password/${phone}`)}
               className="text-sm text-primary-600 hover:text-primary-700 font-medium hover:underline"
             >
               Esqueceu sua senha?

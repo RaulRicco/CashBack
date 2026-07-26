@@ -54,18 +54,10 @@ export function useSignup() {
         throw new Error(result.error || 'Erro ao processar cadastro no servidor');
       }
 
-      // 3. Sucesso! O servidor já cuidou do Merchant, Auth e Email.
-      // Redireciona para planos com dados do merchant recém-criado.
+      // 3. Sucesso! O servidor validou a assinatura Stripe e criou o cadastro.
       return { 
         success: true, 
-        message: 'Conta criada com sucesso! Escolha seu plano para continuar.', 
-        next: {
-          type: 'plans',
-          merchant: {
-            id: result.merchantId,
-            email: formData.ownerEmail,
-          },
-        },
+        message: 'Cadastro concluído com sucesso! Agora você já pode entrar no sistema.', 
       };
 
     } catch (error) {

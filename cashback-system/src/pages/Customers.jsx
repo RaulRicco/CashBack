@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { supabase } from '../lib/supabase';
 import DashboardLayout from '../components/DashboardLayout';
-import { Users, Search, Eye, TrendingUp, Download, Cake, Crown, Calendar } from 'lucide-react';
+import { Users, Search, Eye, TrendingUp, Download, Cake, Crown, Calendar, Pencil, Trash2, X } from 'lucide-react';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import toast from 'react-hot-toast';
@@ -15,6 +15,10 @@ export default function Customers() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('name'); // Ordem alfabética por padrão
   const [filterType, setFilterType] = useState('all'); // all, birthday, topBuyers, topBuyersMonth
+  const [editingCustomer, setEditingCustomer] = useState(null);
+  const [editForm, setEditForm] = useState({ name: '', phone: '', email: '', birthdate: '' });
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [deletingCustomerId, setDeletingCustomerId] = useState(null);
 
   useEffect(() => {
     if (merchant?.id) {
@@ -214,6 +218,114 @@ export default function Customers() {
     }
   };
 
+  const openEditModal = (customer) => {
+    setEditingCustomer(customer);
+    setEditForm({
+      name: customer.name || '',
+      phone: customer.phone || '',
+      email: customer.email || '',
+      birthdate: customer.birthdate || ''
+    });
+  };
+
+  const closeEditModal = () => {
+    if (savingEdit) return;
+    setEditingCustomer(null);
+    setEditForm({ name: '', phone: '', email: '', birthdate: '' });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingCustomer || !merchant?.id) return;
+
+    const name = editForm.name.trim();
+    const phoneClean = editForm.phone.replace(/\D/g, '');
+    const email = editForm.email.trim();
+
+    if (!name) {
+      toast.error('Nome é obrigatório');
+      return;
+    }
+
+    if (phoneClean.length < 10 || phoneClean.length > 11) {
+      toast.error('Telefone inválido');
+      return;
+    }
+
+    if (email && !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      toast.error('Email inválido');
+      return;
+    }
+
+    try {
+      setSavingEdit(true);
+
+      const payload = {
+        name,
+        phone: phoneClean,
+        email: email || null,
+        birthdate: editForm.birthdate || null,
+      };
+
+      const { data: updatedCustomer, error } = await supabase
+        .from('customers')
+        .update(payload)
+        .eq('id', editingCustomer.id)
+        .eq('referred_by_merchant_id', merchant.id)
+        .select('*')
+        .single();
+
+      if (error) throw error;
+
+      setCustomers((prev) => prev.map((customer) => (
+        customer.id === editingCustomer.id
+          ? { ...customer, ...updatedCustomer }
+          : customer
+      )));
+
+      setCustomersWithStats((prev) => prev.map((customer) => (
+        customer.id === editingCustomer.id
+          ? { ...customer, ...updatedCustomer }
+          : customer
+      )));
+
+      toast.success('Cliente atualizado com sucesso');
+      closeEditModal();
+    } catch (error) {
+      console.error('Erro ao editar cliente:', error);
+      toast.error(error?.message || 'Erro ao atualizar cliente');
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  const handleDeleteCustomer = async (customer) => {
+    if (!merchant?.id) return;
+
+    const confirmed = window.confirm(`Deseja realmente excluir o cliente ${customer.name || customer.phone}?`);
+    if (!confirmed) return;
+
+    try {
+      setDeletingCustomerId(customer.id);
+
+      const { error } = await supabase
+        .from('customers')
+        .delete()
+        .eq('id', customer.id)
+        .eq('referred_by_merchant_id', merchant.id);
+
+      if (error) throw error;
+
+      setCustomers((prev) => prev.filter((item) => item.id !== customer.id));
+      setCustomersWithStats((prev) => prev.filter((item) => item.id !== customer.id));
+      toast.success('Cliente excluído com sucesso');
+    } catch (error) {
+      console.error('Erro ao excluir cliente:', error);
+      toast.error(error?.message || 'Não foi possível excluir cliente com histórico vinculado');
+    } finally {
+      setDeletingCustomerId(null);
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -386,6 +498,9 @@ export default function Customers() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Cadastro
                     </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Ações
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -463,6 +578,27 @@ export default function Customers() {
                             : '-'}
                         </div>
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => openEditModal(customer)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                            title="Editar cliente"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                            Editar
+                          </button>
+                          <button
+                            onClick={() => handleDeleteCustomer(customer)}
+                            disabled={deletingCustomerId === customer.id}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-red-700 bg-red-50 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Excluir cliente"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            Excluir
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -470,6 +606,79 @@ export default function Customers() {
             </div>
           )}
         </div>
+
+        {editingCustomer && (
+          <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl shadow-xl w-full max-w-lg">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                <h2 className="text-lg font-semibold text-gray-900">Editar cliente</h2>
+                <button
+                  onClick={closeEditModal}
+                  className="text-gray-500 hover:text-gray-700"
+                  disabled={savingEdit}
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+                  <input
+                    type="text"
+                    value={editForm.name}
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
+                  <input
+                    type="text"
+                    value={editForm.phone}
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, phone: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                  <input
+                    type="email"
+                    value={editForm.email}
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, email: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Data de nascimento</label>
+                  <input
+                    type="date"
+                    value={editForm.birthdate || ''}
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, birthdate: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                  />
+                </div>
+              </div>
+
+              <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-2">
+                <button
+                  onClick={closeEditModal}
+                  disabled={savingEdit}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleSaveEdit}
+                  disabled={savingEdit}
+                  className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50"
+                >
+                  {savingEdit ? 'Salvando...' : 'Salvar alterações'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );
