@@ -16,6 +16,7 @@ const Customers = lazy(() => import('./pages/Customers'));
 const Employees = lazy(() => import('./pages/Employees'));
 const Reports = lazy(() => import('./pages/Reports'));
 const Integrations = lazy(() => import('./pages/Integrations'));
+const WhatsAppCampaigns = lazy(() => import('./pages/WhatsAppCampaigns'));
 const Settings = lazy(() => import('./pages/Settings'));
 const WhiteLabelSettings = lazy(() => import('./pages/WhiteLabelSettings'));
 const CustomerCashback = lazy(() => import('./pages/CustomerCashback'));
@@ -30,6 +31,7 @@ const AdminNotifications = lazy(() => import('./pages/AdminNotifications'));
 const OAuthCallback = lazy(() => import('./pages/OAuthCallback'));
 const SignupComplete = lazy(() => import('./pages/SignupComplete'));
 const PlansPublic = lazy(() => import('./pages/PlansPublic'));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
@@ -99,6 +101,7 @@ function App() {
         <Route path="/oauth/callback" element={<OAuthCallback />} />
         <Route path="/signup/complete" element={<SignupComplete />} />
         <Route path="/plans" element={<PlansPublic />} />
+        <Route path="/privacidade" element={<PrivacyPolicy />} />
         <Route path="/force-update" element={<ForceUpdate />} />
         
         {/* Customer Public Routes (QR Code scans) */}
@@ -169,8 +172,16 @@ function App() {
             </ProtectedRoute>
           } 
         />
-        <Route 
-          path="/settings" 
+        <Route
+          path="/whatsapp/campanhas"
+          element={
+            <ProtectedRoute>
+              <WhatsAppCampaigns />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
           element={
             <ProtectedRoute>
               <Settings />

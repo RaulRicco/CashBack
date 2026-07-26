@@ -16,7 +16,8 @@ import {
   Palette,
   Moon,
   Sun,
-  Store
+  Store,
+  MessageCircle
 } from 'lucide-react';
 import { BRAND_CONFIG, getLogo, getBrandName } from '../config/branding';
 
@@ -61,6 +62,7 @@ export default function DashboardLayout({ children }) {
     { name: 'Funcionários', href: '/employees', icon: UserPlus },
     { name: 'Relatórios', href: '/reports', icon: TrendingUp },
     { name: 'Integrações', href: '/integrations', icon: Mail },
+    { name: 'Campanhas WhatsApp', href: '/whatsapp/campanhas', icon: MessageCircle },
     { name: 'Meu CashBack', href: '/whitelabel', icon: Palette },
     { name: 'Assinatura', href: '/dashboard/assinatura', icon: Store },
     { name: 'Configurações', href: '/settings', icon: Settings },

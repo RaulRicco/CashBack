@@ -211,11 +211,19 @@ export default function CustomerCashback() {
         updatedTx.customer,
         updatedTx.merchant_id,
         'cashback',
-        { 
+        {
           amount: updatedTx.cashback_amount,
           merchantName: updatedTx.merchant.name
         }
       );
+
+      // Enviar mensagem de cashback recebido via WhatsApp (se o merchant tiver conectado)
+      import('../lib/integrations/whatsapp').then(({ sendWhatsAppTransactional }) => {
+        sendWhatsAppTransactional(updatedTx.customer, updatedTx.merchant_id, 'purchase', {
+          amountFormatted: `R$ ${parseFloat(updatedTx.cashback_amount || 0).toFixed(2)}`,
+          balanceFormatted: `R$ ${parseFloat(updatedTx.customer.available_cashback || 0).toFixed(2)}`,
+        });
+      });
 
       // Mostrar notificação de cashback recebido
       setTimeout(() => {

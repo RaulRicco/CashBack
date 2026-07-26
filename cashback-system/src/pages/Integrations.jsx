@@ -27,6 +27,8 @@ import {
   getSyncLogs,
   bulkSyncCustomers
 } from '../lib/integrations';
+import WhatsAppTab from '../components/integrations/WhatsAppTab';
+import { MessageCircle } from 'lucide-react';
 
 export default function Integrations() {
   const { merchant } = useAuthStore();
@@ -440,6 +442,20 @@ export default function Integrations() {
                   {getConfigByProvider('onesignal')?.is_active && (
                     <span className="w-2 h-2 bg-green-500 rounded-full"></span>
                   )}
+                </div>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('whatsapp')}
+                className={`pb-4 px-2 font-medium transition-colors border-b-2 ${
+                  activeTab === 'whatsapp'
+                    ? 'border-primary-600 dark:border-primary-400 text-primary-600 dark:text-primary-400'
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <MessageCircle className="w-6 h-6" />
+                  WhatsApp
                 </div>
               </button>
 
@@ -891,6 +907,9 @@ export default function Integrations() {
               </div>
             </div>
           )}
+
+          {/* WhatsApp Tab */}
+          {activeTab === 'whatsapp' && <WhatsAppTab merchantId={merchant.id} />}
 
           {/* Logs Tab */}
           {activeTab === 'logs' && (

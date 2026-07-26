@@ -80,8 +80,13 @@ export function useSubscription() {
     isNearEmployeeLimit: false,
   };
 
-  // Verificar se tem uma feature específica — sempre liberado
-  const checkFeature = () => true;
+  // Verificar se tem uma feature específica — sempre liberado, exceto exceções pontuais abaixo
+  const checkFeature = (feature) => {
+    if (feature === 'whatsapp_business') {
+      return merchant?.features_enabled?.whatsapp_support !== false;
+    }
+    return true;
+  };
 
   // Plano único "lançamento"
   const currentPlan = SUBSCRIPTION_PLANS.launch;

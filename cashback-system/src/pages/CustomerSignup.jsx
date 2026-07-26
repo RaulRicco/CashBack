@@ -155,6 +155,11 @@ export default function CustomerSignup() {
         // Não bloquear o cadastro por erro de integração
       }
 
+      // Enviar mensagem de boas-vindas via WhatsApp (se o merchant tiver conectado)
+      import('../lib/integrations/whatsapp').then(({ sendWhatsAppTransactional }) => {
+        sendWhatsAppTransactional(newCustomer, merchant.id, 'signup');
+      });
+
       // 🔔 Solicitar permissão de notificações push após cadastro
       // Aguardar um pouco para garantir que o OneSignal foi inicializado
       setTimeout(async () => {
