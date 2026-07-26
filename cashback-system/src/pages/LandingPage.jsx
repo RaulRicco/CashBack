@@ -1293,8 +1293,8 @@ export default function LandingPage() {
               <h4 className="text-gray-900 font-bold mb-4">Legal</h4>
               <ul className="space-y-2">
                 <li><a href="#" className="hover:text-primary-600 transition-colors">Termos de Uso</a></li>
-                <li><a href="#" className="hover:text-primary-600 transition-colors">Privacidade</a></li>
-                <li><a href="#" className="hover:text-primary-600 transition-colors">LGPD</a></li>
+                <li><a href="/privacidade" className="hover:text-primary-600 transition-colors">Privacidade</a></li>
+                <li><a href="/privacidade" className="hover:text-primary-600 transition-colors">LGPD</a></li>
               </ul>
             </div>
           </div>
