@@ -67,6 +67,13 @@ export default function CustomerRedemption() {
           }
         );
 
+        // Enviar mensagem de resgate confirmado via WhatsApp (se o merchant tiver conectado)
+        import('../lib/integrations/whatsapp').then(({ sendWhatsAppTransactional }) => {
+          sendWhatsAppTransactional(updatedRedemption.customer, updatedRedemption.merchant_id, 'redemption', {
+            amountFormatted: `R$ ${parseFloat(updatedRedemption.amount || 0).toFixed(2)}`,
+          });
+        });
+
         setTimeout(() => {
           showNotification({
             type: 'redemption',

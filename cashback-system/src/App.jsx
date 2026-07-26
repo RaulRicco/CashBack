@@ -16,6 +16,7 @@ const Customers = lazy(() => import('./pages/Customers'));
 const Employees = lazy(() => import('./pages/Employees'));
 const Reports = lazy(() => import('./pages/Reports'));
 const Integrations = lazy(() => import('./pages/Integrations'));
+const WhatsAppCampaigns = lazy(() => import('./pages/WhatsAppCampaigns'));
 const Settings = lazy(() => import('./pages/Settings'));
 const WhiteLabelSettings = lazy(() => import('./pages/WhiteLabelSettings'));
 const CustomerCashback = lazy(() => import('./pages/CustomerCashback'));
@@ -34,6 +35,7 @@ const CheckoutComplete = lazy(() => import('./pages/CheckoutComplete'));
 const StripePlanCheckout = lazy(() => import('./pages/StripePlanCheckout'));
 const SubscriptionPlans = lazy(() => import('./pages/SubscriptionPlans'));
 const SubscriptionRequired = lazy(() => import('./pages/SubscriptionRequired'));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
@@ -121,6 +123,7 @@ function App() {
         <Route path="/plans" element={<PlansPublic />} />
         <Route path="/checkout/complete" element={<CheckoutComplete />} />
         <Route path="/stripe-checkout/:planId" element={<StripePlanCheckout />} />
+        <Route path="/privacidade" element={<PrivacyPolicy />} />
         <Route path="/force-update" element={<ForceUpdate />} />
         
         {/* Customer Public Routes (QR Code scans) */}
@@ -191,13 +194,21 @@ function App() {
             </ProtectedRoute>
           } 
         />
-        <Route 
-          path="/settings" 
+        <Route
+          path="/whatsapp/campanhas"
+          element={
+            <ProtectedRoute>
+              <WhatsAppCampaigns />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
           element={
             <ProtectedRoute>
               <Settings />
             </ProtectedRoute>
-          } 
+          }
         />
         <Route 
           path="/notifications" 
