@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Send, Loader, Plus, FileText } from 'lucide-react';
+import { Send, Loader, Plus, FileText, Cake, UserX } from 'lucide-react';
 import toast from 'react-hot-toast';
 import DashboardLayout from '../components/DashboardLayout';
 import { useAuthStore } from '../store/authStore';
@@ -9,6 +9,26 @@ import { toE164BR } from '../utils/phoneUtils';
 
 const BATCH_SIZE = 15;
 const BATCH_INTERVAL_MS = 1500;
+
+const AUTOMATION_CATALOG = [
+  {
+    trigger_type: 'birthday',
+    label: 'Aniversário do cliente',
+    description: 'Envia uma mensagem no dia do aniversário do cliente.',
+    icon: Cake,
+    hasConfig: false,
+  },
+  {
+    trigger_type: 'inactive_customer',
+    label: 'Cliente inativo',
+    description: 'Envia uma mensagem quando o cliente fica X dias sem comprar.',
+    icon: UserX,
+    hasConfig: true,
+    configLabel: 'Dias sem comprar',
+    configKey: 'inactive_days',
+    configDefault: 30,
+  },
+];
 
 async function getCampaignAudience(merchantId, audienceFilter) {
   const { data: transactions } = await supabase
@@ -30,6 +50,79 @@ async function getCampaignAudience(merchantId, audienceFilter) {
   return customers || [];
 }
 
+function AutomationCard({ catalogItem, automation, templates, saving, onSave }) {
+  const [templateId, setTemplateId] = useState(automation?.whatsapp_template_id || '');
+  const [configValue, setConfigValue] = useState(
+    automation?.config?.[catalogItem.configKey] ?? catalogItem.configDefault
+  );
+  const Icon = catalogItem.icon;
+
+  return (
+    <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Icon className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+          <div>
+            <p className="font-medium text-gray-900 dark:text-gray-100">{catalogItem.label}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{catalogItem.description}</p>
+          </div>
+        </div>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={automation?.is_active || false}
+            disabled={!automation?.whatsapp_template_id && !templateId}
+            onChange={(e) =>
+              onSave(catalogItem, { templateId, isActive: e.target.checked, configValue })
+            }
+            className="w-5 h-5 text-primary-600"
+          />
+          <span className="text-sm">Ativa</span>
+        </label>
+      </div>
+
+      <select
+        value={templateId}
+        onChange={(e) => setTemplateId(e.target.value)}
+        className="input"
+      >
+        <option value="">Selecione um template aprovado</option>
+        {templates.map((template) => (
+          <option key={template.id} value={template.id}>
+            {template.name}
+          </option>
+        ))}
+      </select>
+
+      {catalogItem.hasConfig && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            {catalogItem.configLabel}
+          </label>
+          <input
+            type="number"
+            min="1"
+            className="input"
+            value={configValue}
+            onChange={(e) => setConfigValue(e.target.value)}
+          />
+        </div>
+      )}
+
+      <button
+        onClick={() =>
+          onSave(catalogItem, { templateId, isActive: automation?.is_active || false, configValue })
+        }
+        disabled={saving === catalogItem.trigger_type || !templateId}
+        className="btn-primary flex items-center gap-2 text-sm"
+      >
+        {saving === catalogItem.trigger_type && <Loader className="w-4 h-4 animate-spin" />}
+        Salvar automação
+      </button>
+    </div>
+  );
+}
+
 export default function WhatsAppCampaigns() {
   const { merchant } = useAuthStore();
   const { checkFeature } = useSubscription();
@@ -46,6 +139,8 @@ export default function WhatsAppCampaigns() {
   const [showNewTemplateForm, setShowNewTemplateForm] = useState(false);
   const [newTemplateForm, setNewTemplateForm] = useState({ name: '', bodyText: '' });
   const [submittingTemplate, setSubmittingTemplate] = useState(false);
+  const [automations, setAutomations] = useState([]);
+  const [savingAutomation, setSavingAutomation] = useState(null);
 
   useEffect(() => {
     if (merchant?.id) {
@@ -55,7 +150,7 @@ export default function WhatsAppCampaigns() {
 
   const loadData = async () => {
     setLoading(true);
-    const [{ data: templatesData }, { data: campaignsData }] = await Promise.all([
+    const [{ data: templatesData }, { data: campaignsData }, { data: automationsData }] = await Promise.all([
       supabase
         .from('whatsapp_templates')
         .select('*')
@@ -67,11 +162,48 @@ export default function WhatsAppCampaigns() {
         .select('*')
         .eq('merchant_id', merchant.id)
         .order('created_at', { ascending: false }),
+      supabase
+        .from('whatsapp_automations')
+        .select('*')
+        .eq('merchant_id', merchant.id),
     ]);
 
     setTemplates(templatesData || []);
     setCampaigns(campaignsData || []);
+    setAutomations(automationsData || []);
     setLoading(false);
+  };
+
+  const getAutomation = (triggerType) => automations.find((a) => a.trigger_type === triggerType);
+
+  const handleSaveAutomation = async (catalogItem, { templateId, isActive, configValue }) => {
+    setSavingAutomation(catalogItem.trigger_type);
+    try {
+      const existing = getAutomation(catalogItem.trigger_type);
+      const payload = {
+        merchant_id: merchant.id,
+        trigger_type: catalogItem.trigger_type,
+        whatsapp_template_id: templateId || existing?.whatsapp_template_id || null,
+        is_active: isActive,
+        config: catalogItem.hasConfig
+          ? { [catalogItem.configKey]: Number(configValue) || catalogItem.configDefault }
+          : {},
+      };
+
+      const { error } = await supabase
+        .from('whatsapp_automations')
+        .upsert(payload, { onConflict: 'merchant_id,trigger_type' });
+
+      if (error) throw error;
+
+      toast.success('Automação salva!');
+      loadData();
+    } catch (error) {
+      console.error('Erro ao salvar automação:', error);
+      toast.error(`Erro ao salvar automação: ${error.message}`);
+    } finally {
+      setSavingAutomation(null);
+    }
   };
 
   const selectedTemplate = templates.find((t) => t.id === selectedTemplateId);
@@ -337,6 +469,34 @@ export default function WhatsAppCampaigns() {
                 Disparar campanha
               </button>
             </>
+          )}
+        </div>
+
+        <div className="card p-6 space-y-4">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Automações</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Disparos automáticos com base em regras prontas — sem precisar criar campanhas manuais.
+            </p>
+          </div>
+
+          {templates.length === 0 ? (
+            <p className="text-gray-500 dark:text-gray-400">
+              Crie um template de campanha aprovado acima para poder ativar automações.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {AUTOMATION_CATALOG.map((catalogItem) => (
+                <AutomationCard
+                  key={catalogItem.trigger_type}
+                  catalogItem={catalogItem}
+                  automation={getAutomation(catalogItem.trigger_type)}
+                  templates={templates}
+                  saving={savingAutomation}
+                  onSave={handleSaveAutomation}
+                />
+              ))}
+            </div>
           )}
         </div>
 
