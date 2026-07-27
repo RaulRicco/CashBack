@@ -8,6 +8,10 @@ import { ptBR } from 'date-fns/locale';
 import NotificationPermission from '../components/NotificationPermission';
 import OneSignalPrompt from '../components/OneSignalPrompt';
 import MerchantSEO from '../components/MerchantSEO';
+import { hexToRgba } from '../utils/colorUtils';
+
+const DEFAULT_PRIMARY_COLOR = '#17A589';
+const DEFAULT_SECONDARY_COLOR = '#FFA726';
 
 export default function CustomerDashboard() {
   const { phone } = useParams();
@@ -528,7 +532,12 @@ export default function CustomerDashboard() {
       {/* Meta tags dinâmicas para compartilhamento em redes sociais */}
       <MerchantSEO merchant={merchant} pageType="dashboard" />
       
-      <div className="min-h-screen bg-gradient-to-br from-primary-50/60 via-gray-50 to-secondary-50/40">
+      <div
+        className="min-h-screen"
+        style={{
+          background: `linear-gradient(to bottom right, ${hexToRgba(merchant?.primary_color || DEFAULT_PRIMARY_COLOR, 0.08)}, #f9fafb, ${hexToRgba(merchant?.secondary_color || DEFAULT_SECONDARY_COLOR, 0.06)})`,
+        }}
+      >
         {/* Header */}
       <div 
         className="text-white"

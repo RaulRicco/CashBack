@@ -19,10 +19,16 @@ import StatsCard from '../components/StatsCard';
 import CACLTVCalculator from '../components/CACLTVCalculator';
 import TrialBanner from '../components/TrialBanner';
 import { useSubscription } from '../hooks/useSubscription';
+import { hexToRgba } from '../utils/colorUtils';
+
+const DEFAULT_PRIMARY_COLOR = '#17A589';
+const DEFAULT_SECONDARY_COLOR = '#FFA726';
 
 export default function Dashboard() {
   const { merchant } = useAuthStore();
   const { checkFeature, currentPlan } = useSubscription();
+  const primaryColor = merchant?.primary_color || DEFAULT_PRIMARY_COLOR;
+  const secondaryColor = merchant?.secondary_color || DEFAULT_SECONDARY_COLOR;
   const [stats, setStats] = useState({
     totalCustomers: 0,
     totalTransactions: 0,
@@ -123,7 +129,12 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 -m-6 p-6 min-h-full bg-gradient-to-br from-primary-50/60 via-white to-secondary-50/40 dark:from-gray-950 dark:via-gray-950 dark:to-gray-950">
+      <div
+        className="space-y-6 -m-6 p-6 min-h-full dark:!bg-gray-950"
+        style={{
+          background: `linear-gradient(to bottom right, ${hexToRgba(primaryColor, 0.08)}, white, ${hexToRgba(secondaryColor, 0.06)})`,
+        }}
+      >
         {/* Trial Banner */}
         {merchant?.id && <TrialBanner merchantId={merchant.id} />}
 
@@ -169,7 +180,7 @@ export default function Dashboard() {
             title="Transações"
             value={stats.totalTransactions}
             icon={TrendingUp}
-            color="green"
+            customColor={primaryColor}
           />
           
           <StatsCard
@@ -183,7 +194,7 @@ export default function Dashboard() {
             title="Ticket Médio"
             value={`R$ ${stats.averageTicket.toFixed(2)}`}
             icon={DollarSign}
-            color="orange"
+            customColor={secondaryColor}
           />
         </div>
 
@@ -248,9 +259,9 @@ export default function Dashboard() {
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 Cashback Ativo
               </h3>
-              <ArrowUpRight className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+              <ArrowUpRight className="w-5 h-5" style={{ color: primaryColor }} />
             </div>
-            <div className="text-3xl font-bold text-primary-600 dark:text-primary-400 mb-2">
+            <div className="text-3xl font-bold mb-2" style={{ color: primaryColor }}>
               R$ {stats.totalCashbackGiven.toFixed(2)}
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-400">

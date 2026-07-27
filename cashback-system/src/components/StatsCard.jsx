@@ -1,4 +1,4 @@
-export default function StatsCard({ title, value, icon: Icon, color = 'blue', trend }) {
+export default function StatsCard({ title, value, icon: Icon, color = 'blue', trend, customColor }) {
   const colorClasses = {
     blue: 'bg-gradient-to-br from-blue-400 to-blue-600 text-white shadow-blue-500/30',
     green: 'bg-gradient-to-br from-primary-400 to-primary-600 text-white shadow-primary-500/30',
@@ -12,7 +12,14 @@ export default function StatsCard({ title, value, icon: Icon, color = 'blue', tr
     <div className="card-glass transition-transform hover:-translate-y-0.5">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">{title}</h3>
-        <div className={`p-2.5 rounded-xl shadow-lg ${colorClasses[color]}`}>
+        <div
+          className={`p-2.5 rounded-xl shadow-lg ${customColor ? 'text-white' : colorClasses[color]}`}
+          style={
+            customColor
+              ? { background: `linear-gradient(to bottom right, ${customColor}, ${customColor})`, boxShadow: `0 10px 15px -3px ${customColor}4d` }
+              : undefined
+          }
+        >
           <Icon className="w-5 h-5" />
         </div>
       </div>
