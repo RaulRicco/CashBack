@@ -1,18 +1,18 @@
 export default function StatsCard({ title, value, icon: Icon, color = 'blue', trend }) {
   const colorClasses = {
-    blue: 'bg-blue-50 dark:bg-blue-500 text-blue-600 dark:text-black',
-    green: 'bg-green-50 dark:bg-green-500 text-green-600 dark:text-black',
-    purple: 'bg-purple-50 dark:bg-purple-500 text-purple-600 dark:text-black',
-    orange: 'bg-orange-50 dark:bg-orange-500 text-orange-600 dark:text-black',
-    red: 'bg-red-50 dark:bg-red-500 text-red-600 dark:text-black',
-    indigo: 'bg-indigo-50 dark:bg-indigo-500 text-indigo-600 dark:text-black',
+    blue: 'bg-gradient-to-br from-blue-400 to-blue-600 text-white shadow-blue-500/30',
+    green: 'bg-gradient-to-br from-primary-400 to-primary-600 text-white shadow-primary-500/30',
+    purple: 'bg-gradient-to-br from-purple-400 to-purple-600 text-white shadow-purple-500/30',
+    orange: 'bg-gradient-to-br from-secondary-400 to-secondary-600 text-white shadow-secondary-500/30',
+    red: 'bg-gradient-to-br from-red-400 to-red-600 text-white shadow-red-500/30',
+    indigo: 'bg-gradient-to-br from-indigo-400 to-indigo-600 text-white shadow-indigo-500/30',
   };
 
   return (
-    <div className="card">
+    <div className="card-glass transition-transform hover:-translate-y-0.5">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">{title}</h3>
-        <div className={`p-2 rounded-lg ${colorClasses[color]}`}>
+        <div className={`p-2.5 rounded-xl shadow-lg ${colorClasses[color]}`}>
           <Icon className="w-5 h-5" />
         </div>
       </div>

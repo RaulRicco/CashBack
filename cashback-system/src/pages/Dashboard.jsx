@@ -123,10 +123,10 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 -m-6 p-6 min-h-full bg-gradient-to-br from-primary-50/60 via-white to-secondary-50/40 dark:from-gray-950 dark:via-gray-950 dark:to-gray-950">
         {/* Trial Banner */}
         {merchant?.id && <TrialBanner merchantId={merchant.id} />}
-        
+
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
@@ -137,7 +137,7 @@ export default function Dashboard() {
           </div>
 
           {/* Filtro de Data */}
-          <div className="flex items-center gap-2 bg-white p-2 rounded-lg shadow-sm">
+          <div className="flex items-center gap-2 bg-white/70 backdrop-blur-md p-2 rounded-xl shadow-md border border-white/60">
             <Calendar className="w-5 h-5 text-gray-400" />
             <input
               type="date"
@@ -243,14 +243,14 @@ export default function Dashboard() {
         {/* Informações adicionais */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Cashback Pendente */}
-          <div className="card">
+          <div className="card-glass">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 Cashback Ativo
               </h3>
-              <ArrowUpRight className="w-5 h-5 text-green-600 dark:text-green-400" />
+              <ArrowUpRight className="w-5 h-5 text-primary-600 dark:text-primary-400" />
             </div>
-            <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
+            <div className="text-3xl font-bold text-primary-600 dark:text-primary-400 mb-2">
               R$ {stats.totalCashbackGiven.toFixed(2)}
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -259,7 +259,7 @@ export default function Dashboard() {
           </div>
 
           {/* Resgates */}
-          <div className="card">
+          <div className="card-glass">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 Resgates Realizados

@@ -528,7 +528,7 @@ export default function CustomerDashboard() {
       {/* Meta tags dinâmicas para compartilhamento em redes sociais */}
       <MerchantSEO merchant={merchant} pageType="dashboard" />
       
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-primary-50/60 via-gray-50 to-secondary-50/40">
         {/* Header */}
       <div 
         className="text-white"
@@ -564,7 +564,7 @@ export default function CustomerDashboard() {
 
           {/* Saldo Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white bg-opacity-10 backdrop-blur rounded-xl p-4">
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-white/20 shadow-lg transition-transform hover:-translate-y-0.5">
               <div className="flex items-center gap-2 mb-2">
                 <Gift className="w-5 h-5" />
                 <span className="text-sm">Disponível</span>
@@ -578,7 +578,7 @@ export default function CustomerDashboard() {
               </p>
             </div>
 
-            <div className="bg-white bg-opacity-10 backdrop-blur rounded-xl p-4">
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-white/20 shadow-lg transition-transform hover:-translate-y-0.5">
               <div className="flex items-center gap-2 mb-2">
                 <TrendingUp className="w-5 h-5" />
                 <span className="text-sm">Total Acumulado</span>
@@ -592,7 +592,7 @@ export default function CustomerDashboard() {
               </p>
             </div>
 
-            <div className="bg-white bg-opacity-10 backdrop-blur rounded-xl p-4">
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-white/20 shadow-lg transition-transform hover:-translate-y-0.5">
               <div className="flex items-center gap-2 mb-2">
                 <ArrowDownCircle className="w-5 h-5" />
                 <span className="text-sm">Total Resgatado</span>
@@ -621,7 +621,7 @@ export default function CustomerDashboard() {
       {/* Content */}
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
         {/* Histórico Unificado */}
-        <div className="card">
+        <div className="card-glass">
           {/* Header com Filtros */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
             <div className="flex items-center gap-2">
